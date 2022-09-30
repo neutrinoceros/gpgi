@@ -8,7 +8,6 @@ from functools import cached_property
 from types import FunctionType
 
 import numpy as np
-import unyt as un
 
 
 class Geometry(enum.Enum):
@@ -39,7 +38,7 @@ _deposition_method_names: dict[str, DepositionMethod] = {
 }
 
 Name = str
-FieldMap = dict[Name, un.unyt_array]
+FieldMap = dict[Name, np.ndarray]
 
 
 class ValidatorMixin(ABC):
