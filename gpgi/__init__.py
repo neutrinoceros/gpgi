@@ -51,7 +51,7 @@ class ValidatorMixin(ABC):
         self,
         *fmaps: FieldMap | None,
         require_shape_equality: bool = True,
-        requirements: dict[Name, Any] | None = None,
+        **required_attrs: dict[Name, Any],
     ):
         if not fmaps:
             return
@@ -60,7 +60,7 @@ class ValidatorMixin(ABC):
         _reference_field_name: str
         for fmap in fmaps:
             if fmap is None:
-                continue
+                continue  # pragma: no cover
             for name, data in fmap.items():
                 if require_shape_equality:
                     if _reference_shape is None:
@@ -72,10 +72,9 @@ class ValidatorMixin(ABC):
                             f"have mismatching shapes {data.shape} and {_reference_shape}"
                         )
 
-                # optional size checks by order of increasing strictness
-                if not requirements:
-                    continue
-                for attr, expected in requirements.items():
+                if not required_attrs:
+                    continue  # pragma: no cover
+                for attr, expected in required_attrs.items():
                     if (actual := getattr(data, attr)) != expected:
                         raise ValueError(
                             f"Field {name!r} has incorrect {attr} {actual} "
@@ -91,7 +90,11 @@ class ValidatorMixin(ABC):
             Geometry.SPHERICAL: ("radius", "colatitude", "azimuth"),
         }
         if self.geometry not in known_axes:
-            raise ValueError(f"Unknown geometry {self.geometry.name.lower()!r}")
+            # TODO: when Python 3.10 is required, refactor as a match/case block
+            # and check that the default case is unreacheable at type check time
+            raise ValueError(
+                f"Unknown geometry {self.geometry.name.lower()!r}"
+            )  # pragma: no cover
 
         axes = known_axes[self.geometry]
         for expected, actual in zip(axes, self.axes):
@@ -109,16 +112,12 @@ class Grid(ValidatorMixin):
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(
-            self.cell_edges, require_shape_equality=False, requirements={"ndim": 1}
-        )
+        self._validate_fieldmaps(self.cell_edges, require_shape_equality=False, ndim=1)
         self._validate_fieldmaps(
             self.fields,
-            requirements={
-                "size": self.size,
-                "ndim": self.ndim,
-                "shape": self.shape,
-            },
+            size=self.size,
+            ndim=self.ndim,
+            shape=self.shape,
         )
 
     @property
@@ -146,7 +145,7 @@ class ParticleSet(ValidatorMixin):
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(self.positions, self.fields, requirements={"ndim": 1})
+        self._validate_fieldmaps(self.positions, self.fields, ndim=1)
 
     @property
     def axes(self) -> tuple[Name, ...]:
@@ -189,12 +188,17 @@ class Dataset:
                 self._hci[ipart, idim] = idx
 
     def deposit(self, particle_field_key: Name, /, *, method: Name) -> np.ndarray:
+        if not hasattr(self, "_cache"):
+            self._cache: dict[tuple(Name, Name), np.ndarray] = {}
+        if (particle_field_key, method) in self._cache:
+            return self._cache[particle_field_key, method]
+
         # public interface
         if method in _deposition_method_names:
             met = _deposition_method_names[method]
         else:
             raise ValueError(
-                f"unknown deposition method {method!r}, "
+                f"Unknown deposition method {method!r}, "
                 f"expected any of {tuple(_deposition_method_names.keys())}"
             )
         if self.grid is None:
@@ -219,6 +223,7 @@ class Dataset:
         self._setup_host_cell_index()
 
         known_methods[met](self.particles.count, self._hci, pfield, ret_array)
+        self._cache[particle_field_key, method] = ret_array
         return ret_array
 
 
