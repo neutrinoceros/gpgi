@@ -51,9 +51,7 @@ class ValidatorMixin(ABC):
         self,
         *fmaps: FieldMap | None,
         require_shape_equality: bool = True,
-        require_ndim: int | None = None,
-        require_shape: tuple[int, ...] | None = None,
-        require_size: int | None = None,
+        requirements: dict[Name, Any] | None = None,
     ):
         if not fmaps:
             return
@@ -75,29 +73,14 @@ class ValidatorMixin(ABC):
                         )
 
                 # optional size checks by order of increasing strictness
-                if require_size is None:
-                    pass
-                elif data.size != require_size:
-                    raise ValueError(
-                        f"Field {name!r} has incorrect size {data.size} "
-                        f"(expected {require_size})"
-                    )
-
-                if require_ndim is None:
-                    pass
-                elif data.ndim != require_ndim:
-                    raise ValueError(
-                        f"Field {name!r} has incorrect ndim {data.ndim} "
-                        f"(expected {require_ndim})"
-                    )
-
-                if require_shape is None:
-                    pass
-                elif data.shape != require_shape:
-                    raise ValueError(
-                        f"Field {name!r} has incorrect shape {data.shape} "
-                        f"(expected {require_shape})"
-                    )
+                if not requirements:
+                    continue
+                for attr, expected in requirements.items():
+                    if (actual := getattr(data, attr)) != expected:
+                        raise ValueError(
+                            f"Field {name!r} has incorrect {attr} {actual} "
+                            f"(expected {expected})"
+                        )
 
     def _validate_geometry(self):
 
@@ -127,13 +110,15 @@ class Grid(ValidatorMixin):
     def validate(self) -> None:
         self._validate_geometry()
         self._validate_fieldmaps(
-            self.cell_edges, require_shape_equality=False, require_ndim=1
+            self.cell_edges, require_shape_equality=False, requirements={"ndim": 1}
         )
         self._validate_fieldmaps(
             self.fields,
-            require_ndim=self.ndim,
-            require_size=self.size,
-            require_shape=self.shape,
+            requirements={
+                "size": self.size,
+                "ndim": self.ndim,
+                "shape": self.shape,
+            },
         )
 
     @property
@@ -161,7 +146,7 @@ class ParticleSet(ValidatorMixin):
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(self.positions, self.fields, require_ndim=1)
+        self._validate_fieldmaps(self.positions, self.fields, requirements={"ndim": 1})
 
     @property
     def axes(self) -> tuple[Name, ...]:
