@@ -51,11 +51,8 @@ class ValidatorMixin(ABC):
         self,
         *fmaps: FieldMap | None,
         require_shape_equality: bool = True,
-        **required_attrs: dict[Name, Any],
+        **required_attrs: Any,
     ):
-        if not fmaps:
-            return
-
         _reference_shape: tuple[int, ...] | None = None
         _reference_field_name: str
         for fmap in fmaps:
@@ -175,7 +172,10 @@ class Dataset:
 
     def _setup_host_cell_index(self):
         if hasattr(self, "_hci"):
-            return
+            # this line is hard to cover by testing just public api
+            # because it's a pure performance optimization with no other observable effect
+            return  # pragma: no cover
+
         self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="int64")
         for ipart in range(self.particles.count):
             for idim, ax in enumerate(self.grid.axes):
@@ -189,7 +189,7 @@ class Dataset:
 
     def deposit(self, particle_field_key: Name, /, *, method: Name) -> np.ndarray:
         if not hasattr(self, "_cache"):
-            self._cache: dict[tuple(Name, Name), np.ndarray] = {}
+            self._cache: dict[tuple[Name, Name], np.ndarray] = {}
         if (particle_field_key, method) in self._cache:
             return self._cache[particle_field_key, method]
 

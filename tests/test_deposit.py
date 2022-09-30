@@ -83,15 +83,20 @@ def test_unknown_method(sample_dataset):
         sample_dataset.deposit("density", method="test")
 
 
-@pytest.mark.mpl_image_compare
-def test_particle_deposition(sample_dataset):
+def test_double_deposit(sample_dataset):
     ds = sample_dataset
-    gas_density = ds.grid.fields["density"]
     particle_density = ds.deposit("mass", method="pic")
 
     # a second call should yield the same exact array
     particle_density_2 = ds.deposit("mass", method="pic")
     assert particle_density_2 is particle_density
+
+
+@pytest.mark.mpl_image_compare
+def test_deposit_image(sample_dataset):
+    ds = sample_dataset
+    gas_density = ds.grid.fields["density"]
+    particle_density = ds.deposit("mass", method="pic")
 
     mass_ratio = particle_density / gas_density
 
