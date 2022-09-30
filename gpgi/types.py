@@ -89,8 +89,7 @@ class ValidatorMixin(ABC):
                     f"Got invalid axis {actual!r} with geometry {self.geometry.name.lower()!r}"
                 )
 
-        T = float | None
-        known_limits: dict[Name, tuple[T, T]] = {
+        known_limits: dict[Name, tuple[float | None, float | None]] = {
             "x": (None, None),
             "y": (None, None),
             "z": (None, None),
