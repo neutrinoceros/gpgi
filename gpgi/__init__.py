@@ -81,7 +81,7 @@ class ValidatorMixin(ABC):
         if self.geometry not in known_axes:
             raise ValueError(f"Unknown geometry {self.geometry.name.lower()!r}")
 
-        axes = known_axes[self.goemetry]
+        axes = known_axes[self.geometry]
         for expected, actual in zip(axes, self.axes):
             if actual != expected:
                 raise ValueError(
