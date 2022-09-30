@@ -1,3 +1,5 @@
+import re
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -35,6 +37,116 @@ def sample_dataset():
     )
 
 
+def test_load_null_dataset():
+    ds = gpgi.load(geometry="cartesian")
+    assert ds.grid is None
+    assert ds.particles is None
+
+
+def test_load_standalone_grid():
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.array([0, 1]),
+                "y": np.array([0, 1]),
+                "z": np.array([0, 1]),
+            }
+        },
+    )
+    assert ds.grid.ndim == 3
+    assert ds.grid.axes == ("x", "y", "z")
+    assert ds.grid.shape == (1, 1, 1)
+    assert ds.particles is None
+
+
+def test_load_standalone_particles():
+    ds = gpgi.load(
+        geometry="cartesian",
+        particles={
+            "positions": {
+                "x": np.array([0, 1]),
+                "y": np.array([0, 1]),
+                "z": np.array([0, 1]),
+            }
+        },
+    )
+    assert ds.particles.ndim == 3
+    assert ds.particles.axes == ("x", "y", "z")
+    assert ds.particles.count == 2
+    assert ds.grid is None
+
+
+def test_load_invalid_grid():
+    with pytest.raises(
+        ValueError, match="grid dictionary missing required key 'cell_edges'"
+    ):
+        gpgi.load(geometry="cartesian", grid={})
+
+
+def test_load_invalid_particles():
+    with pytest.raises(
+        ValueError, match="particles dictionary missing required key 'positions'"
+    ):
+        gpgi.load(geometry="cartesian", particles={})
+
+
+def test_inconsistent_shape_particle_data():
+    with pytest.raises(
+        ValueError,
+        match=re.escape(r"Fields 'y' and 'x' have mismatching shapes (3,) and (2,)"),
+    ):
+        gpgi.load(
+            geometry="cartesian",
+            particles={
+                "positions": {
+                    "x": np.array([0, 0]),
+                    "y": np.array([0, 0, 0]),
+                }
+            },
+        )
+
+
+def test_inconsistent_dim_grid_data():
+    with pytest.raises(
+        ValueError,
+        match=re.escape(r"Field 'density' has incorrect dimensionality 1 (expected 2)"),
+    ):
+        gpgi.load(
+            geometry="cartesian",
+            grid={
+                "cell_edges": {
+                    "x": np.array([0, 0]),
+                    "y": np.array([0, 0, 0]),
+                },
+                "field": {
+                    "density": np.ones(6),
+                    "velocity_x": np.ones(5),
+                },
+            },
+        )
+
+
+def test_inconsistent_sizes_grid_data():
+    with pytest.raises(
+        ValueError,
+        match=re.escape(r"Field 'velocity_x' has incorrect size 5 (expected 6)"),
+    ):
+        gpgi.load(
+            geometry="cartesian",
+            grid={
+                "cell_edges": {
+                    "x": np.array([0, 0]),
+                    "y": np.array([0, 0, 0]),
+                },
+                "field": {
+                    "density": np.ones(6),
+                    "velocity_x": np.ones(5),
+                },
+            },
+        )
+
+
 @pytest.mark.parametrize(
     "geometry, axes",
     [
@@ -56,6 +168,16 @@ def test_invalid_axes(geometry, axes):
             geometry=geometry,
             grid={"cell_edges": {_: [0, 1] for _ in axes}},
         )
+
+
+def test_invalid_geometry():
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            r"unknown geometry 'unknown', expected any of ('cartesian', 'polar', 'cylindrical', 'spherical')"
+        ),
+    ):
+        gpgi.load(geometry="unknown")
 
 
 @pytest.mark.mpl_image_compare

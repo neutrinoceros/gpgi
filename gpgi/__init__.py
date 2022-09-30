@@ -114,7 +114,7 @@ class Grid(ValidatorMixin):
 
     @property
     def ndim(self) -> int:
-        return len(self.shape)
+        return len(self.axes)
 
 
 @dataclass
@@ -135,6 +135,10 @@ class ParticleSet(ValidatorMixin):
     def count(self):
         for p in self.positions.values():
             return len(p)
+
+    @property
+    def ndim(self) -> int:
+        return len(self.axes)
 
 
 def _deposit_pic(pcount, hci, pfield, buffer):
