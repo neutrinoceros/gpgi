@@ -5,7 +5,7 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ggi"
+name = "gpgi"
 version = "0.0.1"
 description = "A generic interface to ... grid-based and lagrangian particle spatial data"
 authors = [
