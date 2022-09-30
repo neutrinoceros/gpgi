@@ -19,7 +19,7 @@ jobs:
         ]
         python-version: [
           '3.9',
-          '3.11-dev',
+          '3.10',
         ]
     runs-on: ${{ matrix.os }}
     steps:
