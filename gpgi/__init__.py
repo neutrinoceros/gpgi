@@ -47,7 +47,14 @@ class ValidatorMixin(ABC):
     def validate(self) -> None:
         ...
 
-    def _validate_fieldmaps(self, *fmaps: FieldMap | None, ndim: int | None = None):
+    def _validate_fieldmaps(
+        self,
+        *fmaps: FieldMap | None,
+        require_shape_equality: bool = True,
+        require_ndim: int | None = None,
+        require_shape: tuple[int, ...] | None = None,
+        require_size: int | None = None,
+    ):
         if not fmaps:
             return
 
@@ -57,21 +64,38 @@ class ValidatorMixin(ABC):
             if fmap is None:
                 continue
             for name, data in fmap.items():
-                if _reference_shape is None:
-                    _reference_shape = data.shape
-                    _reference_field_name = name
-                elif data.shape != _reference_shape:
-                    raise ValueError(
-                        f"Fields {name!r} and {_reference_field_name!r} "
-                        f"have mismatching shapes {data.shape} and {_reference_shape}"
-                    )
+                if require_shape_equality:
+                    if _reference_shape is None:
+                        _reference_shape = data.shape
+                        _reference_field_name = name
+                    elif data.shape != _reference_shape:
+                        raise ValueError(
+                            f"Fields {name!r} and {_reference_field_name!r} "
+                            f"have mismatching shapes {data.shape} and {_reference_shape}"
+                        )
 
-                if ndim is None:
-                    continue
-                elif data.ndim != ndim:
+                if require_ndim is None:
+                    pass
+                elif data.ndim != require_ndim:
                     raise ValueError(
                         f"Field {name!r} has incorrect dimensionality {data.ndim} "
-                        f"(expected {ndim})"
+                        f"(expected {require_ndim})"
+                    )
+
+                if require_shape is None:
+                    pass
+                elif data.shape != require_shape:
+                    raise ValueError(
+                        f"Field {name!r} has incorrect shape {data.shape} "
+                        f"(expected {require_shape})"
+                    )
+
+                if require_size is None:
+                    pass
+                elif data.size != require_size:
+                    raise ValueError(
+                        f"Field {name!r} has incorrect size {data.size} "
+                        f"(expected {require_size})"
                     )
 
     def _validate_geometry(self):
@@ -101,8 +125,15 @@ class Grid(ValidatorMixin):
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(self.cell_edges, ndim=1)
-        self._validate_fieldmaps(self.fields)
+        self._validate_fieldmaps(
+            self.cell_edges, require_shape_equality=False, require_ndim=1
+        )
+        self._validate_fieldmaps(
+            self.fields,
+            require_ndim=self.ndim,
+            require_size=self.size,
+            require_shape=self.shape,
+        )
 
     @property
     def axes(self) -> tuple[Name, ...]:
@@ -111,6 +142,10 @@ class Grid(ValidatorMixin):
     @cached_property
     def shape(self) -> tuple[int, ...]:
         return tuple(len(_) - 1 for _ in self.cell_edges.values())
+
+    @property
+    def size(self):
+        return np.product(self.shape)
 
     @property
     def ndim(self) -> int:
@@ -125,7 +160,7 @@ class ParticleSet(ValidatorMixin):
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(self.positions, self.fields, ndim=1)
+        self._validate_fieldmaps(self.positions, self.fields, require_ndim=1)
 
     @property
     def axes(self) -> tuple[Name, ...]:

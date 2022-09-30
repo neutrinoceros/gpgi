@@ -119,7 +119,7 @@ def test_inconsistent_dim_grid_data():
                     "x": np.array([0, 0]),
                     "y": np.array([0, 0, 0]),
                 },
-                "field": {
+                "fields": {
                     "density": np.ones(6),
                     "velocity_x": np.ones(5),
                 },
@@ -127,10 +127,12 @@ def test_inconsistent_dim_grid_data():
         )
 
 
-def test_inconsistent_sizes_grid_data():
+def test_inconsistent_shape_grid_data():
     with pytest.raises(
         ValueError,
-        match=re.escape(r"Field 'velocity_x' has incorrect size 5 (expected 6)"),
+        match=re.escape(
+            r"Field 'density' has incorrect shape (2, 1) (expected (1, 2))"
+        ),
     ):
         gpgi.load(
             geometry="cartesian",
@@ -139,9 +141,8 @@ def test_inconsistent_sizes_grid_data():
                     "x": np.array([0, 0]),
                     "y": np.array([0, 0, 0]),
                 },
-                "field": {
-                    "density": np.ones(6),
-                    "velocity_x": np.ones(5),
+                "fields": {
+                    "density": np.ones((2, 1)),
                 },
             },
         )
