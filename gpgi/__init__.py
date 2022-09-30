@@ -45,7 +45,7 @@ FieldMap = dict[Name, np.ndarray]
 class ValidatorMixin(ABC):
     @abstractmethod
     def validate(self) -> None:
-        pass
+        ...
 
     def _validate_fieldmaps(self, *fmaps: FieldMap | None, ndim: int | None = None):
         if not fmaps:
