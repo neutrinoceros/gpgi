@@ -28,6 +28,7 @@ test = [
     "pytest>=7.0.0",
     "pytest-mpl>=0.16.1",
     "matplotlib>=3.6",
+    "unyt>=2.9.2",
 ]
 
 typecheck = [
