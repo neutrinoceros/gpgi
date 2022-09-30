@@ -5,9 +5,10 @@ from abc import ABC
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
-from types import FunctionType
+from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 
 
 class Geometry(enum.Enum):
@@ -46,29 +47,32 @@ class ValidatorMixin(ABC):
     def validate(self) -> None:
         pass
 
-    def _validate_fieldmap(self, fmap: FieldMap | None, ndim: int | None = None):
-        if fmap is None:
+    def _validate_fieldmaps(self, *fmaps: FieldMap | None, ndim: int | None = None):
+        if not fmaps:
             return
 
         _reference_shape: tuple[int, ...] | None = None
         _reference_field_name: str
-        for name, data in fmap.items():
-            if _reference_shape is None:
-                _reference_shape = data.shape
-                _reference_field_name = name
-            elif data.shape != _reference_shape:
-                raise ValueError(
-                    f"Fields {name!r} and {_reference_field_name!r} "
-                    f"have mismatching shapes {data.shape} and {_reference_shape}"
-                )
-
-            if ndim is None:
+        for fmap in fmaps:
+            if fmap is None:
                 continue
-            elif data.ndim != ndim:
-                raise ValueError(
-                    f"Field {name!r} has incorrect dimensionality {data.ndim} "
-                    f"(expected {ndim})"
-                )
+            for name, data in fmap.items():
+                if _reference_shape is None:
+                    _reference_shape = data.shape
+                    _reference_field_name = name
+                elif data.shape != _reference_shape:
+                    raise ValueError(
+                        f"Fields {name!r} and {_reference_field_name!r} "
+                        f"have mismatching shapes {data.shape} and {_reference_shape}"
+                    )
+
+                if ndim is None:
+                    continue
+                elif data.ndim != ndim:
+                    raise ValueError(
+                        f"Field {name!r} has incorrect dimensionality {data.ndim} "
+                        f"(expected {ndim})"
+                    )
 
     def _validate_geometry(self):
 
@@ -97,8 +101,8 @@ class Grid(ValidatorMixin):
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmap(self.cell_edges, ndim=1)
-        self._validate_fieldmap(self.fields)
+        self._validate_fieldmaps(self.cell_edges, ndim=1)
+        self._validate_fieldmaps(self.fields)
 
     @property
     def axes(self) -> tuple[Name, ...]:
@@ -112,10 +116,6 @@ class Grid(ValidatorMixin):
     def ndim(self) -> int:
         return len(self.shape)
 
-    @property
-    def axes(self) -> tuple[Name, ...]:
-        return tuple(self.cell_edges)
-
 
 @dataclass
 class ParticleSet(ValidatorMixin):
@@ -125,7 +125,7 @@ class ParticleSet(ValidatorMixin):
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmap(self.positions | self.fields, ndim=1)
+        self._validate_fieldmaps(self.positions, self.fields, ndim=1)
 
     @property
     def axes(self) -> tuple[Name, ...]:
@@ -137,9 +137,7 @@ class ParticleSet(ValidatorMixin):
             return len(p)
 
 
-def _deposit_pic(
-    pcount: int, hci: np.ndarray[int], pfield: np.ndarray, buffer: np.ndarray
-) -> None:
+def _deposit_pic(pcount, hci, pfield, buffer):
     for ipart in range(pcount):
         md_idx = tuple(hci[ipart])
         buffer[md_idx] += pfield[ipart].d
@@ -175,9 +173,17 @@ class Dataset:
                 f"expected any of {tuple(_deposition_method_names.keys())}"
             )
         if self.grid is None:
-            raise TypeError("Cannot deposit particle fields on a grid-less dataset.")
+            raise TypeError("Cannot deposit particle fields on a grid-less dataset")
+        if self.particles is None:
+            raise TypeError("Cannot deposit particle fields on a particle-less dataset")
+        if self.particles.fields is None:
+            raise TypeError("There are no particle fields")
+        if particle_field_key not in self.particles.fields:
+            raise ValueError(f"Unknown particle field {particle_field_key!r}")
 
-        known_methods: dict[DepositionMethod, FunctionType] = {
+        # deactivating type checking for deposition methods because
+        # they may be ported to Cyhton later
+        known_methods: dict[DepositionMethod, Any] = {
             DepositionMethod.PARTICLE_IN_CELL: _deposit_pic,
         }
         if met not in known_methods:
