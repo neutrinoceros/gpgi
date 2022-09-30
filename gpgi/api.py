@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from .types import Dataset
 from .types import FieldMap
 from .types import Geometry
