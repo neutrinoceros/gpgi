@@ -14,7 +14,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          #- macos-latest
+          - macos-latest
           - windows-latest
         python-version:
           - '3.9'
@@ -35,6 +35,9 @@ jobs:
     - run: python -m coverage run -m pytest
 
     - name: Upload coverage data
+      # only using reports from ubuntu because
+      # combining reports from multiple platform is tricky (or impossible ?)
+      if: matrix.os == ubuntu-latest
       uses: actions/upload-artifact@v3
       with:
         name: coverage-data
