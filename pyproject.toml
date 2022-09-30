@@ -61,9 +61,6 @@ namespaces = false
 [tool.coverage.run]
 parallel = true
 
-[tool.coverage.paths]
-source = ["gpgi",]
-
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
