@@ -24,7 +24,7 @@ def sample_dataset():
             },
         },
         particles={
-            "positions": {
+            "coordinates": {
                 "x": (2 * prng.random_sample(nparticles) - 1) * un.m,
                 "y": (2 * prng.random_sample(nparticles)) * un.m,
             },
@@ -38,7 +38,10 @@ def sample_dataset():
 def test_missing_grid():
     ds = gpgi.load(
         geometry="cartesian",
-        particles={"positions": {"x": np.arange(10)}, "fields": {"mass": np.ones(10)}},
+        particles={
+            "coordinates": {"x": np.arange(10)},
+            "fields": {"mass": np.ones(10)},
+        },
     )
     with pytest.raises(
         TypeError, match="Cannot deposit particle fields on a grid-less dataset"
@@ -65,7 +68,7 @@ def test_missing_fields():
         grid={
             "cell_edges": {"x": np.arange(10)},
         },
-        particles={"positions": {"x": np.arange(10)}},
+        particles={"coordinates": {"x": np.arange(10)}},
     )
     with pytest.raises(TypeError, match="There are no particle fields"):
         ds.deposit("mass", method="pic")
@@ -116,7 +119,7 @@ def test_deposit_image(sample_dataset):
             ax.scatter(
                 "x",
                 "y",
-                data=ds.particles.positions,
+                data=ds.particles.coordinates,
                 edgecolor="black",
                 color="tab:red",
                 marker="o",

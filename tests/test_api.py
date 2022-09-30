@@ -33,7 +33,7 @@ def test_load_standalone_particles():
     ds = gpgi.load(
         geometry="cartesian",
         particles={
-            "positions": {
+            "coordinates": {
                 "x": np.array([0, 1]),
                 "y": np.array([0, 1]),
                 "z": np.array([0, 1]),
@@ -55,7 +55,7 @@ def test_load_invalid_grid():
 
 def test_load_invalid_particles():
     with pytest.raises(
-        ValueError, match="particles dictionary missing required key 'positions'"
+        ValueError, match="particles dictionary missing required key 'coordinates'"
     ):
         gpgi.load(geometry="cartesian", particles={})
 
@@ -68,7 +68,7 @@ def test_inconsistent_shape_particle_data():
         gpgi.load(
             geometry="cartesian",
             particles={
-                "positions": {
+                "coordinates": {
                     "x": np.array([0, 0]),
                     "y": np.array([0, 0, 0]),
                 }

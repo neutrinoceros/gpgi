@@ -42,7 +42,7 @@ class ValidatorMixin(ABC):
         *fmaps: FieldMap | None,
         require_shape_equality: bool = True,
         **required_attrs: Any,
-    ):
+    ) -> None:
         _reference_shape: tuple[int, ...] | None = None
         _reference_field_name: str
         for fmap in fmaps:
@@ -68,9 +68,8 @@ class ValidatorMixin(ABC):
                             f"(expected {expected})"
                         )
 
-    def _validate_geometry(self):
-
-        known_axes: tuple[Name, Name, Name] = {
+    def _validate_geometry(self) -> None:
+        known_axes: dict[Geometry, tuple[Name, Name, Name]] = {
             Geometry.CARTESIAN: ("x", "y", "z"),
             Geometry.POLAR: ("radius", "z", "azimuth"),
             Geometry.CYLINDRICAL: ("radius", "azimuth", "z"),
@@ -90,6 +89,31 @@ class ValidatorMixin(ABC):
                     f"Got invalid axis {actual!r} with geometry {self.geometry.name.lower()!r}"
                 )
 
+        T = float | None
+        known_limits: dict[Name, tuple[T, T]] = {
+            "x": (None, None),
+            "y": (None, None),
+            "z": (None, None),
+            "radius": (0, None),
+            "azimuth": (0, 2 * np.pi),
+            "colatitude": (0, np.pi),
+        }
+        for axis, coord in self.coordinates.items():
+            lims = known_limits.get(axis)
+            if lims is None:
+                continue
+            xmin, xmax = lims
+            if xmin is not None and (cmin := np.min(coord)) < xmin:
+                raise ValueError(
+                    f"Invalid coordinate data for axis {axis!r} {cmin} "
+                    f"(minimal allowed value is {xmin})"
+                )
+            if xmax is not None and (cmax := np.max(coord)) > xmax:
+                raise ValueError(
+                    f"Invalid coordinate data for axis {axis!r} {cmax} "
+                    f"(maximal allowed value is {xmax})"
+                )
+
 
 @dataclass
 class Grid(ValidatorMixin):
@@ -106,6 +130,10 @@ class Grid(ValidatorMixin):
             ndim=self.ndim,
             shape=self.shape,
         )
+
+    @property
+    def coordinates(self) -> FieldMap:
+        return self.cell_edges
 
     @property
     def axes(self) -> tuple[Name, ...]:
@@ -127,20 +155,20 @@ class Grid(ValidatorMixin):
 @dataclass
 class ParticleSet(ValidatorMixin):
     geometry: Geometry
-    positions: FieldMap
+    coordinates: FieldMap
     fields: FieldMap | None
 
     def validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(self.positions, self.fields, ndim=1)
+        self._validate_fieldmaps(self.coordinates, self.fields, ndim=1)
 
     @property
     def axes(self) -> tuple[Name, ...]:
-        return tuple(self.positions.keys())
+        return tuple(self.coordinates.keys())
 
     @property
     def count(self):
-        for p in self.positions.values():
+        for p in self.coordinates.values():
             return len(p)
 
     @property
@@ -170,7 +198,7 @@ class Dataset:
         for ipart in range(self.particles.count):
             for idim, ax in enumerate(self.grid.axes):
                 idx = 0
-                x = self.particles.positions[ax][ipart]
+                x = self.particles.coordinates[ax][ipart]
                 edges = self.grid.cell_edges[ax]
                 max_idx = len(edges) - 1
                 while idx <= max_idx and edges[idx + 1] < x:
