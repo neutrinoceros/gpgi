@@ -1,0 +1,74 @@
+[build-system]
+requires = [
+    "setuptools>=61.2",
+]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ggi"
+version = "0.0.1"
+description = "A generic interface to ... grid-based and lagrangian particle spatial data"
+authors = [
+    { name = "C.M.T. Robert" },
+]
+classifiers = [
+    "Intended Audience :: Astronomers",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "numpy>=1.18",
+]
+
+[project.optional-dependencies]
+test = [
+    "coverage[toml]>=6.5",
+    "pytest>=7.0.0",
+    "pytest-mpl>=0.16.1",
+    "matplotlib>=3.6",
+]
+
+typecheck = [
+    "mypy==0.971",
+    "numpy~=1.23",
+]
+
+[project.readme]
+file = "README.md"
+content-type = "text/markdown"
+
+[project.license]
+text = "GPL-3.0"
+
+[project.urls]
+Homepage = "noneyet"
+
+[tool.setuptools]
+license-files = [
+    "LICENSE",
+]
+include-package-data = false
+
+
+
+[tool.setuptools.packages.find]
+exclude = [
+    "tests*",
+    "testing*",
+]
+namespaces = false
+
+[tool.black]
+target_version = ["py38",]
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest]
+filterwarnings = [
+  "error",
+]
