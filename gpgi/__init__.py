@@ -74,11 +74,20 @@ class ValidatorMixin(ABC):
                             f"have mismatching shapes {data.shape} and {_reference_shape}"
                         )
 
+                # optional size checks by order of increasing strictness
+                if require_size is None:
+                    pass
+                elif data.size != require_size:
+                    raise ValueError(
+                        f"Field {name!r} has incorrect size {data.size} "
+                        f"(expected {require_size})"
+                    )
+
                 if require_ndim is None:
                     pass
                 elif data.ndim != require_ndim:
                     raise ValueError(
-                        f"Field {name!r} has incorrect dimensionality {data.ndim} "
+                        f"Field {name!r} has incorrect ndim {data.ndim} "
                         f"(expected {require_ndim})"
                     )
 
@@ -88,14 +97,6 @@ class ValidatorMixin(ABC):
                     raise ValueError(
                         f"Field {name!r} has incorrect shape {data.shape} "
                         f"(expected {require_shape})"
-                    )
-
-                if require_size is None:
-                    pass
-                elif data.size != require_size:
-                    raise ValueError(
-                        f"Field {name!r} has incorrect size {data.size} "
-                        f"(expected {require_size})"
                     )
 
     def _validate_geometry(self):

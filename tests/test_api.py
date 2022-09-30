@@ -107,31 +107,20 @@ def test_inconsistent_shape_particle_data():
         )
 
 
-def test_inconsistent_dim_grid_data():
-    with pytest.raises(
-        ValueError,
-        match=re.escape(r"Field 'density' has incorrect dimensionality 1 (expected 2)"),
-    ):
-        gpgi.load(
-            geometry="cartesian",
-            grid={
-                "cell_edges": {
-                    "x": np.array([0, 0]),
-                    "y": np.array([0, 0, 0]),
-                },
-                "fields": {
-                    "density": np.ones(6),
-                    "velocity_x": np.ones(5),
-                },
-            },
-        )
-
-
-def test_inconsistent_shape_grid_data():
+@pytest.mark.parametrize(
+    "invalid_attr, data, expected",
+    [
+        ("size", np.ones(3), 2),
+        ("ndim", np.ones(2), 2),
+        ("shape", np.ones((2, 1)), (1, 2)),
+    ],
+)
+def test_inconsistent_grid_data(data, invalid_attr, expected):
+    actual = getattr(data, invalid_attr)
     with pytest.raises(
         ValueError,
         match=re.escape(
-            r"Field 'density' has incorrect shape (2, 1) (expected (1, 2))"
+            rf"Field 'density' has incorrect {invalid_attr} {actual} (expected {expected})"
         ),
     ):
         gpgi.load(
@@ -142,7 +131,7 @@ def test_inconsistent_shape_grid_data():
                     "y": np.array([0, 0, 0]),
                 },
                 "fields": {
-                    "density": np.ones((2, 1)),
+                    "density": data,
                 },
             },
         )
