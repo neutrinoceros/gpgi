@@ -62,10 +62,10 @@ exclude = [
 namespaces = false
 
 [tool.black]
-target_version = ["py38",]
+target_version = ["py39",]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
 
