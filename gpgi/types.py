@@ -42,7 +42,7 @@ class ValidatorMixin(ABC):
         *fmaps: FieldMap | None,
         require_shape_equality: bool = True,
         **required_attrs: Any,
-    ):
+    ) -> None:
         _reference_shape: tuple[int, ...] | None = None
         _reference_field_name: str
         for fmap in fmaps:
@@ -68,7 +68,7 @@ class ValidatorMixin(ABC):
                             f"(expected {expected})"
                         )
 
-    def _validate_geometry(self):
+    def _validate_geometry(self) -> None:
         known_axes: dict[Geometry, tuple[Name, Name, Name]] = {
             Geometry.CARTESIAN: ("x", "y", "z"),
             Geometry.POLAR: ("radius", "z", "azimuth"),
@@ -140,8 +140,8 @@ class Grid(ValidatorMixin):
         return tuple(len(_) - 1 for _ in self.cell_edges.values())
 
     @property
-    def size(self):
-        return np.product(self.shape)
+    def size(self) -> int:
+        return int(np.product(self.shape))
 
     @property
     def ndim(self) -> int:
@@ -163,16 +163,15 @@ class ParticleSet(ValidatorMixin):
         return tuple(self.coordinates.keys())
 
     @property
-    def count(self):
-        for p in self.coordinates.values():
-            return len(p)
+    def count(self) -> int:
+        return len(next(iter(self.coordinates.values())))
 
     @property
     def ndim(self) -> int:
         return len(self.axes)
 
 
-def _deposit_pic(pcount, hci, pfield, buffer):
+def _deposit_pic(pcount, hci, pfield, buffer):  # type: ignore [no-untyped-def]
     for ipart in range(pcount):
         md_idx = tuple(hci[ipart])
         buffer[md_idx] += pfield[ipart].d
@@ -184,8 +183,8 @@ class Dataset:
     grid: Grid | None = None
     particles: ParticleSet | None = None
 
-    def _setup_host_cell_index(self):
-        if hasattr(self, "_hci"):
+    def _setup_host_cell_index(self) -> None:
+        if hasattr(self, "_hci") or self.particles is None or self.grid is None:
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
             return  # pragma: no cover
