@@ -7,9 +7,14 @@ import gpgi
 
 
 def test_load_null_dataset():
-    ds = gpgi.load(geometry="cartesian")
-    assert ds.grid is None
-    assert ds.particles is None
+    with pytest.raises(
+        TypeError,
+        match=(
+            "Cannot instantiate empty dataset. "
+            "Grid and/or particle data must be provided"
+        ),
+    ):
+        gpgi.load(geometry="cartesian")
 
 
 def test_load_standalone_grid():

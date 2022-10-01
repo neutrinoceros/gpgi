@@ -33,12 +33,18 @@ Name = str
 FieldMap = dict[Name, np.ndarray]
 
 
-class SpatialData(Protocol):
+class GeometricData(Protocol):
     geometry: Geometry
     axes: tuple[Name, ...]
 
 
-class ValidatorMixin(SpatialData, ABC):
+class CoordinateData(Protocol):
+    geometry: Geometry
+    axes: tuple[Name, ...]
+    coordinates: FieldMap
+
+
+class ValidatorMixin(GeometricData, ABC):
     def __init__(self) -> None:
         self._validate()
 
@@ -109,6 +115,9 @@ class ValidatorMixin(SpatialData, ABC):
                     f"Got invalid axis {actual!r} with geometry {self.geometry.name.lower()!r}"
                 )
 
+
+class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
+    def _validate_coordinates(self) -> None:
         known_limits: dict[Name, tuple[float | None, float | None]] = {
             "radius": (0, None),
             "azimuth": (0, 2 * np.pi),
@@ -131,13 +140,13 @@ class ValidatorMixin(SpatialData, ABC):
                 )
 
 
-class Grid(ValidatorMixin):
+class Grid(CoordinateValidatorMixin):
     def __init__(
         self,
         geometry: Geometry,
         cell_edges: FieldMap,
         fields: FieldMap | None,
-    ):
+    ) -> None:
         self.geometry = geometry
         self.coordinates = cell_edges
         self.fields = fields
@@ -147,6 +156,7 @@ class Grid(ValidatorMixin):
 
     def _validate(self) -> None:
         self._validate_geometry()
+        self._validate_coordinates()
         self._validate_fieldmaps(self.cell_edges, ndim=1, require_sorted=True)
         self._validate_fieldmaps(
             self.fields,
@@ -180,7 +190,7 @@ class Grid(ValidatorMixin):
         return len(self.axes)
 
 
-class ParticleSet(ValidatorMixin):
+class ParticleSet(CoordinateValidatorMixin):
     def __init__(
         self,
         geometry: Geometry,
@@ -196,6 +206,7 @@ class ParticleSet(ValidatorMixin):
 
     def _validate(self) -> None:
         self._validate_geometry()
+        self._validate_coordinates()
         self._validate_fieldmaps(
             self.coordinates, self.fields, require_shape_equality=True, ndim=1
         )
@@ -216,11 +227,20 @@ class Dataset(ValidatorMixin):
         geometry: Geometry = Geometry.CARTESIAN,
         grid: Grid | None = None,
         particles: ParticleSet | None = None,
-    ):
+    ) -> None:
         self.geometry = geometry
         self.grid = grid
         self.particles = particles
 
+        if self.grid is not None:
+            self.axes = self.grid.axes
+        elif self.particles is not None:
+            self.axes = self.particles.axes
+        else:
+            raise TypeError(
+                "Cannot instantiate empty dataset. "
+                "Grid and/or particle data must be provided"
+            )
         super().__init__()
 
     def _validate(self) -> None:
