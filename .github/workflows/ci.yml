@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  tests:
+  unit-tests:
     strategy:
       matrix:
         os:
@@ -36,7 +36,7 @@ jobs:
 
     - name: Upload coverage data
       # only using reports from ubuntu because
-      # combining reports from multiple platform is tricky (or impossible ?)
+      # combining reports from multiple platforms is tricky (or impossible ?)
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v3
       with:
@@ -44,10 +44,62 @@ jobs:
         path: ".coverage.*"
         if-no-files-found: ignore
 
+  image-tests:
+    name: Image tests
+    runs-on: ubuntu-latest
+
+    concurrency:
+      # auto-cancel any in-progress job *on the same branch*
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - uses: actions/checkout@v3
+
+    - name: Build
+      run: python -m pip install ".[test]"
+
+    - name: Run Image Tests
+      run: |
+        pytest --color=yes --mpl -m mpl_image_compare \
+               --mpl-generate-summary=html \
+               --mpl-results-path=pytest_mpl_results \
+               --mpl-baseline-path=tests/pytest_mpl_baseline
+
+    - name: Generate new image baseline
+      if: failure()
+      run: |
+        pytest --color=yes --mpl -m mpl_image_compare \
+               --mpl-generate-path=pytest_mpl_new_baseline \
+               --last-failed
+
+    # always attempt to upload artifacts, even
+    # (and especially) in case of failure.
+    - name: Upload pytest-mpl report
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: gpgi_pytest_mpl_results
+        path: pytest_mpl_results/*
+
+    - name: Upload pytest-mpl baseline
+      if: always()
+      uses: actions/upload-artifact@v2
+      with:
+        name: gpgi_pytest_mpl_new_baseline
+        path: pytest_mpl_new_baseline/*
+        if-no-files-found: ignore
+
+
   coverage:
     name: Combine & check coverage.
     runs-on: ubuntu-latest
-    needs: tests
+    needs: unit-tests
 
     steps:
       - uses: actions/checkout@v3
@@ -62,7 +114,7 @@ jobs:
         with:
           name: coverage-data
 
-      - name: Combine coverage & fail if it's <100%.
+      - name: Check coverage
         run: |
           python -m coverage combine
           python -m coverage html --skip-covered --skip-empty
@@ -71,7 +123,7 @@ jobs:
       - name: Upload HTML report if check failed.
         uses: actions/upload-artifact@v3
         with:
-          name: html-report
+          name: coverage-report
           path: htmlcov
         if: ${{ failure() }}
 
