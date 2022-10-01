@@ -5,7 +5,9 @@ from abc import ABC
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
+from functools import reduce
 from typing import Any
+from typing import Protocol
 
 import numpy as np
 
@@ -32,9 +34,19 @@ Name = str
 FieldMap = dict[Name, np.ndarray]
 
 
-class ValidatorMixin(ABC):
+class SpatialData(Protocol):
+    geometry: Geometry
+    coordinates: FieldMap
+    axes: tuple[Name, ...]
+
+
+class ValidatorMixin(SpatialData, ABC):
+    def __init__(self) -> None:
+        self.axes = tuple(self.coordinates.keys())
+        self._validate()
+
     @abstractmethod
-    def validate(self) -> None:
+    def _validate(self) -> None:
         ...
 
     def _validate_fieldmaps(
@@ -42,7 +54,7 @@ class ValidatorMixin(ABC):
         *fmaps: FieldMap | None,
         require_shape_equality: bool = True,
         **required_attrs: Any,
-    ):
+    ) -> None:
         _reference_shape: tuple[int, ...] | None = None
         _reference_field_name: str
         for fmap in fmaps:
@@ -68,7 +80,7 @@ class ValidatorMixin(ABC):
                             f"(expected {expected})"
                         )
 
-    def _validate_geometry(self):
+    def _validate_geometry(self) -> None:
         known_axes: dict[Geometry, tuple[Name, Name, Name]] = {
             Geometry.CARTESIAN: ("x", "y", "z"),
             Geometry.POLAR: ("radius", "z", "azimuth"),
@@ -111,13 +123,20 @@ class ValidatorMixin(ABC):
                 )
 
 
-@dataclass
 class Grid(ValidatorMixin):
-    geometry: Geometry
-    cell_edges: FieldMap
-    fields: FieldMap | None
+    def __init__(
+        self,
+        geometry: Geometry,
+        cell_edges: FieldMap,
+        fields: FieldMap | None,
+    ):
+        self.geometry = geometry
+        self.coordinates = cell_edges
+        self.fields = fields
 
-    def validate(self) -> None:
+        super().__init__()
+
+    def _validate(self) -> None:
         self._validate_geometry()
         self._validate_fieldmaps(self.cell_edges, require_shape_equality=False, ndim=1)
         self._validate_fieldmaps(
@@ -128,51 +147,49 @@ class Grid(ValidatorMixin):
         )
 
     @property
-    def coordinates(self) -> FieldMap:
-        return self.cell_edges
-
-    @property
-    def axes(self) -> tuple[Name, ...]:
-        return tuple(self.cell_edges.keys())
+    def cell_edges(self) -> FieldMap:
+        return self.coordinates
 
     @cached_property
     def shape(self) -> tuple[int, ...]:
         return tuple(len(_) - 1 for _ in self.cell_edges.values())
 
     @property
-    def size(self):
-        return np.product(self.shape)
+    def size(self) -> int:
+        return reduce(int.__mul__, self.shape)
 
     @property
     def ndim(self) -> int:
         return len(self.axes)
 
 
-@dataclass
 class ParticleSet(ValidatorMixin):
-    geometry: Geometry
-    coordinates: FieldMap
-    fields: FieldMap | None
+    def __init__(
+        self,
+        geometry: Geometry,
+        coordinates: FieldMap,
+        fields: FieldMap | None,
+    ) -> None:
+        self.geometry = geometry
+        self.coordinates = coordinates
+        self.fields = fields
 
-    def validate(self) -> None:
+        super().__init__()
+
+    def _validate(self) -> None:
         self._validate_geometry()
         self._validate_fieldmaps(self.coordinates, self.fields, ndim=1)
 
     @property
-    def axes(self) -> tuple[Name, ...]:
-        return tuple(self.coordinates.keys())
-
-    @property
-    def count(self):
-        for p in self.coordinates.values():
-            return len(p)
+    def count(self) -> int:
+        return len(next(iter(self.coordinates.values())))
 
     @property
     def ndim(self) -> int:
         return len(self.axes)
 
 
-def _deposit_pic(pcount, hci, pfield, buffer):
+def _deposit_pic(pcount, hci, pfield, buffer):  # type: ignore [no-untyped-def]
     for ipart in range(pcount):
         md_idx = tuple(hci[ipart])
         buffer[md_idx] += pfield[ipart].d
@@ -184,8 +201,8 @@ class Dataset:
     grid: Grid | None = None
     particles: ParticleSet | None = None
 
-    def _setup_host_cell_index(self):
-        if hasattr(self, "_hci"):
+    def _setup_host_cell_index(self) -> None:
+        if hasattr(self, "_hci") or self.particles is None or self.grid is None:
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
             return  # pragma: no cover
