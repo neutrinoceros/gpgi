@@ -262,7 +262,7 @@ class Dataset(ValidatorMixin):
             return  # pragma: no cover
         from .lib._indexing import _index_particles
 
-        self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="int64")
+        self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
 
         particle_coords = np.empty((self.particles.count, self.grid.ndim))
         np.stack(
