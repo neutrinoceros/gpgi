@@ -30,7 +30,6 @@ def load(
         _grid = Grid(
             _geometry, cell_edges=grid["cell_edges"], fields=grid.get("fields")
         )
-        _grid.validate()
 
     _particles: ParticleSet | None = None
     if particles is not None:
@@ -41,6 +40,5 @@ def load(
             coordinates=particles["coordinates"],
             fields=particles.get("fields"),
         )
-        _particles.validate()
 
     return Dataset(geometry=_geometry, grid=_grid, particles=_particles)

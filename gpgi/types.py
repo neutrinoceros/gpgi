@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from functools import cached_property
 from functools import reduce
 from typing import Any
+from typing import Protocol
 
 import numpy as np
 
@@ -33,9 +34,19 @@ Name = str
 FieldMap = dict[Name, np.ndarray]
 
 
-class ValidatorMixin(ABC):
+class SpatialData(Protocol):
+    geometry: Geometry
+    coordinates: FieldMap
+    axes: tuple[Name, ...]
+
+
+class ValidatorMixin(SpatialData, ABC):
+    def __init__(self) -> None:
+        self.axes = tuple(self.coordinates.keys())
+        self._validate()
+
     @abstractmethod
-    def validate(self) -> None:
+    def _validate(self) -> None:
         ...
 
     def _validate_fieldmaps(
@@ -112,13 +123,20 @@ class ValidatorMixin(ABC):
                 )
 
 
-@dataclass
 class Grid(ValidatorMixin):
-    geometry: Geometry
-    cell_edges: FieldMap
-    fields: FieldMap | None
+    def __init__(
+        self,
+        geometry: Geometry,
+        cell_edges: FieldMap,
+        fields: FieldMap | None,
+    ):
+        self.geometry = geometry
+        self.coordinates = cell_edges
+        self.fields = fields
 
-    def validate(self) -> None:
+        super().__init__()
+
+    def _validate(self) -> None:
         self._validate_geometry()
         self._validate_fieldmaps(self.cell_edges, require_shape_equality=False, ndim=1)
         self._validate_fieldmaps(
@@ -129,12 +147,8 @@ class Grid(ValidatorMixin):
         )
 
     @property
-    def coordinates(self) -> FieldMap:
-        return self.cell_edges
-
-    @property
-    def axes(self) -> tuple[Name, ...]:
-        return tuple(self.cell_edges.keys())
+    def cell_edges(self) -> FieldMap:
+        return self.coordinates
 
     @cached_property
     def shape(self) -> tuple[int, ...]:
@@ -149,19 +163,22 @@ class Grid(ValidatorMixin):
         return len(self.axes)
 
 
-@dataclass
 class ParticleSet(ValidatorMixin):
-    geometry: Geometry
-    coordinates: FieldMap
-    fields: FieldMap | None
+    def __init__(
+        self,
+        geometry: Geometry,
+        coordinates: FieldMap,
+        fields: FieldMap | None,
+    ) -> None:
+        self.geometry = geometry
+        self.coordinates = coordinates
+        self.fields = fields
 
-    def validate(self) -> None:
+        super().__init__()
+
+    def _validate(self) -> None:
         self._validate_geometry()
         self._validate_fieldmaps(self.coordinates, self.fields, ndim=1)
-
-    @property
-    def axes(self) -> tuple[Name, ...]:
-        return tuple(self.coordinates.keys())
 
     @property
     def count(self) -> int:
