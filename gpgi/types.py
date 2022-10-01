@@ -5,6 +5,7 @@ from abc import ABC
 from abc import abstractmethod
 from dataclasses import dataclass
 from functools import cached_property
+from functools import reduce
 from typing import Any
 
 import numpy as np
@@ -141,7 +142,7 @@ class Grid(ValidatorMixin):
 
     @property
     def size(self) -> int:
-        return int(np.product(self.shape))
+        return reduce(int.__mul__, self.shape)
 
     @property
     def ndim(self) -> int:
