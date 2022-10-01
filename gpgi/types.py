@@ -90,9 +90,6 @@ class ValidatorMixin(ABC):
                 )
 
         known_limits: dict[Name, tuple[float | None, float | None]] = {
-            "x": (None, None),
-            "y": (None, None),
-            "z": (None, None),
             "radius": (0, None),
             "azimuth": (0, 2 * np.pi),
             "colatitude": (0, np.pi),
