@@ -3,7 +3,6 @@ from __future__ import annotations
 import enum
 from abc import ABC
 from abc import abstractmethod
-from dataclasses import dataclass
 from functools import cached_property
 from functools import reduce
 from typing import Any
@@ -34,15 +33,19 @@ Name = str
 FieldMap = dict[Name, np.ndarray]
 
 
-class SpatialData(Protocol):
+class GeometricData(Protocol):
     geometry: Geometry
-    coordinates: FieldMap
     axes: tuple[Name, ...]
 
 
-class ValidatorMixin(SpatialData, ABC):
+class CoordinateData(Protocol):
+    geometry: Geometry
+    axes: tuple[Name, ...]
+    coordinates: FieldMap
+
+
+class ValidatorMixin(GeometricData, ABC):
     def __init__(self) -> None:
-        self.axes = tuple(self.coordinates.keys())
         self._validate()
 
     @abstractmethod
@@ -112,6 +115,9 @@ class ValidatorMixin(SpatialData, ABC):
                     f"Got invalid axis {actual!r} with geometry {self.geometry.name.lower()!r}"
                 )
 
+
+class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
+    def _validate_coordinates(self) -> None:
         known_limits: dict[Name, tuple[float | None, float | None]] = {
             "radius": (0, None),
             "azimuth": (0, 2 * np.pi),
@@ -134,21 +140,23 @@ class ValidatorMixin(SpatialData, ABC):
                 )
 
 
-class Grid(ValidatorMixin):
+class Grid(CoordinateValidatorMixin):
     def __init__(
         self,
         geometry: Geometry,
         cell_edges: FieldMap,
         fields: FieldMap | None,
-    ):
+    ) -> None:
         self.geometry = geometry
         self.coordinates = cell_edges
         self.fields = fields
 
+        self.axes = tuple(self.coordinates.keys())
         super().__init__()
 
     def _validate(self) -> None:
         self._validate_geometry()
+        self._validate_coordinates()
         self._validate_fieldmaps(self.cell_edges, ndim=1, require_sorted=True)
         self._validate_fieldmaps(
             self.fields,
@@ -182,7 +190,7 @@ class Grid(ValidatorMixin):
         return len(self.axes)
 
 
-class ParticleSet(ValidatorMixin):
+class ParticleSet(CoordinateValidatorMixin):
     def __init__(
         self,
         geometry: Geometry,
@@ -193,10 +201,12 @@ class ParticleSet(ValidatorMixin):
         self.coordinates = coordinates
         self.fields = fields
 
+        self.axes = tuple(self.coordinates.keys())
         super().__init__()
 
     def _validate(self) -> None:
         self._validate_geometry()
+        self._validate_coordinates()
         self._validate_fieldmaps(
             self.coordinates, self.fields, require_shape_equality=True, ndim=1
         )
@@ -210,11 +220,40 @@ class ParticleSet(ValidatorMixin):
         return len(self.axes)
 
 
-@dataclass
-class Dataset:
-    geometry: Geometry = Geometry.CARTESIAN
-    grid: Grid | None = None
-    particles: ParticleSet | None = None
+class Dataset(ValidatorMixin):
+    def __init__(
+        self,
+        *,
+        geometry: Geometry = Geometry.CARTESIAN,
+        grid: Grid | None = None,
+        particles: ParticleSet | None = None,
+    ) -> None:
+        self.geometry = geometry
+        self.grid = grid
+        self.particles = particles
+
+        if self.grid is not None:
+            self.axes = self.grid.axes
+        elif self.particles is not None:
+            self.axes = self.particles.axes
+        else:
+            raise TypeError(
+                "Cannot instantiate empty dataset. "
+                "Grid and/or particle data must be provided"
+            )
+        super().__init__()
+
+    def _validate(self) -> None:
+        if self.grid is None or self.particles is None:
+            return
+        for ax, edges in self.grid.cell_edges.items():
+            domain_left = edges[0]
+            domain_right = edges[-1]
+            for x in self.particles.coordinates[ax]:
+                if x < domain_left:
+                    raise ValueError(f"Got particle at {ax}={x} < {domain_left=}")
+                if x > domain_right:
+                    raise ValueError(f"Got particle at {ax}={x} > {domain_right=}")
 
     def _setup_host_cell_index(self) -> None:
         if hasattr(self, "_hci") or self.particles is None or self.grid is None:

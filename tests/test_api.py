@@ -7,9 +7,14 @@ import gpgi
 
 
 def test_load_null_dataset():
-    ds = gpgi.load(geometry="cartesian")
-    assert ds.grid is None
-    assert ds.particles is None
+    with pytest.raises(
+        TypeError,
+        match=(
+            "Cannot instantiate empty dataset. "
+            "Grid and/or particle data must be provided"
+        ),
+    ):
+        gpgi.load(geometry="cartesian")
 
 
 def test_load_standalone_grid():
@@ -235,3 +240,23 @@ def test_invalid_geometry():
         ),
     ):
         gpgi.load(geometry="unknown")
+
+
+def test_out_of_bound_particles_left():
+    with pytest.raises(ValueError, match="Got particle at radius=1 < domain_left=10"):
+        gpgi.load(
+            geometry="spherical",
+            grid={"cell_edges": {"radius": np.arange(10, 101)}},
+            particles={"coordinates": {"radius": np.array([1])}},
+        )
+
+
+def test_out_of_bound_particles_right():
+    with pytest.raises(
+        ValueError, match="Got particle at radius=1000 > domain_right=100"
+    ):
+        gpgi.load(
+            geometry="spherical",
+            grid={"cell_edges": {"radius": np.arange(10, 101)}},
+            particles={"coordinates": {"radius": np.array([1000])}},
+        )
