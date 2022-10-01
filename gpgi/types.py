@@ -42,7 +42,7 @@ class ValidatorMixin(ABC):
         *fmaps: FieldMap | None,
         require_shape_equality: bool = True,
         **required_attrs: Any,
-    ) -> None:
+    ):
         _reference_shape: tuple[int, ...] | None = None
         _reference_field_name: str
         for fmap in fmaps:
@@ -68,7 +68,7 @@ class ValidatorMixin(ABC):
                             f"(expected {expected})"
                         )
 
-    def _validate_geometry(self) -> None:
+    def _validate_geometry(self):
         known_axes: dict[Geometry, tuple[Name, Name, Name]] = {
             Geometry.CARTESIAN: ("x", "y", "z"),
             Geometry.POLAR: ("radius", "z", "azimuth"),
