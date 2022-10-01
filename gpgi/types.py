@@ -189,12 +189,6 @@ class ParticleSet(ValidatorMixin):
         return len(self.axes)
 
 
-def _deposit_pic(pcount, hci, pfield, buffer):  # type: ignore [no-untyped-def]
-    for ipart in range(pcount):
-        md_idx = tuple(hci[ipart])
-        buffer[md_idx] += pfield[ipart].d
-
-
 @dataclass
 class Dataset:
     geometry: Geometry = Geometry.CARTESIAN
@@ -206,19 +200,39 @@ class Dataset:
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
             return  # pragma: no cover
+        from .lib._indexing import _index_particles
 
         self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="int64")
-        for ipart in range(self.particles.count):
-            for idim, ax in enumerate(self.grid.axes):
-                idx = 0
-                x = self.particles.coordinates[ax][ipart]
-                edges = self.grid.cell_edges[ax]
-                max_idx = len(edges) - 1
-                while idx <= max_idx and edges[idx + 1] < x:
-                    idx += 1
-                self._hci[ipart, idim] = idx
+
+        particle_coords = np.empty((self.particles.count, self.grid.ndim))
+        np.stack(
+            [e for e in self.particles.coordinates.values()],
+            axis=1,
+            out=particle_coords,
+        )
+
+        edges = iter(self.grid.cell_edges.values())
+
+        cell_edges_x1 = next(edges)
+        cell_edges_x2 = cell_edges_x3 = np.empty(0)
+        if self.grid.ndim >= 2:
+            cell_edges_x2 = next(edges)
+        if self.grid.ndim == 3:
+            cell_edges_x3 = next(edges)
+
+        _index_particles(
+            ndim=self.grid.ndim,
+            cell_edges_x1=cell_edges_x1,
+            cell_edges_x2=cell_edges_x2,
+            cell_edges_x3=cell_edges_x3,
+            particle_count=self.particles.count,
+            particle_coords=particle_coords,
+            out=self._hci,
+        )
 
     def deposit(self, particle_field_key: Name, /, *, method: Name) -> np.ndarray:
+        from .lib._deposition_methods import _deposit_pic
+
         if not hasattr(self, "_cache"):
             self._cache: dict[tuple[Name, Name], np.ndarray] = {}
         if (particle_field_key, method) in self._cache:
