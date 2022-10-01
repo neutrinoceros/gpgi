@@ -240,3 +240,23 @@ def test_invalid_geometry():
         ),
     ):
         gpgi.load(geometry="unknown")
+
+
+def test_out_of_bound_particles_left():
+    with pytest.raises(ValueError, match="Got particle at radius=1 < domain_left=10"):
+        gpgi.load(
+            geometry="spherical",
+            grid={"cell_edges": {"radius": np.arange(10, 101)}},
+            particles={"coordinates": {"radius": np.array([1])}},
+        )
+
+
+def test_out_of_bound_particles_right():
+    with pytest.raises(
+        ValueError, match="Got particle at radius=1000 > domain_right=100"
+    ):
+        gpgi.load(
+            geometry="spherical",
+            grid={"cell_edges": {"radius": np.arange(10, 101)}},
+            particles={"coordinates": {"radius": np.array([1000])}},
+        )
