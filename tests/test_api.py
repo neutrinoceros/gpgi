@@ -123,8 +123,6 @@ def test_load_invalid_grid_coordinates(geometry, coords, axis, side, limit):
         c = coords[axis].min()
     elif side == "max":
         c = coords[axis].max()
-    else:
-        raise ValueError("broken test case")
     with pytest.raises(
         ValueError,
         match=(
