@@ -34,10 +34,12 @@ def load(
 
     _particles: ParticleSet | None = None
     if particles is not None:
-        if "positions" not in particles:
-            raise ValueError("particles dictionary missing required key 'positions'")
+        if "coordinates" not in particles:
+            raise ValueError("particles dictionary missing required key 'coordinates'")
         _particles = ParticleSet(
-            _geometry, positions=particles["positions"], fields=particles.get("fields")
+            _geometry,
+            coordinates=particles["coordinates"],
+            fields=particles.get("fields"),
         )
         _particles.validate()
 

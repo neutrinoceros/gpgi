@@ -33,7 +33,7 @@ def test_load_standalone_particles():
     ds = gpgi.load(
         geometry="cartesian",
         particles={
-            "positions": {
+            "coordinates": {
                 "x": np.array([0, 1]),
                 "y": np.array([0, 1]),
                 "z": np.array([0, 1]),
@@ -46,18 +46,91 @@ def test_load_standalone_particles():
     assert ds.grid is None
 
 
-def test_load_invalid_grid():
+def test_load_empty_grid():
     with pytest.raises(
         ValueError, match="grid dictionary missing required key 'cell_edges'"
     ):
         gpgi.load(geometry="cartesian", grid={})
 
 
-def test_load_invalid_particles():
+def test_load_empty_particles():
     with pytest.raises(
-        ValueError, match="particles dictionary missing required key 'positions'"
+        ValueError, match="particles dictionary missing required key 'coordinates'"
     ):
         gpgi.load(geometry="cartesian", particles={})
+
+
+@pytest.mark.parametrize(
+    "geometry, coords, axis, side, limit",
+    [
+        ("polar", {"radius": np.arange(-1, 1)}, "radius", "min", 0),
+        ("cylindrical", {"radius": np.arange(-1, 1)}, "radius", "min", 0),
+        ("spherical", {"radius": np.arange(-1, 1)}, "radius", "min", 0),
+        (
+            "cylindrical",
+            {"radius": np.arange(10), "azimuth": np.arange(-10, 10)},
+            "azimuth",
+            "min",
+            0,
+        ),
+        (
+            "cylindrical",
+            {"radius": np.arange(10), "azimuth": np.arange(10)},
+            "azimuth",
+            "max",
+            2 * np.pi,
+        ),
+        (
+            "spherical",
+            {"radius": np.arange(10), "colatitude": np.arange(-10, 10)},
+            "colatitude",
+            "min",
+            0,
+        ),
+        (
+            "spherical",
+            {"radius": np.arange(10), "colatitude": np.arange(10)},
+            "colatitude",
+            "max",
+            np.pi,
+        ),
+        (
+            "spherical",
+            {
+                "radius": np.arange(10),
+                "colatitude": np.arange(2),
+                "azimuth": np.arange(-10, 10),
+            },
+            "azimuth",
+            "min",
+            0,
+        ),
+        (
+            "spherical",
+            {
+                "radius": np.arange(10),
+                "colatitude": np.arange(2),
+                "azimuth": np.arange(10),
+            },
+            "azimuth",
+            "max",
+            2 * np.pi,
+        ),
+    ],
+)
+def test_load_invalid_grid_coordinates(geometry, coords, axis, side, limit):
+    if side == "min":
+        c = coords[axis].min()
+    elif side == "max":
+        c = coords[axis].max()
+    with pytest.raises(
+        ValueError,
+        match=(
+            f"Invalid coordinate data for axis {axis!r} {c} "
+            rf"\({side}imal allowed value is {limit}\)"
+        ),
+    ):
+        gpgi.load(geometry=geometry, particles={"coordinates": coords})
 
 
 def test_inconsistent_shape_particle_data():
@@ -68,7 +141,7 @@ def test_inconsistent_shape_particle_data():
         gpgi.load(
             geometry="cartesian",
             particles={
-                "positions": {
+                "coordinates": {
                     "x": np.array([0, 0]),
                     "y": np.array([0, 0, 0]),
                 }
