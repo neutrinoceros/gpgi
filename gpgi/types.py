@@ -52,7 +52,8 @@ class ValidatorMixin(SpatialData, ABC):
     def _validate_fieldmaps(
         self,
         *fmaps: FieldMap | None,
-        require_shape_equality: bool = True,
+        require_shape_equality: bool = False,
+        require_sorted: bool = False,
         **required_attrs: Any,
     ) -> None:
         _reference_shape: tuple[int, ...] | None = None
@@ -70,6 +71,16 @@ class ValidatorMixin(SpatialData, ABC):
                             f"Fields {name!r} and {_reference_field_name!r} "
                             f"have mismatching shapes {data.shape} and {_reference_shape}"
                         )
+
+                if require_sorted:
+                    _a = data[0]
+                    for i, _b in enumerate(data[1:], start=1):
+                        if _a > _b:
+                            raise ValueError(
+                                f"Field {name!r} is not properly sorted by ascending order. "
+                                f"Got {_a} (index {i-1}) > {_b} (index {i})"
+                            )
+                        _a = _b
 
                 if not required_attrs:
                     continue  # pragma: no cover
@@ -138,7 +149,7 @@ class Grid(ValidatorMixin):
 
     def _validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(self.cell_edges, require_shape_equality=False, ndim=1)
+        self._validate_fieldmaps(self.cell_edges, ndim=1, require_sorted=True)
         self._validate_fieldmaps(
             self.fields,
             size=self.size,
@@ -186,7 +197,9 @@ class ParticleSet(ValidatorMixin):
 
     def _validate(self) -> None:
         self._validate_geometry()
-        self._validate_fieldmaps(self.coordinates, self.fields, ndim=1)
+        self._validate_fieldmaps(
+            self.coordinates, self.fields, require_shape_equality=True, ndim=1
+        )
 
     @property
     def count(self) -> int:

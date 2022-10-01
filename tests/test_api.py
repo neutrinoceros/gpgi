@@ -60,6 +60,17 @@ def test_load_empty_particles():
         gpgi.load(geometry="cartesian", particles={})
 
 
+def test_unsorted_cell_edges():
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Field 'x' is not properly sorted by ascending order. "
+            r"Got 1 (index 0) > 0 (index 1)"
+        ),
+    ):
+        gpgi.load(geometry="cartesian", grid={"cell_edges": {"x": np.array([1, 0])}})
+
+
 @pytest.mark.parametrize(
     "geometry, coords, axis, side, limit",
     [
