@@ -126,3 +126,56 @@ def test_deposit_image(sample_dataset):
             )
         fig.colorbar(im, ax=ax)
     return fig
+
+
+@pytest.mark.mpl_image_compare
+def test_1D_deposit():
+    npart = 60
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, 100),
+            },
+        },
+        particles={
+            "coordinates": {"x": 2 * (prng.random_sample(npart) - 0.5)},
+            "fields": {"mass": np.ones(npart)},
+        },
+    )
+    mass = ds.deposit("mass", method="pic")
+    fig, ax = plt.subplots()
+    ax.set(xlabel="x", ylabel="particle mass")
+    ax.bar(
+        ds.grid.cell_centers["x"], mass, width=ds.grid.cell_widths["x"], edgecolor=None
+    )
+    for x in ds.particles.coordinates["x"]:
+        ax.axvline(x, ls="--", color="black", lw=0.4, alpha=0.6)
+    return fig
+
+
+def test_3D_deposit():
+    npart = 60
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, 10),
+                "y": np.linspace(-1, 1, 10),
+                "z": np.linspace(-1, 1, 10),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.random_sample(npart) - 0.5),
+                "y": 2 * (prng.random_sample(npart) - 0.5),
+                "z": 2 * (prng.random_sample(npart) - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(npart),
+            },
+        },
+    )
+    ds.deposit("mass", method="pic")

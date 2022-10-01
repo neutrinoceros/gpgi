@@ -1,4 +1,4 @@
-def _deposit_pic(pcount, hci, pfield, buffer):
+def _deposit_pic(pcount, hci, pfield, out):
     for ipart in range(pcount):
         md_idx = tuple(hci[ipart])
-        buffer[md_idx] += pfield[ipart].d
+        out[md_idx] += pfield[ipart]

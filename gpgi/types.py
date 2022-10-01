@@ -151,6 +151,14 @@ class Grid(ValidatorMixin):
         return self.coordinates
 
     @cached_property
+    def cell_centers(self) -> FieldMap:
+        return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}
+
+    @cached_property
+    def cell_widths(self) -> FieldMap:
+        return {ax: np.diff(arr) for ax, arr in self.coordinates.items()}
+
+    @cached_property
     def shape(self) -> tuple[int, ...]:
         return tuple(len(_) - 1 for _ in self.cell_edges.values())
 
@@ -263,7 +271,7 @@ class Dataset:
         if met not in known_methods:
             raise NotImplementedError(f"method {method} is not implemented yet")
 
-        pfield = self.particles.fields[particle_field_key]
+        pfield = np.array(self.particles.fields[particle_field_key])
         ret_array = np.zeros(self.grid.shape)
         self._setup_host_cell_index()
 
