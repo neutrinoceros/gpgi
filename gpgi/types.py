@@ -264,28 +264,27 @@ class Dataset(ValidatorMixin):
 
         self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
 
-        particle_coords = np.empty((self.particles.count, self.grid.ndim))
+        edges = iter(self.grid.cell_edges.values())
+
+        cell_edges_x1 = next(edges)
+        DTYPE = cell_edges_x1.dtype
+        cell_edges_x2 = cell_edges_x3 = np.empty(0, DTYPE)
+        if self.grid.ndim >= 2:
+            cell_edges_x2 = next(edges)
+        if self.grid.ndim == 3:
+            cell_edges_x3 = next(edges)
+
+        particle_coords = np.empty((self.particles.count, self.grid.ndim), dtype=DTYPE)
         np.stack(
             [e for e in self.particles.coordinates.values()],
             axis=1,
             out=particle_coords,
         )
 
-        edges = iter(self.grid.cell_edges.values())
-
-        cell_edges_x1 = next(edges)
-        cell_edges_x2 = cell_edges_x3 = np.empty(0)
-        if self.grid.ndim >= 2:
-            cell_edges_x2 = next(edges)
-        if self.grid.ndim == 3:
-            cell_edges_x3 = next(edges)
-
         _index_particles(
-            ndim=self.grid.ndim,
             cell_edges_x1=cell_edges_x1,
             cell_edges_x2=cell_edges_x2,
             cell_edges_x3=cell_edges_x3,
-            particle_count=self.particles.count,
             particle_coords=particle_coords,
             out=self._hci,
         )

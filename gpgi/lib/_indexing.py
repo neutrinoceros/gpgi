@@ -1,12 +1,19 @@
 def _index_particles(
-    ndim,
     cell_edges_x1,
     cell_edges_x2,
     cell_edges_x3,
-    particle_count,
     particle_coords,
     out,
 ):
+    if cell_edges_x3.shape[0] > 1:
+        ndim = 3
+    elif cell_edges_x2.shape[0] > 1:
+        ndim = 2
+    else:
+        ndim = 1
+
+    particle_count = particle_coords.shape[0]
+
     for ipart in range(particle_count):
         x = particle_coords[ipart, 0]
         iL = 0
