@@ -44,7 +44,7 @@ content-type = "text/markdown"
 text = "GPL-3.0"
 
 [project.urls]
-omepage = "https://github.com/neutrinoceros/gpgi"
+Homepage = "https://github.com/neutrinoceros/gpgi"
 
 [tool.setuptools]
 license-files = [
