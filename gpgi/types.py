@@ -260,7 +260,7 @@ class Dataset(ValidatorMixin):
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
             return  # pragma: no cover
-        from .clib._indexing import _index_particles
+        from .clib._indexing import _index_particles  # type: ignore [import]
 
         self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
 
