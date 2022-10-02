@@ -290,7 +290,9 @@ class Dataset(ValidatorMixin):
         )
 
     def deposit(self, particle_field_key: Name, /, *, method: Name) -> np.ndarray:
-        from .lib._deposition_methods import _deposit_pic
+        from .clib._deposition_methods import _deposit_pic_1D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_pic_2D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
 
         if not hasattr(self, "_cache"):
             self._cache: dict[tuple[Name, Name], np.ndarray] = {}
@@ -299,7 +301,7 @@ class Dataset(ValidatorMixin):
 
         # public interface
         if method in _deposition_method_names:
-            met = _deposition_method_names[method]
+            key = _deposition_method_names[method]
         else:
             raise ValueError(
                 f"Unknown deposition method {method!r}, "
@@ -316,16 +318,21 @@ class Dataset(ValidatorMixin):
 
         # deactivating type checking for deposition methods because
         # they may be ported to Cyhton later
-        known_methods: dict[DepositionMethod, Any] = {
-            DepositionMethod.PARTICLE_IN_CELL: _deposit_pic,
+        known_methods: dict[DepositionMethod, list[Any]] = {
+            DepositionMethod.PARTICLE_IN_CELL: [
+                _deposit_pic_1D,
+                _deposit_pic_2D,
+                _deposit_pic_3D,
+            ]
         }
-        if met not in known_methods:
+        if key not in known_methods:
             raise NotImplementedError(f"method {method} is not implemented yet")
 
-        pfield = np.array(self.particles.fields[particle_field_key])
-        ret_array = np.zeros(self.grid.shape)
+        field = np.array(self.particles.fields[particle_field_key])
+        ret_array = np.zeros(self.grid.shape, dtype=field.dtype)
         self._setup_host_cell_index()
 
-        known_methods[met](self.particles.count, self._hci, pfield, ret_array)
+        func = known_methods[key][self.grid.ndim - 1]
+        func(field, self._hci, ret_array)
         self._cache[particle_field_key, method] = ret_array
         return ret_array
