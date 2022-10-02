@@ -35,7 +35,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v3
       with:
-        name: coverage-data
+        name: gpgi_coverage_data
         path: ".coverage.*"
         if-no-files-found: ignore
 
@@ -63,7 +63,7 @@ jobs:
       run: |
         pytest --color=yes --mpl -m mpl_image_compare \
                --mpl-generate-summary=html \
-               --mpl-results-path=pytest_mpl_results \
+               --mpl-results-path=gpgi_pytest_mpl_results \
                --mpl-baseline-path=tests/pytest_mpl_baseline
 
     - name: Generate new image baseline
@@ -107,7 +107,7 @@ jobs:
 
       - uses: actions/download-artifact@v3
         with:
-          name: coverage-data
+          name: gpgi_coverage_data
 
       - name: Check coverage
         run: |
@@ -118,7 +118,7 @@ jobs:
       - name: Upload HTML report if check failed.
         uses: actions/upload-artifact@v3
         with:
-          name: coverage-report
+          name: gpgi_coverage_report
           path: htmlcov
         if: ${{ failure() }}
 
