@@ -180,3 +180,45 @@ def test_3D_deposit(dtype):
         },
     )
     ds.deposit("mass", method="pic")
+
+
+@pytest.mark.mpl_image_compare
+def test_readme_example():
+    nx = ny = 64
+    nparticles = 600_000
+
+    prng = np.random.RandomState(0)
+
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, nx),
+                "y": np.linspace(-1, 1, ny),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(nparticles),
+            },
+        },
+    )
+
+    particle_mass = ds.deposit("mass", method="particle_in_cell")
+
+    fig, ax = plt.subplots()
+    ax.set(aspect=1, xlabel="x", ylabel="y")
+
+    im = ax.pcolormesh(
+        "x",
+        "y",
+        particle_mass.T,
+        data=ds.grid.cell_edges,
+        cmap="viridis",
+    )
+    fig.colorbar(im, ax=ax, label="deposited particle mass")
+    return fig
