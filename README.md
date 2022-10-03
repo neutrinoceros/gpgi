@@ -69,7 +69,7 @@ ax.set(aspect=1, xlabel="x", ylabel="y")
 im = ax.pcolormesh(
     "x",
     "y",
-    particle_mass,
+    particle_mass.T,
     data=ds.grid.cell_edges,
     cmap="viridis",
  )
