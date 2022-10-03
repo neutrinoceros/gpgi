@@ -8,14 +8,15 @@ requires = [
 
 [project]
 name = "gpgi"
-version = "0.0.1"
-description = "A generic interface to ... grid-based and lagrangian particle spatial data"
+version = "0.1.0"
+description = "A Generic Particle+Grid Interface"
 authors = [
     { name = "C.M.T. Robert" },
 ]
 classifiers = [
-    "Intended Audience :: Astronomers",
+    "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Programming Language :: Cython",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
