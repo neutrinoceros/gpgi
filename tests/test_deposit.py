@@ -155,26 +155,27 @@ def test_1D_deposit():
     return fig
 
 
-def test_3D_deposit():
+@pytest.mark.parametrize("dtype", ["float32", "float64"])
+def test_3D_deposit(dtype):
     npart = 60
     prng = np.random.RandomState(0)
     ds = gpgi.load(
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.linspace(-1, 1, 10),
-                "y": np.linspace(-1, 1, 10),
-                "z": np.linspace(-1, 1, 10),
+                "x": np.linspace(-1, 1, 10, dtype),
+                "y": np.linspace(-1, 1, 10, dtype),
+                "z": np.linspace(-1, 1, 10, dtype),
             },
         },
         particles={
             "coordinates": {
-                "x": 2 * (prng.random_sample(npart) - 0.5),
-                "y": 2 * (prng.random_sample(npart) - 0.5),
-                "z": 2 * (prng.random_sample(npart) - 0.5),
+                "x": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
+                "y": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
+                "z": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
             },
             "fields": {
-                "mass": np.ones(npart),
+                "mass": np.ones(npart, dtype),
             },
         },
     )

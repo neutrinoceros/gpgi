@@ -260,38 +260,39 @@ class Dataset(ValidatorMixin):
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
             return  # pragma: no cover
-        from .lib._indexing import _index_particles
+        from .clib._indexing import _index_particles  # type: ignore [import]
 
         self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
 
-        particle_coords = np.empty((self.particles.count, self.grid.ndim))
+        edges = iter(self.grid.cell_edges.values())
+
+        cell_edges_x1 = next(edges)
+        DTYPE = cell_edges_x1.dtype
+        cell_edges_x2 = cell_edges_x3 = np.empty(0, DTYPE)
+        if self.grid.ndim >= 2:
+            cell_edges_x2 = next(edges)
+        if self.grid.ndim == 3:
+            cell_edges_x3 = next(edges)
+
+        particle_coords = np.empty((self.particles.count, self.grid.ndim), dtype=DTYPE)
         np.stack(
             [e for e in self.particles.coordinates.values()],
             axis=1,
             out=particle_coords,
         )
 
-        edges = iter(self.grid.cell_edges.values())
-
-        cell_edges_x1 = next(edges)
-        cell_edges_x2 = cell_edges_x3 = np.empty(0)
-        if self.grid.ndim >= 2:
-            cell_edges_x2 = next(edges)
-        if self.grid.ndim == 3:
-            cell_edges_x3 = next(edges)
-
         _index_particles(
-            ndim=self.grid.ndim,
             cell_edges_x1=cell_edges_x1,
             cell_edges_x2=cell_edges_x2,
             cell_edges_x3=cell_edges_x3,
-            particle_count=self.particles.count,
             particle_coords=particle_coords,
             out=self._hci,
         )
 
     def deposit(self, particle_field_key: Name, /, *, method: Name) -> np.ndarray:
-        from .lib._deposition_methods import _deposit_pic
+        from .clib._deposition_methods import _deposit_pic_1D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_pic_2D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
 
         if not hasattr(self, "_cache"):
             self._cache: dict[tuple[Name, Name], np.ndarray] = {}
@@ -300,7 +301,7 @@ class Dataset(ValidatorMixin):
 
         # public interface
         if method in _deposition_method_names:
-            met = _deposition_method_names[method]
+            key = _deposition_method_names[method]
         else:
             raise ValueError(
                 f"Unknown deposition method {method!r}, "
@@ -317,16 +318,21 @@ class Dataset(ValidatorMixin):
 
         # deactivating type checking for deposition methods because
         # they may be ported to Cyhton later
-        known_methods: dict[DepositionMethod, Any] = {
-            DepositionMethod.PARTICLE_IN_CELL: _deposit_pic,
+        known_methods: dict[DepositionMethod, list[Any]] = {
+            DepositionMethod.PARTICLE_IN_CELL: [
+                _deposit_pic_1D,
+                _deposit_pic_2D,
+                _deposit_pic_3D,
+            ]
         }
-        if met not in known_methods:
+        if key not in known_methods:
             raise NotImplementedError(f"method {method} is not implemented yet")
 
-        pfield = np.array(self.particles.fields[particle_field_key])
-        ret_array = np.zeros(self.grid.shape)
+        field = np.array(self.particles.fields[particle_field_key])
+        ret_array = np.zeros(self.grid.shape, dtype=field.dtype)
         self._setup_host_cell_index()
 
-        known_methods[met](self.particles.count, self._hci, pfield, ret_array)
+        func = known_methods[key][self.grid.ndim - 1]
+        func(field, self._hci, ret_array)
         self._cache[particle_field_key, method] = ret_array
         return ret_array

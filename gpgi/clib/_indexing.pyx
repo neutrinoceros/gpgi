@@ -1,10 +1,25 @@
+cimport cython
+cimport numpy as np
+
+
+cdef fused real:
+    np.float64_t
+    np.float32_t
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _index_particles(
-    cell_edges_x1,
-    cell_edges_x2,
-    cell_edges_x3,
-    particle_coords,
-    out,
+    np.ndarray[real, ndim=1] cell_edges_x1,
+    np.ndarray[real, ndim=1] cell_edges_x2,
+    np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[np.uint16_t, ndim=2] out,
 ):
+    cdef Py_ssize_t ipart, particle_count
+    cdef np.uint16_t iL, iR, idx
+    cdef real x
+
+    cdef int ndim
     if cell_edges_x3.shape[0] > 1:
         ndim = 3
     elif cell_edges_x2.shape[0] > 1:
