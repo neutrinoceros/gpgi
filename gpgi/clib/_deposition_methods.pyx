@@ -24,7 +24,7 @@ def _deposit_pic_1D(
 
     for ipart in range(particle_count):
         i = hci_v[ipart][0]
-        out_v[i] = out_v[i] + field_v[ipart]
+        out_v[i] += field_v[ipart]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -45,7 +45,7 @@ def _deposit_pic_2D(
     for ipart in range(particle_count):
         i = hci_v[ipart][0]
         j = hci_v[ipart][1]
-        out_v[i][j] = out_v[i][j] + field_v[ipart]
+        out_v[i][j] += field_v[ipart]
 
 
 @cython.boundscheck(False)
@@ -68,4 +68,4 @@ def _deposit_pic_3D(
         i = hci_v[ipart][0]
         j = hci_v[ipart][1]
         k = hci_v[ipart][2]
-        out_v[i][j][k] += out_v[i][j][k] + field_v[ipart]
+        out_v[i][j][k] += field_v[ipart]
