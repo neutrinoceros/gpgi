@@ -154,6 +154,12 @@ class Grid(CoordinateValidatorMixin):
         self.axes = tuple(self.coordinates.keys())
         super().__init__()
 
+        self._dx = np.full((3,), -1, dtype=self.coordinates[self.axes[0]].dtype)
+        for i, ax in enumerate(self.axes):
+            if np.diff(self.coordinates[ax]).std() < 1e-16:
+                # got a constant step in this direction, store it
+                self._dx[i] = self.coordinates[ax][1] - self.coordinates[ax][0]
+
     def _validate(self) -> None:
         self._validate_geometry()
         self._validate_coordinates()
@@ -285,6 +291,7 @@ class Dataset(ValidatorMixin):
             cell_edges_x1=cell_edges_x1,
             cell_edges_x2=cell_edges_x2,
             cell_edges_x3=cell_edges_x3,
+            dx=self.grid._dx,
             particle_coords=particle_coords,
             out=self._hci,
         )
