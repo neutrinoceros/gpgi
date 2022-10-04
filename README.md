@@ -8,9 +8,9 @@
 
 A **G**eneric **P**article + **G**rid data **I**nterface
 
-This small Python library implements fundamental grid deposition algorithms to analyse grid + particle datasets, with an emphasize on performance.
-Core algorithms are writen as Cython extensions.
-
+This small Python library implements fundamental grid deposition algorithms to
+analyse (rectilinear) grid + particle datasets, with an emphasize on
+performance. Core algorithms are implemented as Cython extensions.
 ### Installation
 
 ```shell
