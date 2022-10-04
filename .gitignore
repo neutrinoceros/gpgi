@@ -1,3 +1,15 @@
 __pycache__
 .python-version
+.coverage*
+.mypy_cache
+.pytest_cache
+
 *~
+__pycache__
+
+MANIFEST
+build
+dist
+gpgi/clib/*.html
+gpgi/clib/*.so
+gpgi/clib/*.c

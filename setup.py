@@ -1,13 +1,12 @@
 import numpy
 from Cython.Build import cythonize
-from distutils.core import setup
 from distutils.extension import Extension
+from setuptools import setup
 
 ext_modules = ["gpgi/clib/_indexing.pyx"]
 
 
 setup(
-    name="Hello world app",
     ext_modules=cythonize(
         [
             Extension(

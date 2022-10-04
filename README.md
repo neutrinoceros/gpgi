@@ -1,16 +1,21 @@
 # GPGI
+[![PyPI](https://img.shields.io/pypi/v/gpgi.svg?logo=pypi&logoColor=white&label=PyPI)](https://pypi.org/project/gpgi/)
+[![PyPI](https://img.shields.io/badge/requires-Python%20≥%203.9-blue?logo=python&logoColor=white)](https://pypi.org/project/gpgi/)
+
+[![](https://img.shields.io/badge/test_coverage-100%-brightgreen)]()
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/neutrinoceros/gpgi/main.svg)](https://results.pre-commit.ci/latest/github/neutrinoceros/gpgi/main)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+
 A **G**eneric **P**article + **G**rid data **I**nterface
 
-This small Python library implements fundamental grid deposition algorithms to analyse grid + particle datasets, with an emphasize on performance.
-Core algorithms are writen as Cython extensions.
-
+This small Python library implements fundamental grid deposition algorithms to
+analyse (rectilinear) grid + particle datasets, with an emphasize on
+performance. Core algorithms are implemented as Cython extensions.
 ### Installation
 
 ```shell
-python -m pip install git@https://github.com/neutrinoceros/gpgi.git
+pip install gpgi
 ```
-
-
 
 ### Usage
 
@@ -52,7 +57,7 @@ which both hold a `fields` attribute for accessing their data.
 But more importantly, the `Dataset` has a `deposit` method to
 translate particle fields to the grid formalism.
 
-**Deposit Particle fields on the grid **
+**Deposit Particle fields on the grid**
 
 ```python
 particle_mass = ds.deposit("mass", method="particle_in_cell")  # or "pic" for shorts
@@ -72,7 +77,7 @@ im = ax.pcolormesh(
     particle_mass.T,
     data=ds.grid.cell_edges,
     cmap="viridis",
- )
+)
 fig.colorbar(im, ax=ax)
 ```
 
