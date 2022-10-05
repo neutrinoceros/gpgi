@@ -74,7 +74,7 @@ jobs:
       if: failure()
       run: |
         pytest --color=yes --mpl -m mpl_image_compare \
-               --mpl-generate-path=pytest_mpl_new_baseline \
+               --mpl-generate-path=gpgi_pytest_mpl_new_baseline \
                --last-failed
 
     # always attempt to upload artifacts, even
@@ -84,14 +84,14 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: gpgi_pytest_mpl_results
-        path: pytest_mpl_results/*
+        path: gpgi_pytest_mpl_results/*
 
     - name: Upload pytest-mpl baseline
       if: always()
       uses: actions/upload-artifact@v2
       with:
         name: gpgi_pytest_mpl_new_baseline
-        path: pytest_mpl_new_baseline/*
+        path: gpgi_pytest_mpl_new_baseline/*
         if-no-files-found: ignore
 
 
