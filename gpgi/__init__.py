@@ -2,4 +2,4 @@ from __future__ import annotations
 
 from .api import load
 
-__version__ = "0.1.0"
+__version__ = "0.2.dev0"
