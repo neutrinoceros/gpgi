@@ -167,9 +167,9 @@ def test_3D_deposit(dtype):
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.linspace(-1, 1, 10, dtype),
-                "y": np.linspace(-1, 1, 10, dtype),
-                "z": np.linspace(-1, 1, 10, dtype),
+                "x": np.linspace(-1, 1, 10, dtype=dtype),
+                "y": np.linspace(-1, 1, 10, dtype=dtype),
+                "z": np.linspace(-1, 1, 10, dtype=dtype),
             },
         },
         particles={
