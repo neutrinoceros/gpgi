@@ -132,23 +132,29 @@ def test_deposit_image(sample_dataset):
     return fig
 
 
+@pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
-def test_1D_deposit():
-    npart = 60
+def test_1D_deposit(grid_type):
+
+    xedges = {"linear": np.linspace(1, 2, 6), "geometric": np.geomspace(1, 2, 6)}[
+        grid_type
+    ]
+
+    npart = 16
     prng = np.random.RandomState(0)
     ds = gpgi.load(
         geometry="cartesian",
         grid={
-            "cell_edges": {
-                "x": np.linspace(-1, 1, 100),
-            },
+            "cell_edges": {"x": xedges},
         },
         particles={
-            "coordinates": {"x": 2 * (prng.random_sample(npart) - 0.5)},
+            "coordinates": {"x": 1 + prng.random_sample(npart)},
             "fields": {"mass": np.ones(npart)},
         },
     )
     mass = ds.deposit("mass", method="pic")
+    assert mass.sum() == ds.particles.count
+
     fig, ax = plt.subplots()
     ax.set(xlabel="x", ylabel="particle mass")
     ax.bar(
