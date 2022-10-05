@@ -302,18 +302,19 @@ class Dataset(ValidatorMixin):
         from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
 
         if not hasattr(self, "_cache"):
-            self._cache: dict[tuple[Name, Name], np.ndarray] = {}
-        if (particle_field_key, method) in self._cache:
-            return self._cache[particle_field_key, method]
+            self._cache: dict[tuple[Name, DepositionMethod], np.ndarray] = {}
 
-        # public interface
         if method in _deposition_method_names:
-            key = _deposition_method_names[method]
+            mkey = _deposition_method_names[method]
         else:
             raise ValueError(
                 f"Unknown deposition method {method!r}, "
                 f"expected any of {tuple(_deposition_method_names.keys())}"
             )
+
+        if (particle_field_key, mkey) in self._cache:
+            return self._cache[particle_field_key, mkey]
+
         if self.grid is None:
             raise TypeError("Cannot deposit particle fields on a grid-less dataset")
         if self.particles is None:
@@ -332,14 +333,14 @@ class Dataset(ValidatorMixin):
                 _deposit_pic_3D,
             ]
         }
-        if key not in known_methods:
+        if mkey not in known_methods:
             raise NotImplementedError(f"method {method} is not implemented yet")
 
         field = np.array(self.particles.fields[particle_field_key])
         ret_array = np.zeros(self.grid.shape, dtype=field.dtype)
         self._setup_host_cell_index()
 
-        func = known_methods[key][self.grid.ndim - 1]
+        func = known_methods[mkey][self.grid.ndim - 1]
         func(field, self._hci, ret_array)
-        self._cache[particle_field_key, method] = ret_array
+        self._cache[particle_field_key, mkey] = ret_array
         return ret_array

@@ -94,6 +94,10 @@ def test_double_deposit(sample_dataset):
     particle_density_2 = ds.deposit("mass", method="pic")
     assert particle_density_2 is particle_density
 
+    # using the full key shouldn't produce another array
+    particle_density_3 = ds.deposit("mass", method="particle_in_cell")
+    assert particle_density_3 is particle_density
+
 
 @pytest.mark.mpl_image_compare
 def test_deposit_image(sample_dataset):
