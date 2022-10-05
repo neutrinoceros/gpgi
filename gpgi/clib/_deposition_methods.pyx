@@ -81,3 +81,151 @@ def _deposit_pic_3D(
         j = hci_v[ipart][1]
         k = hci_v[ipart][2]
         out_v[i][j][k] += field_v[ipart]
+
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _deposit_tsc_1D(
+    np.ndarray[real, ndim=1] cell_edges_x1,
+    np.ndarray[real, ndim=1] cell_edges_x2,
+    np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] field,
+    np.ndarray[np.uint16_t, ndim=2] hci,
+    np.ndarray[real, ndim=1] out,
+):
+    cdef Py_ssize_t ipart, particle_count, i, oci
+    particle_count = hci.shape[0]
+
+    cdef real x, d
+    cdef np.uint16_t ci
+
+    cdef real[:] field_v = field
+    cdef real[:] out_v = out
+
+    # weight arrays
+    cdef real[3] w
+
+    for ipart in range(particle_count):
+        x = particle_coords[ipart, 0]
+        ci = hci[ipart, 0]
+        d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
+        w[0] = 0.5 * (1 - d) ** 2
+        w[1] = 0.75 - (d - 0.5) ** 2
+        w[2] = 0.5 * d**2
+
+        for i in range(3):
+            oci = ci - 1 + i
+            out_v[oci] += w[i] * field_v[ipart]
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _deposit_tsc_2D(
+    np.ndarray[real, ndim=1] cell_edges_x1,
+    np.ndarray[real, ndim=1] cell_edges_x2,
+    np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] field,
+    np.ndarray[np.uint16_t, ndim=2] hci,
+    np.ndarray[real, ndim=2] out,
+):
+    cdef Py_ssize_t ipart, particle_count, i, j, oci, ocj
+    particle_count = hci.shape[0]
+
+    cdef real x, d
+    cdef np.uint16_t ci, cj
+
+    cdef real[:] field_v = field
+    cdef real[:, :] out_v = out
+
+    # weight arrays
+    cdef real[3] w1, w2
+    cdef real[3][3] w
+
+    for ipart in range(particle_count):
+        x = particle_coords[ipart, 0]
+        ci = hci[ipart, 0]
+        d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
+        w1[0] = 0.5 * (1 - d) ** 2
+        w1[1] = 0.75 - (d - 0.5) ** 2
+        w1[2] = 0.5 * d**2
+
+        x = particle_coords[ipart, 1]
+        cj = hci[ipart, 1]
+        d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
+        w2[0] = 0.5 * (1 - d) ** 2
+        w2[1] = 0.75 - (d - 0.5) ** 2
+        w2[2] = 0.5 * d**2
+
+        for i in range(3):
+            for j in range(3):
+                w[i][j] = w1[i] * w2[j]
+
+        for i in range(3):
+            oci = ci - 1 + i
+            for j in range(3):
+                ocj = cj - 1 + j
+                out_v[oci, ocj] += w[i][j] * field_v[ipart]
+
+
+@cython.cdivision(True)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _deposit_tsc_3D(
+    np.ndarray[real, ndim=1] cell_edges_x1,
+    np.ndarray[real, ndim=1] cell_edges_x2,
+    np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] field,
+    np.ndarray[np.uint16_t, ndim=2] hci,
+    np.ndarray[real, ndim=3] out,
+):
+    cdef Py_ssize_t ipart, particle_count, i, j, k, oci, ocj, ock
+    particle_count = hci.shape[0]
+
+    cdef real x, d
+    cdef np.uint16_t ci, cj, ck
+
+    cdef real[:] field_v = field
+    cdef real[:, :, :] out_v = out
+
+    # weight arrays
+    cdef real[3] w1, w2, w3
+    cdef real[3][3][3] w
+
+    for ipart in range(particle_count):
+        x = particle_coords[ipart, 0]
+        ci = hci[ipart, 0]
+        d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
+        w1[0] = 0.5 * (1 - d) ** 2
+        w1[1] = 0.75 - (d - 0.5) ** 2
+        w1[2] = 0.5 * d**2
+
+        x = particle_coords[ipart, 1]
+        cj = hci[ipart, 1]
+        d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
+        w2[0] = 0.5 * (1 - d) ** 2
+        w2[1] = 0.75 - (d - 0.5) ** 2
+        w2[2] = 0.5 * d**2
+
+        x = particle_coords[ipart, 2]
+        ck = hci[ipart, 2]
+        d = (x - cell_edges_x3[ck]) / (cell_edges_x3[ck + 1] - cell_edges_x3[ck])
+        w3[0] = 0.5 * (1 - d) ** 2
+        w3[1] = 0.75 - (d - 0.5) ** 2
+        w3[2] = 0.5 * d**2
+
+        for i in range(3):
+            for j in range(3):
+                for k in range(3):
+                    w[i][j][k] = w1[i] * w2[j] * w3[k]
+
+        for i in range(3):
+            oci = ci - 1 + i
+            for j in range(3):
+                ocj = cj - 1 + j
+                for k in range(3):
+                    ock = ck - 1 + k
+                    out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart]
