@@ -20,8 +20,8 @@ def _index_particles(
         if dx[0] > 0:
             out[ipart, 0] = int((x - cell_edges_x1[0]) // dx[0])
         else:
-            iL = 0
-            iR = cell_edges_x1.shape[0] - 1
+            iL = 1
+            iR = cell_edges_x1.shape[0] - 2
             idx = (iL + iR) // 2
             while idx != iL:
                 if cell_edges_x1[idx] > x:
@@ -38,8 +38,8 @@ def _index_particles(
         if dx[1] > 0:
             out[ipart, 1] = int((x - cell_edges_x2[0]) // dx[1])
         else:
-            iL = 0
-            iR = cell_edges_x2.shape[0] - 1
+            iL = 1
+            iR = cell_edges_x2.shape[00] - 2
             idx = (iL + iR) // 2
             while idx != iL:
                 if cell_edges_x2[idx] > x:
@@ -56,8 +56,8 @@ def _index_particles(
         if dx[2] > 0:
             out[ipart, 2] = int((x - cell_edges_x3[0]) // dx[2])
         else:
-            iL = 0
-            iR = cell_edges_x3.shape[0] - 1
+            iL = 1
+            iR = cell_edges_x3.shape[0] - 2
             idx = (iL + iR) // 2
             while idx != iL:
                 if cell_edges_x3[idx] > x:
