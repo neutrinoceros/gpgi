@@ -3,6 +3,11 @@ on:
   pull_request:
   workflow_dispatch:
 
+concurrency:
+  # auto-cancel any in-progress job *on the same branch*
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   unit-tests:
     strategy:
@@ -46,11 +51,6 @@ jobs:
   image-tests:
     name: Image tests
     runs-on: ubuntu-latest
-
-    concurrency:
-      # auto-cancel any in-progress job *on the same branch*
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
 
     steps:
     - name: Set up Python
@@ -130,11 +130,6 @@ jobs:
   typecheck:
     runs-on: ubuntu-latest
     name: type check
-
-    concurrency:
-      # auto-cancel any in-progress job *on the same branch*
-      group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true
 
     steps:
     - name: Checkout repo
