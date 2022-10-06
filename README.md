@@ -12,7 +12,8 @@ performance. Core algorithms are implemented as Cython extensions.
 ### Installation
 
 ```shell
-pip install gpgi
+python -m pip install --upgrade pip
+python -m pip install gpgi
 ```
 
 ### Usage
