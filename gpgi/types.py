@@ -5,6 +5,7 @@ from abc import ABC
 from abc import abstractmethod
 from functools import cached_property
 from functools import reduce
+from time import monotonic_ns
 from typing import Any
 from typing import Protocol
 
@@ -261,7 +262,7 @@ class Dataset(ValidatorMixin):
                 if x > domain_right:
                     raise ValueError(f"Got particle at {ax}={x} > {domain_right=}")
 
-    def _setup_host_cell_index(self) -> None:
+    def _setup_host_cell_index(self, verbose: bool = False) -> None:
         if hasattr(self, "_hci") or self.particles is None or self.grid is None:
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
@@ -287,6 +288,7 @@ class Dataset(ValidatorMixin):
             out=particle_coords,
         )
 
+        tstart = monotonic_ns()
         _index_particles(
             cell_edges_x1=cell_edges_x1,
             cell_edges_x2=cell_edges_x2,
@@ -295,8 +297,15 @@ class Dataset(ValidatorMixin):
             particle_coords=particle_coords,
             out=self._hci,
         )
+        tstop = monotonic_ns()
+        if verbose:
+            print(
+                f"Indexed {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
+            )
 
-    def deposit(self, particle_field_key: Name, /, *, method: Name) -> np.ndarray:
+    def deposit(
+        self, particle_field_key: Name, /, *, method: Name, verbose: bool = False
+    ) -> np.ndarray:
         from .clib._deposition_methods import _deposit_pic_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
@@ -338,9 +347,15 @@ class Dataset(ValidatorMixin):
 
         field = np.array(self.particles.fields[particle_field_key])
         ret_array = np.zeros(self.grid.shape, dtype=field.dtype)
-        self._setup_host_cell_index()
+        self._setup_host_cell_index(verbose=verbose)
 
         func = known_methods[mkey][self.grid.ndim - 1]
+        tstart = monotonic_ns()
         func(field, self._hci, ret_array)
+        tstop = monotonic_ns()
+        if verbose:
+            print(
+                f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
+            )
         self._cache[particle_field_key, mkey] = ret_array
         return ret_array
