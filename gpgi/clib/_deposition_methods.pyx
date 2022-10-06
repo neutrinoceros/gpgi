@@ -9,6 +9,10 @@ cdef fused real:
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _deposit_pic_1D(
+    np.ndarray[real, ndim=1] cell_edges_x1,
+    np.ndarray[real, ndim=1] cell_edges_x2,
+    np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=2] particle_coords,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=1] out,
@@ -29,6 +33,10 @@ def _deposit_pic_1D(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _deposit_pic_2D(
+    np.ndarray[real, ndim=1] cell_edges_x1,
+    np.ndarray[real, ndim=1] cell_edges_x2,
+    np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=2] particle_coords,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=2] out,
@@ -51,6 +59,10 @@ def _deposit_pic_2D(
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _deposit_pic_3D(
+    np.ndarray[real, ndim=1] cell_edges_x1,
+    np.ndarray[real, ndim=1] cell_edges_x2,
+    np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=2] particle_coords,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=3] out,

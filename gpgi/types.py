@@ -188,6 +188,10 @@ class Grid(CoordinateValidatorMixin):
     def shape(self) -> tuple[int, ...]:
         return tuple(len(_) - 1 for _ in self.cell_edges.values())
 
+    @cached_property
+    def _padded_shape(self) -> tuple[int, ...]:
+        return tuple(len(_) + 1 for _ in self.cell_edges.values())
+
     @property
     def size(self) -> int:
         return reduce(int.__mul__, self.shape)
@@ -262,6 +266,45 @@ class Dataset(ValidatorMixin):
                 if x > domain_right:
                     raise ValueError(f"Got particle at {ax}={x} > {domain_right=}")
 
+    def _get_padded_cell_edges(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        if self.grid is None:
+            raise RuntimeError(
+                "Something took a wrong turn, please report this."
+            )  # pragma: no cover
+        edges = iter(self.grid.cell_edges.values())
+
+        def pad(a: np.ndarray) -> np.ndarray:
+            dx = a[1] - a[0]
+            return np.concatenate([[a[0] - dx], a, [a[-1] + dx]])
+
+        x1 = next(edges)
+        cell_edges_x1 = pad(x1)
+        DTYPE = cell_edges_x1.dtype
+
+        cell_edges_x2 = cell_edges_x3 = np.empty(0, DTYPE)
+        if self.grid.ndim >= 2:
+            cell_edges_x2 = pad(next(edges))
+        if self.grid.ndim == 3:
+            cell_edges_x3 = pad(next(edges))
+
+        return cell_edges_x1, cell_edges_x2, cell_edges_x3
+
+    @cached_property
+    def _normalized_particle_coords(self) -> np.ndarray:
+        if self.grid is None or self.particles is None:
+            raise RuntimeError(
+                "Something took a wrong turn, please report this."
+            )  # pragma: no cover
+        edges = iter(self.grid.cell_edges.values())
+        DTYPE = next(edges).dtype
+        particle_coords = np.empty((self.particles.count, self.grid.ndim), dtype=DTYPE)
+        np.stack(
+            [e for e in self.particles.coordinates.values()],
+            axis=1,
+            out=particle_coords,
+        )
+        return particle_coords
+
     def _setup_host_cell_index(self, verbose: bool = False) -> None:
         if hasattr(self, "_hci") or self.particles is None or self.grid is None:
             # this line is hard to cover by testing just public api
@@ -271,30 +314,11 @@ class Dataset(ValidatorMixin):
 
         self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
 
-        edges = iter(self.grid.cell_edges.values())
-
-        cell_edges_x1 = next(edges)
-        DTYPE = cell_edges_x1.dtype
-        cell_edges_x2 = cell_edges_x3 = np.empty(0, DTYPE)
-        if self.grid.ndim >= 2:
-            cell_edges_x2 = next(edges)
-        if self.grid.ndim == 3:
-            cell_edges_x3 = next(edges)
-
-        particle_coords = np.empty((self.particles.count, self.grid.ndim), dtype=DTYPE)
-        np.stack(
-            [e for e in self.particles.coordinates.values()],
-            axis=1,
-            out=particle_coords,
-        )
-
         tstart = monotonic_ns()
         _index_particles(
-            cell_edges_x1=cell_edges_x1,
-            cell_edges_x2=cell_edges_x2,
-            cell_edges_x3=cell_edges_x3,
+            *self._get_padded_cell_edges(),
             dx=self.grid._dx,
-            particle_coords=particle_coords,
+            particle_coords=self._normalized_particle_coords,
             out=self._hci,
         )
         tstop = monotonic_ns()
@@ -346,16 +370,33 @@ class Dataset(ValidatorMixin):
             raise NotImplementedError(f"method {method} is not implemented yet")
 
         field = np.array(self.particles.fields[particle_field_key])
-        ret_array = np.zeros(self.grid.shape, dtype=field.dtype)
+        padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
         self._setup_host_cell_index(verbose=verbose)
 
         func = known_methods[mkey][self.grid.ndim - 1]
         tstart = monotonic_ns()
-        func(field, self._hci, ret_array)
+        func(
+            *self._get_padded_cell_edges(),
+            self._normalized_particle_coords,
+            field,
+            self._hci,
+            padded_ret_array,
+        )
         tstop = monotonic_ns()
         if verbose:
             print(
                 f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
             )
+
+        # boundary conditions treatment should be performed here
+        # ...
+
+        # remove ghost layer padding
+        if self.grid.ndim == 1:
+            ret_array = padded_ret_array[1:-1]
+        elif self.grid.ndim == 2:
+            ret_array = padded_ret_array[1:-1, 1:-1]
+        elif self.grid.ndim == 3:
+            ret_array = padded_ret_array[1:-1, 1:-1, 1:-1]
         self._cache[particle_field_key, mkey] = ret_array
         return ret_array
