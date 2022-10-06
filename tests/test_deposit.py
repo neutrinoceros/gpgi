@@ -1,3 +1,5 @@
+import re
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -232,3 +234,35 @@ def test_readme_example():
     )
     fig.colorbar(im, ax=ax, label="deposited particle mass")
     return fig
+
+
+def test_performance_logging(capsys):
+    nx = ny = 64
+    nparticles = 600_000
+
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, nx),
+                "y": np.linspace(-1, 1, ny),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(nparticles),
+            },
+        },
+    )
+    ds.deposit("mass", method="pic", verbose=True)
+    stdout, stderr = capsys.readouterr()
+    assert stderr == ""
+    lines = stdout.strip().split("\n")
+    assert len(lines) == 2
+    assert re.match(r"Indexed .* particles in .* s", lines[0])
+    assert re.match(r"Deposited .* particles in .* s", lines[1])
