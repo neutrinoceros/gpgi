@@ -333,6 +333,9 @@ class Dataset(ValidatorMixin):
         from .clib._deposition_methods import _deposit_pic_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_tsc_1D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_tsc_2D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_tsc_3D  # type: ignore [import]
 
         if not hasattr(self, "_cache"):
             self._cache: dict[tuple[Name, DepositionMethod], np.ndarray] = {}
@@ -364,7 +367,12 @@ class Dataset(ValidatorMixin):
                 _deposit_pic_1D,
                 _deposit_pic_2D,
                 _deposit_pic_3D,
-            ]
+            ],
+            DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
+                _deposit_tsc_1D,
+                _deposit_tsc_2D,
+                _deposit_tsc_3D,
+            ],
         }
         if mkey not in known_methods:
             raise NotImplementedError(f"method {method} is not implemented yet")

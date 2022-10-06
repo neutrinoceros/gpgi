@@ -31,7 +31,7 @@ def sample_dataset():
                 "y": (2 * prng.random_sample(nparticles)) * un.m,
             },
             "fields": {
-                "mass": prng.random_sample(nparticles) * un.g,
+                "mass": np.ones(nparticles) * un.g,
             },
         },
     )
@@ -101,42 +101,39 @@ def test_double_deposit(sample_dataset):
     assert particle_density_3 is particle_density
 
 
+@pytest.mark.parametrize("method", ["pic", "tsc"])
 @pytest.mark.mpl_image_compare
-def test_deposit_image(sample_dataset):
+def test_2D_deposit(sample_dataset, method):
     ds = sample_dataset
-    gas_density = ds.grid.fields["density"]
-    particle_density = ds.deposit("mass", method="pic")
+    particle_density = ds.deposit("mass", method=method)
 
-    mass_ratio = particle_density / gas_density
+    fig, ax = plt.subplots()
 
-    fig, axs = plt.subplots(ncols=2, figsize=(13, 4.75), sharex=True, sharey=True)
-    for field, ax in zip((gas_density, particle_density, mass_ratio), axs):
-        field = field.T
-        im = ax.pcolormesh(
-            "x",
-            "y",
-            field,
-            data=ds.grid.cell_edges,
-            cmap="viridis",
-        )
-        ax.set(aspect=1, xlabel="x")
-        if ax is axs[0]:
-            ax.set_ylabel("y")
-            ax.scatter(
-                "x",
-                "y",
-                data=ds.particles.coordinates,
-                edgecolor="black",
-                color="tab:red",
-                marker="o",
-            )
-        fig.colorbar(im, ax=ax)
+    im = ax.pcolormesh(
+        "x",
+        "y",
+        particle_density.T,
+        data=ds.grid.cell_edges,
+        cmap="viridis",
+        edgecolors="white",
+    )
+    ax.set(aspect=1, xlabel="x", ylabel="y", title=f"Deposition method '{method}'")
+    ax.scatter(
+        "x",
+        "y",
+        data=ds.particles.coordinates,
+        edgecolor="black",
+        color="tab:red",
+        marker="o",
+    )
+    fig.colorbar(im, ax=ax)
     return fig
 
 
+@pytest.mark.parametrize("method", ["pic", "tsc"])
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
-def test_1D_deposit(grid_type):
+def test_1D_deposit(method, grid_type):
 
     xedges = {"linear": np.linspace(1, 2, 6), "geometric": np.geomspace(1, 2, 6)}[
         grid_type
@@ -154,11 +151,12 @@ def test_1D_deposit(grid_type):
             "fields": {"mass": np.ones(npart)},
         },
     )
-    mass = ds.deposit("mass", method="pic")
-    # assert mass.sum() == ds.particles.count
+    mass = ds.deposit("mass", method=method)
+    if method == "pic":
+        assert mass.sum() == ds.particles.count
 
     fig, ax = plt.subplots()
-    ax.set(xlabel="x", ylabel="particle mass")
+    ax.set(xlabel="x", ylabel="particle mass", title=f"Deposition method '{method}'")
     ax.bar(
         ds.grid.cell_centers["x"], mass, width=ds.grid.cell_widths["x"], edgecolor=None
     )
@@ -167,8 +165,9 @@ def test_1D_deposit(grid_type):
     return fig
 
 
+@pytest.mark.parametrize("method", ["pic", "tsc"])
 @pytest.mark.parametrize("dtype", ["float32", "float64"])
-def test_3D_deposit(dtype):
+def test_3D_deposit(method, dtype):
     npart = 60
     prng = np.random.RandomState(0)
     ds = gpgi.load(
@@ -191,7 +190,7 @@ def test_3D_deposit(dtype):
             },
         },
     )
-    ds.deposit("mass", method="pic")
+    ds.deposit("mass", method=method)
 
 
 @pytest.mark.mpl_image_compare
