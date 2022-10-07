@@ -12,7 +12,9 @@ def _deposit_pic_1D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
-    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] particles_x1,
+    np.ndarray[real, ndim=1] particles_x2,
+    np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=1] out,
@@ -36,7 +38,9 @@ def _deposit_pic_2D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
-    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] particles_x1,
+    np.ndarray[real, ndim=1] particles_x2,
+    np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=2] out,
@@ -62,7 +66,9 @@ def _deposit_pic_3D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
-    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] particles_x1,
+    np.ndarray[real, ndim=1] particles_x2,
+    np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=3] out,
@@ -90,7 +96,9 @@ def _deposit_tsc_1D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
-    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] particles_x1,
+    np.ndarray[real, ndim=1] particles_x2,
+    np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=1] out,
@@ -108,7 +116,7 @@ def _deposit_tsc_1D(
     cdef real[3] w
 
     for ipart in range(particle_count):
-        x = particle_coords[ipart, 0]
+        x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
         w[0] = 0.5 * (1 - d) ** 2
@@ -126,7 +134,9 @@ def _deposit_tsc_2D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
-    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] particles_x1,
+    np.ndarray[real, ndim=1] particles_x2,
+    np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=2] out,
@@ -145,14 +155,14 @@ def _deposit_tsc_2D(
     cdef real[3][3] w
 
     for ipart in range(particle_count):
-        x = particle_coords[ipart, 0]
+        x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
         w1[0] = 0.5 * (1 - d) ** 2
         w1[1] = 0.75 - (d - 0.5) ** 2
         w1[2] = 0.5 * d**2
 
-        x = particle_coords[ipart, 1]
+        x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
         w2[0] = 0.5 * (1 - d) ** 2
@@ -177,7 +187,9 @@ def _deposit_tsc_3D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
-    np.ndarray[real, ndim=2] particle_coords,
+    np.ndarray[real, ndim=1] particles_x1,
+    np.ndarray[real, ndim=1] particles_x2,
+    np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=3] out,
@@ -196,21 +208,21 @@ def _deposit_tsc_3D(
     cdef real[3][3][3] w
 
     for ipart in range(particle_count):
-        x = particle_coords[ipart, 0]
+        x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
         w1[0] = 0.5 * (1 - d) ** 2
         w1[1] = 0.75 - (d - 0.5) ** 2
         w1[2] = 0.5 * d**2
 
-        x = particle_coords[ipart, 1]
+        x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
         w2[0] = 0.5 * (1 - d) ** 2
         w2[1] = 0.75 - (d - 0.5) ** 2
         w2[2] = 0.5 * d**2
 
-        x = particle_coords[ipart, 2]
+        x = particles_x3[ipart]
         ck = hci[ipart, 2]
         d = (x - cell_edges_x3[ck]) / (cell_edges_x3[ck + 1] - cell_edges_x3[ck])
         w3[0] = 0.5 * (1 - d) ** 2
