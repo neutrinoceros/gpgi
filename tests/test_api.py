@@ -260,3 +260,26 @@ def test_out_of_bound_particles_right():
             grid={"cell_edges": {"radius": np.arange(10, 101)}},
             particles={"coordinates": {"radius": np.array([1000])}},
         )
+
+
+def test_identical_dtype_requirement():
+    nx = 64
+    nparticles = 600
+
+    with pytest.raises(
+        TypeError,
+        match=r"Got mixed data types \(\[dtype\('float32'\), dtype\('float64'\)\]\)",
+    ):
+        gpgi.load(
+            geometry="cartesian",
+            grid={
+                "cell_edges": {
+                    "x": np.linspace(-1, 1, nx, dtype="float32"),
+                },
+            },
+            particles={
+                "coordinates": {
+                    "x": np.zeros(nparticles, dtype="float64"),
+                },
+            },
+        )

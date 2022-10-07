@@ -13,8 +13,10 @@ def _index_particles(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
+    np.ndarray[real, ndim=1] particles_x1,
+    np.ndarray[real, ndim=1] particles_x2,
+    np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] dx,
-    np.ndarray[real, ndim=2] particle_coords,
     np.ndarray[np.uint16_t, ndim=2] out,
 ):
     r"""
@@ -43,10 +45,10 @@ def _index_particles(
     else:
         ndim = 1
 
-    particle_count = particle_coords.shape[0]
+    particle_count = particles_x1.shape[0]
 
     for ipart in range(particle_count):
-        x = particle_coords[ipart, 0]
+        x = particles_x1[ipart]
         if dx[0] > 0:
             out[ipart, 0] = int((x - cell_edges_x1[0]) // dx[0])
         else:
@@ -64,7 +66,7 @@ def _index_particles(
         if ndim < 2:
             continue
 
-        x = particle_coords[ipart, 1]
+        x = particles_x2[ipart]
         if dx[1] > 0:
             out[ipart, 1] = int((x - cell_edges_x2[0]) // dx[1])
         else:
@@ -82,7 +84,7 @@ def _index_particles(
         if ndim < 3:
             continue
 
-        x = particle_coords[ipart, 2]
+        x = particles_x3[ipart]
         if dx[2] > 0:
             out[ipart, 2] = int((x - cell_edges_x3[0]) // dx[2])
         else:

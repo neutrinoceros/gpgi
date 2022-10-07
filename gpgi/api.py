@@ -28,7 +28,7 @@ def load(
         if "cell_edges" not in grid:
             raise ValueError("grid dictionary missing required key 'cell_edges'")
         _grid = Grid(
-            _geometry, cell_edges=grid["cell_edges"], fields=grid.get("fields")
+            _geometry, cell_edges=grid["cell_edges"], fields=grid.get("fields", {})
         )
 
     _particles: ParticleSet | None = None
@@ -38,7 +38,7 @@ def load(
         _particles = ParticleSet(
             _geometry,
             coordinates=particles["coordinates"],
-            fields=particles.get("fields"),
+            fields=particles.get("fields", {}),
         )
 
     return Dataset(geometry=_geometry, grid=_grid, particles=_particles)

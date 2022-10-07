@@ -2,7 +2,15 @@ import numpy as np
 
 
 def _deposit_pic(
-    cell_edges_x1, cell_edges_x2, cell_edges_x3, particle_coords, field, hci, out
+    cell_edges_x1,
+    cell_edges_x2,
+    cell_edges_x3,
+    particles_x1,
+    particles_x2,
+    particles_x3,
+    field,
+    hci,
+    out,
 ):
     for ipart in range(len(hci)):
         md_idx = tuple(hci[ipart])
@@ -10,13 +18,29 @@ def _deposit_pic(
 
 
 def _deposit_cic(
-    cell_edges_x1, cell_edges_x2, cell_edges_x3, particle_coords, field, hci, out
+    cell_edges_x1,
+    cell_edges_x2,
+    cell_edges_x3,
+    particles_x1,
+    particles_x2,
+    particles_x3,
+    field,
+    hci,
+    out,
 ):
     return NotImplementedError("Cloud-in-cell deposition method is not implemented yet")
 
 
 def _deposit_tsc_1D(
-    cell_edges_x1, cell_edges_x2, cell_edges_x3, particle_coords, field, hci, out
+    cell_edges_x1,
+    cell_edges_x2,
+    cell_edges_x3,
+    particles_x1,
+    particles_x2,
+    particles_x3,
+    field,
+    hci,
+    out,
 ):
     nparticles = hci.shape[0]
 
@@ -24,7 +48,7 @@ def _deposit_tsc_1D(
     w = np.zeros(3, dtype=field.dtype)
 
     for ipart in range(nparticles):
-        x = particle_coords[ipart, 0]
+        x = particles_x1[ipart]
 
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
@@ -37,7 +61,15 @@ def _deposit_tsc_1D(
 
 
 def _deposit_tsc_2D(
-    cell_edges_x1, cell_edges_x2, cell_edges_x3, particle_coords, field, hci, out
+    cell_edges_x1,
+    cell_edges_x2,
+    cell_edges_x3,
+    particles_x1,
+    particles_x2,
+    particles_x3,
+    field,
+    hci,
+    out,
 ):
     nparticles = hci.shape[0]
 
@@ -48,7 +80,7 @@ def _deposit_tsc_2D(
     w = np.zeros((3, 3), dtype=field.dtype)
 
     for ipart in range(nparticles):
-        x = particle_coords[ipart, 0]
+        x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
         assert d > 0
@@ -56,7 +88,7 @@ def _deposit_tsc_2D(
         w1[1] = 0.75 - (d - 0.5) ** 2
         w1[2] = 0.5 * d**2
 
-        x = particle_coords[ipart, 1]
+        x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
         assert d > 0
@@ -74,7 +106,15 @@ def _deposit_tsc_2D(
 
 
 def _deposit_tsc_3D(
-    cell_edges_x1, cell_edges_x2, cell_edges_x3, particle_coords, field, hci, out
+    cell_edges_x1,
+    cell_edges_x2,
+    cell_edges_x3,
+    particles_x1,
+    particles_x2,
+    particles_x3,
+    field,
+    hci,
+    out,
 ):
     nparticles = hci.shape[0]
 
@@ -86,7 +126,7 @@ def _deposit_tsc_3D(
     w = np.zeros((3, 3, 3), dtype=field.dtype)
 
     for ipart in range(nparticles):
-        x = particle_coords[ipart, 0]
+        x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
         assert d > 0
@@ -94,7 +134,7 @@ def _deposit_tsc_3D(
         w1[1] = 0.75 - (d - 0.5) ** 2
         w1[2] = 0.5 * d**2
 
-        x = particle_coords[ipart, 1]
+        x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
         assert d > 0
@@ -102,7 +142,7 @@ def _deposit_tsc_3D(
         w2[1] = 0.75 - (d - 0.5) ** 2
         w2[2] = 0.5 * d**2
 
-        x = particle_coords[ipart, 2]
+        x = particles_x3[ipart]
         ck = hci[ipart, 2]
         d = (x - cell_edges_x3[ck]) / (cell_edges_x3[ck + 1] - cell_edges_x3[ck])
         assert d > 0

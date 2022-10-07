@@ -5,6 +5,7 @@ from abc import ABC
 from abc import abstractmethod
 from functools import cached_property
 from functools import reduce
+from itertools import chain
 from time import monotonic_ns
 from typing import Any
 from typing import Protocol
@@ -146,7 +147,7 @@ class Grid(CoordinateValidatorMixin):
         self,
         geometry: Geometry,
         cell_edges: FieldMap,
-        fields: FieldMap | None,
+        fields: FieldMap,
     ) -> None:
         self.geometry = geometry
         self.coordinates = cell_edges
@@ -206,7 +207,7 @@ class ParticleSet(CoordinateValidatorMixin):
         self,
         geometry: Geometry,
         coordinates: FieldMap,
-        fields: FieldMap | None,
+        fields: FieldMap,
     ) -> None:
         self.geometry = geometry
         self.coordinates = coordinates
@@ -266,6 +267,20 @@ class Dataset(ValidatorMixin):
                 if x > domain_right:
                     raise ValueError(f"Got particle at {ax}={x} > {domain_right=}")
 
+        unique_dts = sorted(
+            {
+                arr.dtype
+                for arr in chain(
+                    self.grid.coordinates.values(),
+                    self.grid.fields.values(),
+                    self.particles.coordinates.values(),
+                    self.particles.fields.values(),
+                )
+            }
+        )
+        if len(unique_dts) > 1:
+            raise TypeError(f"Got mixed data types ({unique_dts})")
+
     def _get_padded_cell_edges(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         if self.grid is None:
             raise RuntimeError(
@@ -289,21 +304,23 @@ class Dataset(ValidatorMixin):
 
         return cell_edges_x1, cell_edges_x2, cell_edges_x3
 
-    @cached_property
-    def _normalized_particle_coords(self) -> np.ndarray:
+    def _get_3D_particle_coordinates(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         if self.grid is None or self.particles is None:
             raise RuntimeError(
                 "Something took a wrong turn, please report this."
             )  # pragma: no cover
-        edges = iter(self.grid.cell_edges.values())
-        DTYPE = next(edges).dtype
-        particle_coords = np.empty((self.particles.count, self.grid.ndim), dtype=DTYPE)
-        np.stack(
-            [e for e in self.particles.coordinates.values()],
-            axis=1,
-            out=particle_coords,
-        )
-        return particle_coords
+
+        particle_coords = iter(self.particles.coordinates.values())
+        particles_x1 = next(particle_coords)
+        DTYPE = particles_x1.dtype
+
+        particles_x2 = particles_x3 = np.empty(0, DTYPE)
+        if self.grid.ndim >= 2:
+            particles_x2 = next(particle_coords)
+        if self.grid.ndim == 3:
+            particles_x3 = next(particle_coords)
+
+        return particles_x1, particles_x2, particles_x3
 
     def _setup_host_cell_index(self, verbose: bool = False) -> None:
         if hasattr(self, "_hci") or self.particles is None or self.grid is None:
@@ -317,8 +334,8 @@ class Dataset(ValidatorMixin):
         tstart = monotonic_ns()
         _index_particles(
             *self._get_padded_cell_edges(),
+            *self._get_3D_particle_coordinates(),
             dx=self.grid._dx,
-            particle_coords=self._normalized_particle_coords,
             out=self._hci,
         )
         tstop = monotonic_ns()
@@ -355,7 +372,7 @@ class Dataset(ValidatorMixin):
             raise TypeError("Cannot deposit particle fields on a grid-less dataset")
         if self.particles is None:
             raise TypeError("Cannot deposit particle fields on a particle-less dataset")
-        if self.particles.fields is None:
+        if not self.particles.fields:
             raise TypeError("There are no particle fields")
         if particle_field_key not in self.particles.fields:
             raise ValueError(f"Unknown particle field {particle_field_key!r}")
@@ -385,7 +402,7 @@ class Dataset(ValidatorMixin):
         tstart = monotonic_ns()
         func(
             *self._get_padded_cell_edges(),
-            self._normalized_particle_coords,
+            *self._get_3D_particle_coordinates(),
             field,
             self._hci,
             padded_ret_array,
