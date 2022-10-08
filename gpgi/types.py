@@ -350,6 +350,9 @@ class Dataset(ValidatorMixin):
         from .clib._deposition_methods import _deposit_pic_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_cic_1D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_cic_2D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_cic_3D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_tsc_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_tsc_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_tsc_3D  # type: ignore [import]
@@ -384,6 +387,11 @@ class Dataset(ValidatorMixin):
                 _deposit_pic_1D,
                 _deposit_pic_2D,
                 _deposit_pic_3D,
+            ],
+            DepositionMethod.CLOUD_IN_CELL: [
+                _deposit_cic_1D,
+                _deposit_cic_2D,
+                _deposit_cic_3D,
             ],
             DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
                 _deposit_tsc_1D,
