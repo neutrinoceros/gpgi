@@ -25,7 +25,7 @@ Particles are defined as points that live on the grid.
 
 Deposition is the action of going from particule description
 to a grid description of a field.
-It is useful to analyze, compare and combine simulation data that exists in a combination of the two formalism.
+It is useful to analyze, compare and combine simulation data that exists in a combination of the two formalisms.
 This process is not reversible as it degrades information.
 
 For instance, here's a simple overlay of a particle set (red dots)
@@ -60,7 +60,7 @@ In a future version, I intend to allow special treatments for these lost bits, i
 | polar         | radius, z, azimuth          | ✅           |
 | cylindrical   | radius, azimuth, z          | ✅           |
 | spherical     | radius, colatitude, azimuth | ✅           |
-| equatorial    | radius, azimuth, colatitude | ❌           |
+| equatorial    | radius, azimuth, latitude   | ❌           |
 
 ## Time complexity
 
