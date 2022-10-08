@@ -18,6 +18,7 @@ class Geometry(enum.Enum):
     POLAR = enum.auto()
     CYLINDRICAL = enum.auto()
     SPHERICAL = enum.auto()
+    EQUATORIAL = enum.auto()
 
 
 class DepositionMethod(enum.Enum):
@@ -102,6 +103,7 @@ class ValidatorMixin(GeometricData, ABC):
             Geometry.POLAR: ("radius", "z", "azimuth"),
             Geometry.CYLINDRICAL: ("radius", "azimuth", "z"),
             Geometry.SPHERICAL: ("radius", "colatitude", "azimuth"),
+            Geometry.EQUATORIAL: ("radius", "azimuth", "latitude"),
         }
         if self.geometry not in known_axes:
             # TODO: when Python 3.10 is required, refactor as a match/case block
