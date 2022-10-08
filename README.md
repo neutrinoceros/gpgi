@@ -42,7 +42,7 @@ More refined methods are also available.
 | method name             | abreviated name | order | availability |
 |-------------------------|:---------------:|:-----:|:------------:|
 | Particle in Cell        | PIC             | 0     | ✅           |
-| Cloud in Cell           | CIC             | 1     | ❌           |
+| Cloud in Cell           | CIC             | 1     | ✅           |
 | Triangular Shaped Cloud | TSC             | 2     | ✅           |
 
 

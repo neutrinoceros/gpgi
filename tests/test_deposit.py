@@ -101,7 +101,7 @@ def test_double_deposit(sample_dataset):
     assert particle_density_3 is particle_density
 
 
-@pytest.mark.parametrize("method", ["pic", "tsc"])
+@pytest.mark.parametrize("method", ["pic", "cic", "tsc"])
 @pytest.mark.mpl_image_compare
 def test_2D_deposit(sample_dataset, method):
     ds = sample_dataset
@@ -130,7 +130,7 @@ def test_2D_deposit(sample_dataset, method):
     return fig
 
 
-@pytest.mark.parametrize("method", ["pic", "tsc"])
+@pytest.mark.parametrize("method", ["pic", "cic", "tsc"])
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
 def test_1D_deposit(method, grid_type):
@@ -165,7 +165,7 @@ def test_1D_deposit(method, grid_type):
     return fig
 
 
-@pytest.mark.parametrize("method", ["pic", "tsc"])
+@pytest.mark.parametrize("method", ["pic", "cic", "tsc"])
 @pytest.mark.parametrize("dtype", ["float32", "float64"])
 def test_3D_deposit(method, dtype):
     npart = 60
