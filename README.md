@@ -51,7 +51,11 @@ With CIC and TSC deposition, particles contribute to cells neighbouring the one
 that contains them. This means that particles that live in the outermost layer of the
 domain are partly smoothed out of it.
 
-In a future version, I intend to allow special treatments for these lost bits, in particular, periodic boundaries.
+
+> 🚧 This section is under construction 🚧
+>
+> In a future version, I intend to allow special treatments for these lost bits,
+> in particular, periodic boundaries.
 
 ### Supported geometries
 | geometry name | axes order                  | availability |
