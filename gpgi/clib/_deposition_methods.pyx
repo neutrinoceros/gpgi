@@ -1,6 +1,6 @@
 cimport cython
 cimport numpy as np
-
+from libc.math cimport floor, fmin
 
 cdef fused real:
     np.float64_t
@@ -119,12 +119,8 @@ def _deposit_cic_1D(
         x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
-        if d < 0.5:
-            ci_start = ci - 1
-            w[0] = 0.5 - d
-        else:
-            ci_start = ci
-            w[0] = 1.5 - d
+        ci_start = ci + <np.uint16_t>fmin(0, floor(2*d)-1)
+        w[0] = 0.5 - d + fmin(1, floor(2*d))
         w[1] = 1 - w[0]
 
         for i in range(2):
@@ -163,23 +159,15 @@ def _deposit_cic_2D(
         x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
-        if d < 0.5:
-            ci_start = ci - 1
-            w1[0] = 0.5 - d
-        else:
-            ci_start = ci
-            w1[0] = 1.5 - d
+        ci_start = ci + <np.uint16_t>fmin(0, floor(2*d)-1)
+        w1[0] = 0.5 - d + fmin(1, floor(2*d))
         w1[1] = 1 - w1[0]
 
         x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
-        if d < 0.5:
-            cj_start = cj - 1
-            w2[0] = 0.5 - d
-        else:
-            cj_start = cj
-            w2[0] = 1.5 - d
+        cj_start = cj + <np.uint16_t>fmin(0, floor(2*d)-1)
+        w2[0] = 0.5 - d + fmin(1, floor(2*d))
         w2[1] = 1 - w2[0]
 
         for i in range(2):
@@ -224,34 +212,22 @@ def _deposit_cic_3D(
         x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
-        if d < 0.5:
-            ci_start = ci - 1
-            w1[0] = 0.5 - d
-        else:
-            ci_start = ci
-            w1[0] = 1.5 - d
+        ci_start = ci + <np.uint16_t>fmin(0, floor(2*d)-1)
+        w1[0] = 0.5 - d + fmin(1, floor(2*d))
         w1[1] = 1 - w1[0]
 
         x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
-        if d < 0.5:
-            cj_start = cj - 1
-            w2[0] = 0.5 - d
-        else:
-            cj_start = cj
-            w2[0] = 1.5 - d
+        cj_start = cj + <np.uint16_t>fmin(0, floor(2*d)-1)
+        w2[0] = 0.5 - d + fmin(1, floor(2*d))
         w2[1] = 1 - w2[0]
 
         x = particles_x3[ipart]
         ck = hci[ipart, 2]
         d = (x - cell_edges_x3[ck]) / (cell_edges_x3[ck + 1] - cell_edges_x3[ck])
-        if d < 0.5:
-            ck_start = ck - 1
-            w3[0] = 0.5 - d
-        else:
-            ck_start = ck
-            w3[0] = 1.5 - d
+        ck_start = ck + <np.uint16_t>fmin(0, floor(2*d)-1)
+        w3[0] = 0.5 - d + fmin(1, floor(2*d))
         w3[1] = 1 - w3[0]
 
         for i in range(2):
