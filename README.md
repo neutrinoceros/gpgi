@@ -39,11 +39,11 @@ that contains it.
 
 More refined methods are also available.
 ### Supported deposition methods
-| method name             | abreviated name | order | availability |
-|-------------------------|:---------------:|:-----:|:------------:|
-| Particle in Cell        | PIC             | 0     | ✅           |
-| Cloud in Cell           | CIC             | 1     | ✅           |
-| Triangular Shaped Cloud | TSC             | 2     | ✅           |
+| method name             | abreviated name | order |
+|-------------------------|:---------------:|:-----:|
+| Particle in Cell        | PIC             | 0     |
+| Cloud in Cell           | CIC             | 1     |
+| Triangular Shaped Cloud | TSC             | 2     |
 
 
 ### Supported boundary conditions
@@ -58,13 +58,13 @@ domain are partly smoothed out of it.
 > in particular, periodic boundaries.
 
 ### Supported geometries
-| geometry name | axes order                  | availability |
-|---------------|-----------------------------|:------------:|
-| cartesian     | x, y, z                     | ✅           |
-| polar         | radius, z, azimuth          | ✅           |
-| cylindrical   | radius, azimuth, z          | ✅           |
-| spherical     | radius, colatitude, azimuth | ✅           |
-| equatorial    | radius, azimuth, latitude   | ❌           |
+| geometry name | axes order                  |
+|---------------|-----------------------------|
+| cartesian     | x, y, z                     |
+| polar         | radius, z, azimuth          |
+| cylindrical   | radius, azimuth, z          |
+| spherical     | radius, colatitude, azimuth |
+| equatorial    | radius, azimuth, latitude   |
 
 ## Time complexity
 

@@ -236,7 +236,8 @@ def test_invalid_geometry():
     with pytest.raises(
         ValueError,
         match=re.escape(
-            r"unknown geometry 'unknown', expected any of ('cartesian', 'polar', 'cylindrical', 'spherical')"
+            "unknown geometry 'unknown', expected any of "
+            r"('cartesian', 'polar', 'cylindrical', 'spherical', 'equatorial')"
         ),
     ):
         gpgi.load(geometry="unknown")
