@@ -1,4 +1,5 @@
 import re
+from copy import deepcopy
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -180,27 +181,52 @@ def test_1D_deposit(method, grid_type):
 def test_3D_deposit(method, dtype):
     npart = 60
     prng = np.random.RandomState(0)
-    ds = gpgi.load(
+    data_2D = dict(
         geometry="cartesian",
         grid={
             "cell_edges": {
                 "x": np.linspace(-1, 1, 10, dtype=dtype),
                 "y": np.linspace(-1, 1, 10, dtype=dtype),
-                "z": np.linspace(-1, 1, 10, dtype=dtype),
             },
         },
         particles={
             "coordinates": {
                 "x": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
                 "y": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
-                "z": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
             },
             "fields": {
                 "mass": np.ones(npart, dtype),
             },
         },
     )
-    ds.deposit("mass", method=method)
+    ds2D = gpgi.load(**data_2D)
+    assert ds2D.grid.ndim == 2
+
+    data_3D = deepcopy(data_2D)
+    data_3D["grid"]["cell_edges"]["z"] = np.linspace(-1, 1, 10, dtype=dtype)
+    data_3D["particles"]["coordinates"]["z"] = 2 * (
+        prng.random_sample(npart).astype(dtype) - 0.5
+    )
+    ds3D = gpgi.load(**data_3D)
+    assert ds3D.grid.ndim == 3
+
+    # check by comparing projected 3D with direct 2D
+    full_deposit_2D = ds2D.deposit(
+        "mass", method=method, return_ghost_padded_array=True
+    )
+    full_deposit_3D = ds3D.deposit(
+        "mass", method=method, return_ghost_padded_array=True
+    )
+    reduced_deposit = full_deposit_3D.sum(axis=2)
+
+    rtol = 5e-7 if dtype == np.dtype("float32") else 5e-16
+    npt.assert_allclose(reduced_deposit, full_deposit_2D, rtol=rtol)
+
+    # for coverage, check that 3D deposition also works if we don't
+    # return ghost layers
+    deposit_3D = ds3D.deposit("mass", method=method)
+    assert deposit_3D.shape == tuple(a - 2 for a in full_deposit_3D.shape)
+    assert deposit_3D.base is full_deposit_3D
 
 
 @pytest.mark.mpl_image_compare
