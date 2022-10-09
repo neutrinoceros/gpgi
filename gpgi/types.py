@@ -9,6 +9,7 @@ from itertools import chain
 from time import monotonic_ns
 from typing import Any
 from typing import Callable
+from typing import Literal
 from typing import Protocol
 from typing import TYPE_CHECKING
 
@@ -281,6 +282,7 @@ class Dataset(ValidatorMixin):
                 "Cannot instantiate empty dataset. "
                 "Grid and/or particle data must be provided"
             )
+        self._cache: dict[tuple[Name, DepositionMethod], np.ndarray] = {}
         super().__init__()
 
     def _validate(self) -> None:
@@ -373,8 +375,42 @@ class Dataset(ValidatorMixin):
             )
 
     def deposit(
-        self, particle_field_key: Name, /, *, method: Name, verbose: bool = False
+        self,
+        particle_field_key: Name,
+        /,
+        *,
+        method: Literal[
+            "pic",
+            "particle_in_cell",
+            "cic",
+            "cloud_in_cell",
+            "tsc",
+            "triangular_shaped_cloud",
+        ],
+        verbose: bool = False,
+        return_ghost_padded_array: bool = False,
     ) -> np.ndarray:
+        r"""
+        Perform particle deposition and return the result as a grid field.
+
+        Parameters
+        ----------
+        particle_field_key (positional only): str
+           label of the particle field to deposit
+
+        method (keyword only):  'pic', 'cic' or 'tsc'
+           full names ('particle_in_cell', 'cloud_in_cell', and 'triangular_shaped_cloud')
+           are also valid
+
+        verbose (keyword only): bool (default False)
+           if True, print execution time for hot loops (indexing and deposition)
+
+        return_ghost_padded_array (keyword only): bool (default False)
+           if True, return the complete deposition array, including one extra cell layer
+           per direction and per side. This option is meant as a debugging tool for
+           methods that leak some particle data outside the active domain (cic and tsc).
+
+        """
         from .clib._deposition_methods import _deposit_pic_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
@@ -385,9 +421,6 @@ class Dataset(ValidatorMixin):
         from .clib._deposition_methods import _deposit_tsc_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_tsc_3D  # type: ignore [import]
 
-        if not hasattr(self, "_cache"):
-            self._cache: dict[tuple[Name, DepositionMethod], np.ndarray] = {}
-
         if method in _deposition_method_names:
             mkey = _deposition_method_names[method]
         else:
@@ -395,9 +428,6 @@ class Dataset(ValidatorMixin):
                 f"Unknown deposition method {method!r}, "
                 f"expected any of {tuple(_deposition_method_names.keys())}"
             )
-
-        if (particle_field_key, mkey) in self._cache:
-            return self._cache[particle_field_key, mkey]
 
         if self.grid is None:
             raise TypeError("Cannot deposit particle fields on a grid-less dataset")
@@ -407,6 +437,19 @@ class Dataset(ValidatorMixin):
             raise TypeError("There are no particle fields")
         if particle_field_key not in self.particles.fields:
             raise ValueError(f"Unknown particle field {particle_field_key!r}")
+
+        if (particle_field_key, mkey) in self._cache:
+            padded_ret_array = self._cache[particle_field_key, mkey]
+            if return_ghost_padded_array:
+                return padded_ret_array
+            elif self.grid.ndim == 1:
+                return padded_ret_array[1:-1]
+            elif self.grid.ndim == 2:
+                return padded_ret_array[1:-1, 1:-1]
+            elif self.grid.ndim == 3:
+                return padded_ret_array[1:-1, 1:-1, 1:-1]
+            else:  # pragma: no cover
+                raise RuntimeError("Caching error. Please report this.")
 
         known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
             DepositionMethod.PARTICLE_IN_CELL: [
@@ -450,12 +493,10 @@ class Dataset(ValidatorMixin):
         # boundary conditions treatment should be performed here
         # ...
 
-        # remove ghost layer padding
-        if self.grid.ndim == 1:
-            ret_array = padded_ret_array[1:-1]
-        elif self.grid.ndim == 2:
-            ret_array = padded_ret_array[1:-1, 1:-1]
-        elif self.grid.ndim == 3:
-            ret_array = padded_ret_array[1:-1, 1:-1, 1:-1]
-        self._cache[particle_field_key, mkey] = ret_array
-        return ret_array
+        self._cache[particle_field_key, mkey] = padded_ret_array
+        return self.deposit(
+            particle_field_key,
+            method=method,
+            verbose=verbose,
+            return_ghost_padded_array=return_ghost_padded_array,
+        )

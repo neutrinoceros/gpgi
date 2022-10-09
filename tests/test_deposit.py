@@ -2,6 +2,7 @@ import re
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.testing as npt
 import pytest
 import unyt as un
 
@@ -89,16 +90,25 @@ def test_unknown_method(sample_dataset):
 
 
 def test_double_deposit(sample_dataset):
+    # this test intentionally dwelves into the realm of
+    # checking implementation details rather than just checking behaviour
     ds = sample_dataset
+    assert len(ds._cache) == 0
+
     particle_density = ds.deposit("mass", method="pic")
+    assert len(ds._cache) == 1
 
     # a second call should yield the same exact array
     particle_density_2 = ds.deposit("mass", method="pic")
-    assert particle_density_2 is particle_density
+    npt.assert_array_equal(particle_density_2, particle_density)
+    assert particle_density_2.base is particle_density.base
+    assert len(ds._cache) == 1
 
     # using the full key shouldn't produce another array
     particle_density_3 = ds.deposit("mass", method="particle_in_cell")
-    assert particle_density_3 is particle_density
+    npt.assert_array_equal(particle_density_3, particle_density)
+    assert particle_density_3.base is particle_density.base
+    assert len(ds._cache) == 1
 
 
 @pytest.mark.parametrize("method", ["pic", "cic", "tsc"])
@@ -265,3 +275,32 @@ def test_performance_logging(capsys):
     assert len(lines) == 2
     assert re.match(r"Indexed .* particles in .* s", lines[0])
     assert re.match(r"Deposited .* particles in .* s", lines[1])
+
+
+def test_return_ghost_padded_array(capsys):
+
+    npart = 16
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {"x": np.linspace(1, 2, 6)},
+        },
+        particles={
+            "coordinates": {"x": 1 + prng.random_sample(npart)},
+            "fields": {"mass": np.ones(npart)},
+        },
+    )
+    active_array = ds.deposit("mass", method="cic")
+    assert active_array.shape == (5,)
+    padded_array = ds.deposit(
+        "mass", method="cic", verbose=True, return_ghost_padded_array=True
+    )
+    assert padded_array.shape == (7,)
+    assert active_array.base is padded_array
+
+    # check that no expensive operation is logged:
+    # the whole padded array should be cached after the first deposition
+    stdout, stderr = capsys.readouterr()
+    assert stdout == ""
+    assert stderr == ""
