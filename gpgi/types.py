@@ -8,9 +8,21 @@ from functools import reduce
 from itertools import chain
 from time import monotonic_ns
 from typing import Any
+from typing import Callable
 from typing import Protocol
+from typing import TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    # requires numpy >= 1.21
+    import numpy.typing as npt
+
+    from typing import TypeVar
+
+    Real = TypeVar("Real", np.float32, np.float64)
+    RealArray = npt.NDArray[Real]
+    HCIArray = npt.NDArray[np.uint16]
 
 
 class Geometry(enum.Enum):
@@ -34,6 +46,20 @@ _deposition_method_names: dict[str, DepositionMethod] = {
 
 Name = str
 FieldMap = dict[Name, np.ndarray]
+DepositionMethodT = Callable[
+    [
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        "HCIArray",
+        "RealArray",
+    ],
+    None,
+]
 
 
 class GeometricData(Protocol):
@@ -382,9 +408,7 @@ class Dataset(ValidatorMixin):
         if particle_field_key not in self.particles.fields:
             raise ValueError(f"Unknown particle field {particle_field_key!r}")
 
-        # deactivating type checking for deposition methods because
-        # they may be ported to Cyhton later
-        known_methods: dict[DepositionMethod, list[Any]] = {
+        known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
             DepositionMethod.PARTICLE_IN_CELL: [
                 _deposit_pic_1D,
                 _deposit_pic_2D,
