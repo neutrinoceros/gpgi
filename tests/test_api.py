@@ -32,6 +32,7 @@ def test_load_standalone_grid():
     assert ds.grid.axes == ("x", "y", "z")
     assert ds.grid.shape == (1, 1, 1)
     assert ds.particles is None
+    assert ds.metadata == {}
 
 
 def test_load_standalone_particles():
@@ -49,6 +50,27 @@ def test_load_standalone_particles():
     assert ds.particles.axes == ("x", "y", "z")
     assert ds.particles.count == 2
     assert ds.grid is None
+    assert ds.metadata == {}
+
+
+def test_metadata():
+    md = {
+        "time": 0.1,
+    }
+    ds = gpgi.load(
+        geometry="cartesian",
+        particles={
+            "coordinates": {
+                "x": np.array([0, 1]),
+                "y": np.array([0, 1]),
+                "z": np.array([0, 1]),
+            }
+        },
+        metadata=md,
+    )
+    assert set(ds.metadata.items()) >= set(md.items())
+    assert ds.metadata == md
+    assert ds.metadata is not md
 
 
 def test_load_empty_grid():

@@ -3,6 +3,7 @@ from __future__ import annotations
 import enum
 from abc import ABC
 from abc import abstractmethod
+from copy import deepcopy
 from functools import cached_property
 from functools import reduce
 from itertools import chain
@@ -268,6 +269,7 @@ class Dataset(ValidatorMixin):
         geometry: Geometry = Geometry.CARTESIAN,
         grid: Grid | None = None,
         particles: ParticleSet | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         self.geometry = geometry
         self.grid = grid
@@ -282,7 +284,9 @@ class Dataset(ValidatorMixin):
                 "Cannot instantiate empty dataset. "
                 "Grid and/or particle data must be provided"
             )
+        self.metadata = deepcopy(metadata) if metadata is not None else {}
         self._cache: dict[tuple[Name, DepositionMethod], np.ndarray] = {}
+
         super().__init__()
 
     def _validate(self) -> None:

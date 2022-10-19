@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 from .types import Dataset
 from .types import FieldMap
 from .types import Geometry
@@ -14,6 +16,7 @@ def load(
     geometry: str = "cartesian",
     grid: dict[str, FieldMap] | None = None,
     particles: dict[str, FieldMap] | None = None,
+    metadata: dict[str, Any] | None = None,
 ) -> Dataset:
 
     if geometry in _geometry_names:
@@ -41,4 +44,6 @@ def load(
             fields=particles.get("fields", {}),
         )
 
-    return Dataset(geometry=_geometry, grid=_grid, particles=_particles)
+    return Dataset(
+        geometry=_geometry, grid=_grid, particles=_particles, metadata=metadata
+    )
