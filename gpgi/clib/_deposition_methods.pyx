@@ -8,7 +8,7 @@ cdef fused real:
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _deposit_pic_1D(
+def _deposit_ngp_1D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
@@ -34,7 +34,7 @@ def _deposit_pic_1D(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _deposit_pic_2D(
+def _deposit_ngp_2D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,
@@ -62,7 +62,7 @@ def _deposit_pic_2D(
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _deposit_pic_3D(
+def _deposit_ngp_3D(
     np.ndarray[real, ndim=1] cell_edges_x1,
     np.ndarray[real, ndim=1] cell_edges_x2,
     np.ndarray[real, ndim=1] cell_edges_x3,

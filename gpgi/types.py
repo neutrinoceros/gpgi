@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import warnings
 from abc import ABC
 from abc import abstractmethod
 from copy import deepcopy
@@ -36,7 +37,7 @@ class Geometry(enum.Enum):
 
 
 class DepositionMethod(enum.Enum):
-    PARTICLE_IN_CELL = enum.auto()
+    NEAREST_GRID_POINT = enum.auto()
     CLOUD_IN_CELL = enum.auto()
     TRIANGULAR_SHAPED_CLOUD = enum.auto()
 
@@ -384,8 +385,8 @@ class Dataset(ValidatorMixin):
         /,
         *,
         method: Literal[
-            "pic",
-            "particle_in_cell",
+            "ngp",
+            "nearest_grid_point",
             "cic",
             "cloud_in_cell",
             "tsc",
@@ -402,8 +403,8 @@ class Dataset(ValidatorMixin):
         particle_field_key (positional only): str
            label of the particle field to deposit
 
-        method (keyword only):  'pic', 'cic' or 'tsc'
-           full names ('particle_in_cell', 'cloud_in_cell', and 'triangular_shaped_cloud')
+        method (keyword only):  'ngp', 'cic' or 'tsc'
+           full names ('nearest_grid_point', 'cloud_in_cell', and 'triangular_shaped_cloud')
            are also valid
 
         verbose (keyword only): bool (default False)
@@ -415,15 +416,24 @@ class Dataset(ValidatorMixin):
            methods that leak some particle data outside the active domain (cic and tsc).
 
         """
-        from .clib._deposition_methods import _deposit_pic_1D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_pic_2D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_pic_3D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_ngp_1D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_ngp_2D  # type: ignore [import]
+        from .clib._deposition_methods import _deposit_ngp_3D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_cic_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_cic_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_cic_3D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_tsc_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_tsc_2D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_tsc_3D  # type: ignore [import]
+
+        if method in ("pic", "particle_in_cell"):
+            warnings.warn(
+                f"{method=!r} is a deprecated alias for method='ngp', "
+                "please use 'ngp' (or 'nearest_grid_point') directly",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            method = "ngp"
 
         if method in _deposition_method_names:
             mkey = _deposition_method_names[method]
@@ -456,10 +466,10 @@ class Dataset(ValidatorMixin):
                 raise RuntimeError("Caching error. Please report this.")
 
         known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
-            DepositionMethod.PARTICLE_IN_CELL: [
-                _deposit_pic_1D,
-                _deposit_pic_2D,
-                _deposit_pic_3D,
+            DepositionMethod.NEAREST_GRID_POINT: [
+                _deposit_ngp_1D,
+                _deposit_ngp_2D,
+                _deposit_ngp_3D,
             ],
             DepositionMethod.CLOUD_IN_CELL: [
                 _deposit_cic_1D,

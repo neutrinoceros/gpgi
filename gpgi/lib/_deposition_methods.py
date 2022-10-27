@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def _deposit_pic(
+def _deposit_ngp(
     cell_edges_x1,
     cell_edges_x2,
     cell_edges_x3,

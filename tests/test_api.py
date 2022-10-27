@@ -306,3 +306,34 @@ def test_identical_dtype_requirement():
                 },
             },
         )
+
+
+def test_depr_pic():
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.array([0, 1.0]),
+                "y": np.array([0, 1.0]),
+                "z": np.array([0, 1.0]),
+            }
+        },
+        particles={
+            "coordinates": {
+                "x": np.array([0.0, 1.0]),
+                "y": np.array([0.0, 1.0]),
+                "z": np.array([0.0, 1.0]),
+            },
+            "fields": {
+                "mass": np.ones(2),
+            },
+        },
+    )
+    with pytest.warns(
+        DeprecationWarning,
+        match=(
+            r"method='pic' is a deprecated alias for method='ngp', "
+            r"please use 'ngp' \(or 'nearest_grid_point'\) directly"
+        ),
+    ):
+        ds.deposit("mass", method="pic")
