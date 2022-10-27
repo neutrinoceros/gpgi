@@ -31,7 +31,7 @@ This process is not reversible as it degrades information.
 For instance, here's a simple overlay of a particle set (red dots)
 against a background that represents the deposited particle count.
 <p align="center">
-    <img src="https://raw.githubusercontent.com/neutrinoceros/gpgi/main/tests/pytest_mpl_baseline/test_2D_deposit_pic.png" width="600"></a>
+    <img src="https://raw.githubusercontent.com/neutrinoceros/gpgi/main/tests/pytest_mpl_baseline/test_2D_deposit_ngp.png" width="600"></a>
 </p>
 
 This example illustrates the simplest possible deposition method "Particle in Cell", in which each particle contributes only to the cell
@@ -41,7 +41,7 @@ More refined methods are also available.
 ### Supported deposition methods
 | method name             | abreviated name | order |
 |-------------------------|:---------------:|:-----:|
-| Particle in Cell        | PIC             | 0     |
+| Nearest Grid Point      | NGP             | 0     |
 | Cloud in Cell           | CIC             | 1     |
 | Triangular Shaped Cloud | TSC             | 2     |
 
@@ -114,7 +114,7 @@ translate particle fields to the grid formalism.
 **Deposit Particle fields on the grid**
 
 ```python
-particle_mass = ds.deposit("mass", method="particle_in_cell")  # or "pic" for shorts
+particle_mass = ds.deposit("mass", method="nearest_grid_point")  # or "ngp" for shorts
 ```
 
 **Visualize**

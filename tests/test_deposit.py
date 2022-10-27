@@ -50,7 +50,7 @@ def test_missing_grid():
     with pytest.raises(
         TypeError, match="Cannot deposit particle fields on a grid-less dataset"
     ):
-        ds.deposit("mass", method="pic")
+        ds.deposit("mass", method="ngp")
 
 
 def test_missing_particles():
@@ -63,7 +63,7 @@ def test_missing_particles():
     with pytest.raises(
         TypeError, match="Cannot deposit particle fields on a particle-less dataset"
     ):
-        ds.deposit("mass", method="pic")
+        ds.deposit("mass", method="ngp")
 
 
 def test_missing_fields():
@@ -75,12 +75,12 @@ def test_missing_fields():
         particles={"coordinates": {"x": np.arange(10)}},
     )
     with pytest.raises(TypeError, match="There are no particle fields"):
-        ds.deposit("mass", method="pic")
+        ds.deposit("mass", method="ngp")
 
 
 def test_unknown_field(sample_dataset):
     with pytest.raises(ValueError, match="Unknown particle field 'density'"):
-        sample_dataset.deposit("density", method="pic")
+        sample_dataset.deposit("density", method="ngp")
 
 
 def test_unknown_method(sample_dataset):
@@ -96,23 +96,23 @@ def test_double_deposit(sample_dataset):
     ds = sample_dataset
     assert len(ds._cache) == 0
 
-    particle_density = ds.deposit("mass", method="pic")
+    particle_density = ds.deposit("mass", method="ngp")
     assert len(ds._cache) == 1
 
     # a second call should yield the same exact array
-    particle_density_2 = ds.deposit("mass", method="pic")
+    particle_density_2 = ds.deposit("mass", method="ngp")
     npt.assert_array_equal(particle_density_2, particle_density)
     assert particle_density_2.base is particle_density.base
     assert len(ds._cache) == 1
 
     # using the full key shouldn't produce another array
-    particle_density_3 = ds.deposit("mass", method="particle_in_cell")
+    particle_density_3 = ds.deposit("mass", method="nearest_grid_point")
     npt.assert_array_equal(particle_density_3, particle_density)
     assert particle_density_3.base is particle_density.base
     assert len(ds._cache) == 1
 
 
-@pytest.mark.parametrize("method", ["pic", "cic", "tsc"])
+@pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.mpl_image_compare
 def test_2D_deposit(sample_dataset, method):
     ds = sample_dataset
@@ -141,7 +141,7 @@ def test_2D_deposit(sample_dataset, method):
     return fig
 
 
-@pytest.mark.parametrize("method", ["pic", "cic", "tsc"])
+@pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
 def test_1D_deposit(method, grid_type):
@@ -163,7 +163,7 @@ def test_1D_deposit(method, grid_type):
         },
     )
     mass = ds.deposit("mass", method=method)
-    if method == "pic":
+    if method == "ngp":
         assert mass.sum() == ds.particles.count
 
     fig, ax = plt.subplots()
@@ -176,7 +176,7 @@ def test_1D_deposit(method, grid_type):
     return fig
 
 
-@pytest.mark.parametrize("method", ["pic", "cic", "tsc"])
+@pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.parametrize("dtype", ["float32", "float64"])
 def test_3D_deposit(method, dtype):
     npart = 60
@@ -255,7 +255,7 @@ def test_readme_example():
         },
     )
 
-    particle_mass = ds.deposit("mass", method="particle_in_cell")
+    particle_mass = ds.deposit("mass", method="nearest_grid_point")
 
     fig, ax = plt.subplots()
     ax.set(aspect=1, xlabel="x", ylabel="y")
@@ -294,7 +294,7 @@ def test_performance_logging(capsys):
             },
         },
     )
-    ds.deposit("mass", method="pic", verbose=True)
+    ds.deposit("mass", method="ngp", verbose=True)
     stdout, stderr = capsys.readouterr()
     assert stderr == ""
     lines = stdout.strip().split("\n")
