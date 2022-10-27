@@ -47,3 +47,8 @@ repos:
   hooks:
   - id: pretty-format-yaml
     args: [--autofix]
+
+- repo: https://github.com/MarcoGorelli/cython-lint
+  rev: v0.1.10
+  hooks:
+  - id: cython-lint
