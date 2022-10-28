@@ -330,3 +330,209 @@ def test_return_ghost_padded_array(capsys):
     stdout, stderr = capsys.readouterr()
     assert stdout == ""
     assert stderr == ""
+
+
+@pytest.mark.parametrize(
+    "boundaries, error_type, error_message",
+    [
+        (
+            {"radius": ("open", "open")},
+            ValueError,
+            "Got invalid ax key 'radius', expected any of ('x', 'y')",
+        ),
+        (
+            {"x": ("o", "o", "o")},
+            TypeError,
+            "Expected a 2-tuple of strings, got ('o', 'o', 'o')",
+        ),
+        (
+            {"x": ("open", "unregistered_key")},
+            ValueError,
+            "Unknown boundary type 'unregistered_key'",
+        ),
+    ],
+)
+def test_deposit_invalid_boundaries(boundaries, error_type, error_message):
+    nx = ny = 64
+    nparticles = 100
+
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, nx),
+                "y": np.linspace(-1, 1, ny),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(nparticles),
+            },
+        },
+    )
+    with pytest.raises(error_type, match=re.escape(error_message)):
+        ds.deposit("mass", method="ngp", boundaries=boundaries)
+
+
+@pytest.mark.parametrize(
+    "keyL, keyR",
+    [("open", "wall"), ("periodic", "periodic"), ("antisymmetric ", "open")],
+)
+def test_builtin_boundary_recipe(keyL, keyR):
+    nx = ny = 64
+    nparticles = 100
+
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, nx),
+                "y": np.linspace(-1, 1, ny),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(nparticles),
+            },
+        },
+    )
+    res1 = ds.deposit("mass", method="tsc", boundaries={"x": (keyL, keyR)})
+    if keyR == keyL:
+        return
+    res2 = ds.deposit("mass", method="tsc", boundaries={"x": (keyR, keyL)})
+    npt.assert_array_equal(res1[1:-1, 1:-1], res2[1:-1, 1:-1])
+
+
+def test_register_invalid_boundary_recipe():
+    nx = ny = 64
+    nparticles = 100
+
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, nx),
+                "y": np.linspace(-1, 1, ny),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(nparticles),
+            },
+        },
+    )
+
+    def _my_recipe(a, b, c, d, e, f):
+        return a  # pragma: no cover
+
+    with pytest.raises(
+        ValueError,
+        match=re.escape(
+            "Invalid boundary recipe. Expected a function with exactly 6 parameters, "
+            "named 'same_side_active_layer', 'same_side_ghost_layer', "
+            "'opposite_side_active_layer', 'opposite_side_ghost_layer', "
+            "'side', and 'metadata'"
+        ),
+    ):
+        ds.boundary_recipes.register("my", _my_recipe)
+
+
+def test_warn_register_override(capsys):
+    nx = ny = 64
+    nparticles = 100
+
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, nx),
+                "y": np.linspace(-1, 1, ny),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(nparticles),
+            },
+        },
+        metadata={"fac": 1},
+    )
+
+    def _my_recipe(
+        same_side_active_layer,
+        same_side_ghost_layer,
+        opposite_side_active_layer,
+        opposite_side_ghost_layer,
+        side,
+        metadata,
+    ):
+        print("gotcha")
+        return same_side_active_layer * metadata["fac"]
+
+    with pytest.warns(UserWarning, match="Overriding existing method 'open'"):
+        ds.boundary_recipes.register("open", _my_recipe)
+
+    ds.deposit("mass", method="tsc")
+    out, err = capsys.readouterr()
+    assert out == "gotcha\n" * 4
+
+
+def test_register_custom_boundary_recipe():
+    nx = ny = 64
+    nparticles = 100
+
+    prng = np.random.RandomState(0)
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(-1, 1, nx),
+                "y": np.linspace(-1, 1, ny),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            },
+            "fields": {
+                "mass": np.ones(nparticles),
+            },
+        },
+    )
+
+    def _my_recipe(
+        same_side_active_layer,
+        same_side_ghost_layer,
+        opposite_side_active_layer,
+        opposite_side_ghost_layer,
+        side,
+        metadata,
+    ):
+        # return the active layer unchanged
+        # (this is the same as the builtin 'open' boundary recipe)
+        return same_side_active_layer
+
+    ds.boundary_recipes.register("my", _my_recipe)
+    res1 = ds.deposit("mass", method="tsc", boundaries={"x": ("my", "my")})
+    res2 = ds.deposit("mass", method="tsc")
+    npt.assert_array_equal(res1, res2)
