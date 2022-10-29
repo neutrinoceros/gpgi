@@ -38,7 +38,7 @@ class BoundaryRegistry:
             self._validate_recipe(recipe)
 
         if key in self._registry:
-            warnings.warn(f"Overriding existing method {key!r}")
+            warnings.warn(f"Overriding existing method {key!r}", stacklevel=2)
         self._registry[key] = recipe
 
     def __getitem__(self, key: str) -> BoundaryRecipeT:
