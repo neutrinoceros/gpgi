@@ -17,6 +17,8 @@ from typing import TYPE_CHECKING
 
 import numpy as np
 
+from ._boundaries import BoundaryRegistry
+
 if TYPE_CHECKING:
     # requires numpy >= 1.21
     import numpy.typing as npt
@@ -26,6 +28,8 @@ if TYPE_CHECKING:
     Real = TypeVar("Real", np.float32, np.float64)
     RealArray = npt.NDArray[Real]
     HCIArray = npt.NDArray[np.uint16]
+
+BoundarySpec = tuple[tuple[str, str, str], ...]
 
 
 class Geometry(enum.Enum):
@@ -275,6 +279,7 @@ class Dataset(ValidatorMixin):
         self.geometry = geometry
         self.grid = grid
         self.particles = particles
+        self.boundary_recipes = BoundaryRegistry()
 
         if self.grid is not None:
             self.axes = self.grid.axes
@@ -286,7 +291,7 @@ class Dataset(ValidatorMixin):
                 "Grid and/or particle data must be provided"
             )
         self.metadata = deepcopy(metadata) if metadata is not None else {}
-        self._cache: dict[tuple[Name, DepositionMethod], np.ndarray] = {}
+        self._cache: dict[tuple[Name, DepositionMethod, BoundarySpec], np.ndarray] = {}
 
         super().__init__()
 
@@ -392,6 +397,7 @@ class Dataset(ValidatorMixin):
             "tsc",
             "triangular_shaped_cloud",
         ],
+        boundaries: dict[Name, tuple[Name, Name]] | None = None,
         verbose: bool = False,
         return_ghost_padded_array: bool = False,
     ) -> np.ndarray:
@@ -452,65 +458,119 @@ class Dataset(ValidatorMixin):
         if particle_field_key not in self.particles.fields:
             raise ValueError(f"Unknown particle field {particle_field_key!r}")
 
-        if (particle_field_key, mkey) in self._cache:
-            padded_ret_array = self._cache[particle_field_key, mkey]
-            if return_ghost_padded_array:
-                return padded_ret_array
-            elif self.grid.ndim == 1:
-                return padded_ret_array[1:-1]
-            elif self.grid.ndim == 2:
-                return padded_ret_array[1:-1, 1:-1]
-            elif self.grid.ndim == 3:
-                return padded_ret_array[1:-1, 1:-1, 1:-1]
-            else:  # pragma: no cover
-                raise RuntimeError("Caching error. Please report this.")
+        if boundaries is None:
+            boundaries = {}
 
-        known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
-            DepositionMethod.NEAREST_GRID_POINT: [
-                _deposit_ngp_1D,
-                _deposit_ngp_2D,
-                _deposit_ngp_3D,
-            ],
-            DepositionMethod.CLOUD_IN_CELL: [
-                _deposit_cic_1D,
-                _deposit_cic_2D,
-                _deposit_cic_3D,
-            ],
-            DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
-                _deposit_tsc_1D,
-                _deposit_tsc_2D,
-                _deposit_tsc_3D,
-            ],
-        }
-        if mkey not in known_methods:
-            raise NotImplementedError(f"method {method} is not implemented yet")
+        for ax in self.grid.axes:
+            boundaries.setdefault(ax, ("open", "open"))
+        for axk in boundaries:
+            if axk not in self.grid.axes:
+                raise ValueError(
+                    f"Got invalid ax key {axk!r}, expected any of {self.grid.axes!r}"
+                )
+        for bound in boundaries.values():
+            if (
+                (not isinstance(bound, tuple))
+                or len(bound) != 2
+                or not all(isinstance(_, str) for _ in bound)
+            ):
+                raise TypeError(f"Expected a 2-tuple of strings, got {bound!r}")
 
-        field = np.array(self.particles.fields[particle_field_key])
-        padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
-        self._setup_host_cell_index(verbose=verbose)
+            for b in bound:
+                if b not in self.boundary_recipes:
+                    raise ValueError(f"Unknown boundary type {b!r}")
 
-        func = known_methods[mkey][self.grid.ndim - 1]
-        tstart = monotonic_ns()
-        func(
-            *self._get_padded_cell_edges(),
-            *self._get_3D_particle_coordinates(),
-            field,
-            self._hci,
-            padded_ret_array,
+        boundary_spec: BoundarySpec = tuple(
+            tuple((key, vL, vR) for key, (vR, vL) in boundaries.items())
         )
-        tstop = monotonic_ns()
-        if verbose:
-            print(
-                f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
+
+        if (particle_field_key, mkey, boundary_spec) not in self._cache:
+            known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
+                DepositionMethod.NEAREST_GRID_POINT: [
+                    _deposit_ngp_1D,
+                    _deposit_ngp_2D,
+                    _deposit_ngp_3D,
+                ],
+                DepositionMethod.CLOUD_IN_CELL: [
+                    _deposit_cic_1D,
+                    _deposit_cic_2D,
+                    _deposit_cic_3D,
+                ],
+                DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
+                    _deposit_tsc_1D,
+                    _deposit_tsc_2D,
+                    _deposit_tsc_3D,
+                ],
+            }
+            if mkey not in known_methods:
+                raise NotImplementedError(f"method {method} is not implemented yet")
+
+            field = np.array(self.particles.fields[particle_field_key])
+            padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
+            self._setup_host_cell_index(verbose=verbose)
+
+            func = known_methods[mkey][self.grid.ndim - 1]
+            tstart = monotonic_ns()
+            func(
+                *self._get_padded_cell_edges(),
+                *self._get_3D_particle_coordinates(),
+                field,
+                self._hci,
+                padded_ret_array,
             )
+            tstop = monotonic_ns()
+            if verbose:
+                print(
+                    f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
+                )
 
-        # boundary conditions treatment should be performed here
-        # ...
+            self._cache[particle_field_key, mkey, boundary_spec] = padded_ret_array
 
-        self._cache[particle_field_key, mkey] = padded_ret_array
-        return self.deposit(
-            particle_field_key,
-            method=method,
-            verbose=verbose,
-            return_ghost_padded_array=return_ghost_padded_array,
-        )
+        padded_ret_array = self._cache[particle_field_key, mkey, boundary_spec]
+
+        for iax, ax in enumerate(self.grid.axes):
+            bcs = tuple(self.boundary_recipes[key] for key in boundaries[ax])
+            for side, bc in zip(("left", "right"), bcs):
+                active_index: int = 1 if side == "left" else -2
+                same_side_active_layer_idx = [slice(None)] * self.grid.ndim
+                same_side_active_layer_idx[
+                    iax
+                ] = active_index  # type:ignore [call-overload]
+
+                same_side_ghost_layer_idx = [slice(None)] * self.grid.ndim
+                # f(-2)=-1, f(1)=0
+                same_side_ghost_layer_idx[iax] = (  # type:ignore [call-overload]
+                    active_index + 1
+                ) % 2
+
+                opposite_side_active_layer_idx = [slice(None)] * self.grid.ndim
+                # f(-2)=1, f(1)=-2
+                opposite_side_active_layer_idx[iax] = (  # type:ignore [call-overload]
+                    1 if active_index == -2 else -2
+                )
+
+                opposite_side_ghost_layer_idx = [slice(None)] * self.grid.ndim
+                # f(-2)=0, f(1)=-1
+                opposite_side_ghost_layer_idx[iax] = -(  # type:ignore [call-overload]
+                    active_index % 2
+                )
+
+                padded_ret_array[tuple(same_side_active_layer_idx)] = bc(
+                    padded_ret_array[tuple(same_side_active_layer_idx)],
+                    padded_ret_array[tuple(same_side_ghost_layer_idx)],
+                    padded_ret_array[tuple(opposite_side_active_layer_idx)],
+                    padded_ret_array[tuple(opposite_side_ghost_layer_idx)],
+                    side,
+                    self.metadata,
+                )
+
+        if return_ghost_padded_array:
+            return padded_ret_array
+        elif self.grid.ndim == 1:
+            return padded_ret_array[1:-1]
+        elif self.grid.ndim == 2:
+            return padded_ret_array[1:-1, 1:-1]
+        elif self.grid.ndim == 3:
+            return padded_ret_array[1:-1, 1:-1, 1:-1]
+        else:  # pragma: no cover
+            raise RuntimeError("Caching error. Please report this.")

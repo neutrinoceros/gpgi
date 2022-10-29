@@ -45,18 +45,6 @@ More refined methods are also available.
 | Cloud in Cell           | CIC             | 1     |
 | Triangular Shaped Cloud | TSC             | 2     |
 
-
-### Supported boundary conditions
-With CIC and TSC deposition, particles contribute to cells neighbouring the one
-that contains them. This means that particles that live in the outermost layer of the
-domain are partly smoothed out of it.
-
-
-> 🚧 This section is under construction 🚧
->
-> In a future version, I intend to allow special treatments for these lost bits,
-> in particular, periodic boundaries.
-
 ### Supported geometries
 | geometry name | axes order                  |
 |---------------|-----------------------------|
@@ -106,7 +94,7 @@ ds = gpgi.load(
     },
 )
 ```
-The `Dataset` object holds a `grid` and a `particle` attribute,
+The `Dataset` object holds a `grid` and a `particles` attribute,
 which both hold a `fields` attribute for accessing their data.
 But more importantly, the `Dataset` has a `deposit` method to
 translate particle fields to the grid formalism.
@@ -140,3 +128,101 @@ fig.colorbar(im, ax=ax)
 </p>
 
 The example script given here takes about a second (top to bottom).
+
+
+### Supplying arbitrary metadata
+*new in gpgi 0.4.0*
+
+`Dataset` objects have a special attribute `metadata` which is a dictionary with string keys.
+This attribute is meant to hold any special metadata that may be relevant for labelling or processing (e.g. simulation time, author, ...).
+Metadata can be supplied at load time as
+```python
+ds = gpgi.load(
+    geometry="cartesian",
+    grid=...,
+    particles=...,
+    metadata={"simulation_time": 12.5, "author": "Clément Robert"}
+)
+```
+
+
+### Boundary conditions
+*new in gpgi 0.5.0*
+
+With CIC and TSC deposition, particles contribute to cells neighbouring the one
+that contains them. For particles that live in the outermost layer of the
+domain, this means some of their contribution is lost. This behaviour
+corresponds to the default `'open'` boundary condition, but `gpgi` has builtin
+support for more conservative boundary conditions.
+
+Boundary conditions can selected per field, per axis and per side. Builtin
+recipes all perform linear combinations of ghost layers (same-side and opposite
+side) and active domain layers (same-side and opposite side), and replace the
+same-side active layer with the result.
+
+User-selected boundary conditions take the form of an optional argument to
+`Dataset.deposit`, as dictionnary with keys being axes names, and values being
+2-tuples of boundary conditions names (for left and right side respectively).
+For instance, here's how one would require periodic boundary conditions on all axes:
+
+```python
+ds.deposit(
+    "mass",
+    method="cic",
+    boundaries={
+        "x": ("periodic", "periodic"),
+        "y": ("periodic", "periodic"),
+    }
+)
+```
+Unspecified axes will use the default `'open'` boundary.
+
+
+#### Builtin recipes
+
+| boundary conditions     | description                                            | conservative ? |
+|-------------------------|--------------------------------------------------------|:--------------:|
+| open (default)          | no special treatment                                   | no             |
+| periodic                | add opposite ghost layer to the active domain          | yes            |
+| wall                    | add same-side ghost layer to the active domain         | yes            |
+| antisymmetric           | substract same-side ghost layer from the active domain | no             |
+
+#### Define custom recipes
+
+`gpgi`'s boundary recipes can be customized. Let's illustrate this feature with a simple example.
+Say we want to fix the value of the deposited field in some outer layer.
+This is done by defining a new function on the user side:
+
+```python
+def ones(
+    same_side_active_layer,
+    same_side_ghost_layer,
+    opposite_side_active_layer,
+    opposite_side_ghost_layer,
+    side,
+    metadata,
+):
+   return 1.0
+```
+where all first four arguments are `numpy.ndarray` objects with the same shape,
+to which the return value must be broadcastable, `side` can only be either
+`"left"` or `"right"`, and `metadata` is the special `Dataset.metadata`
+attribute. Not all arguments need be used in the body of the function, but this
+signature is required.
+
+The method must then be registered as a boundary condition recipe as
+```python
+ds.boundary_recipes.register("ones", ones)
+```
+where the associated key (here `"ones"`) is arbitrary. The recipe can now be
+used exactly as builtin ones, and all of them can be mixed arbitrarily.
+```python
+ds.deposit(
+    "mass",
+    method="cic",
+    boundaries={
+        "x": ("ones", "wall"),
+        "y": ("periodic", "periodic"),
+    }
+)
+```
