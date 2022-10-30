@@ -11,8 +11,10 @@ from itertools import chain
 from time import monotonic_ns
 from typing import Any
 from typing import Callable
+from typing import Dict
 from typing import Literal
 from typing import Protocol
+from typing import Tuple
 from typing import TYPE_CHECKING
 
 import numpy as np
@@ -29,7 +31,7 @@ if TYPE_CHECKING:
     RealArray = npt.NDArray[Real]
     HCIArray = npt.NDArray[np.uint16]
 
-BoundarySpec = tuple[tuple[str, str, str], ...]
+BoundarySpec = Tuple[Tuple[str, str, str], ...]
 
 
 class Geometry(enum.Enum):
@@ -47,12 +49,13 @@ class DepositionMethod(enum.Enum):
 
 
 _deposition_method_names: dict[str, DepositionMethod] = {
-    m.name.lower(): m for m in DepositionMethod
-} | {"".join([w[0] for w in m.name.split("_")]).lower(): m for m in DepositionMethod}
+    **{m.name.lower(): m for m in DepositionMethod},
+    **{"".join([w[0] for w in m.name.split("_")]).lower(): m for m in DepositionMethod},
+}
 
 
 Name = str
-FieldMap = dict[Name, np.ndarray]
+FieldMap = Dict[Name, np.ndarray]
 DepositionMethodT = Callable[
     [
         "RealArray",

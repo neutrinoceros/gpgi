@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.8"
 dependencies = [
     "numpy>=1.18",
 ]
@@ -82,10 +82,10 @@ exclude_lines = [
 ]
 
 [tool.black]
-target_version = ["py39",]
+target_version = ["py38",]
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.8"
 show_error_codes = true
 pretty = true
 warn_return_any = true
