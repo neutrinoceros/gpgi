@@ -294,7 +294,6 @@ class Dataset(ValidatorMixin):
                 "Grid and/or particle data must be provided"
             )
         self.metadata = deepcopy(metadata) if metadata is not None else {}
-        self._cache: dict[tuple[Name, DepositionMethod, BoundarySpec], np.ndarray] = {}
 
         super().__init__()
 
@@ -483,53 +482,44 @@ class Dataset(ValidatorMixin):
                 if b not in self.boundary_recipes:
                     raise ValueError(f"Unknown boundary type {b!r}")
 
-        boundary_spec: BoundarySpec = tuple(
-            tuple((key, vL, vR) for key, (vR, vL) in boundaries.items())
+        known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
+            DepositionMethod.NEAREST_GRID_POINT: [
+                _deposit_ngp_1D,
+                _deposit_ngp_2D,
+                _deposit_ngp_3D,
+            ],
+            DepositionMethod.CLOUD_IN_CELL: [
+                _deposit_cic_1D,
+                _deposit_cic_2D,
+                _deposit_cic_3D,
+            ],
+            DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
+                _deposit_tsc_1D,
+                _deposit_tsc_2D,
+                _deposit_tsc_3D,
+            ],
+        }
+        if mkey not in known_methods:
+            raise NotImplementedError(f"method {method} is not implemented yet")
+
+        field = np.array(self.particles.fields[particle_field_key])
+        padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
+        self._setup_host_cell_index(verbose=verbose)
+
+        func = known_methods[mkey][self.grid.ndim - 1]
+        tstart = monotonic_ns()
+        func(
+            *self._get_padded_cell_edges(),
+            *self._get_3D_particle_coordinates(),
+            field,
+            self._hci,
+            padded_ret_array,
         )
-
-        if (particle_field_key, mkey, boundary_spec) not in self._cache:
-            known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
-                DepositionMethod.NEAREST_GRID_POINT: [
-                    _deposit_ngp_1D,
-                    _deposit_ngp_2D,
-                    _deposit_ngp_3D,
-                ],
-                DepositionMethod.CLOUD_IN_CELL: [
-                    _deposit_cic_1D,
-                    _deposit_cic_2D,
-                    _deposit_cic_3D,
-                ],
-                DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
-                    _deposit_tsc_1D,
-                    _deposit_tsc_2D,
-                    _deposit_tsc_3D,
-                ],
-            }
-            if mkey not in known_methods:
-                raise NotImplementedError(f"method {method} is not implemented yet")
-
-            field = np.array(self.particles.fields[particle_field_key])
-            padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
-            self._setup_host_cell_index(verbose=verbose)
-
-            func = known_methods[mkey][self.grid.ndim - 1]
-            tstart = monotonic_ns()
-            func(
-                *self._get_padded_cell_edges(),
-                *self._get_3D_particle_coordinates(),
-                field,
-                self._hci,
-                padded_ret_array,
+        tstop = monotonic_ns()
+        if verbose:
+            print(
+                f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
             )
-            tstop = monotonic_ns()
-            if verbose:
-                print(
-                    f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
-                )
-
-            self._cache[particle_field_key, mkey, boundary_spec] = padded_ret_array
-
-        padded_ret_array = self._cache[particle_field_key, mkey, boundary_spec]
 
         for iax, ax in enumerate(self.grid.axes):
             bcs = tuple(self.boundary_recipes[key] for key in boundaries[ax])
