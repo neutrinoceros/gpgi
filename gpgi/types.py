@@ -11,6 +11,7 @@ from itertools import chain
 from time import monotonic_ns
 from typing import Any
 from typing import Callable
+from typing import cast
 from typing import Dict
 from typing import Literal
 from typing import Protocol
@@ -22,14 +23,7 @@ import numpy as np
 from ._boundaries import BoundaryRegistry
 
 if TYPE_CHECKING:
-    # requires numpy >= 1.21
-    import numpy.typing as npt
-
-    from typing import TypeVar
-
-    Real = TypeVar("Real", np.float32, np.float64)
-    RealArray = npt.NDArray[Real]
-    HCIArray = npt.NDArray[np.uint16]
+    from ._typing import RealArray, HCIArray
 
 BoundarySpec = Tuple[Tuple[str, str, str], ...]
 
@@ -524,6 +518,7 @@ class Dataset(ValidatorMixin):
         for iax, ax in enumerate(self.grid.axes):
             bcs = tuple(self.boundary_recipes[key] for key in boundaries[ax])
             for side, bc in zip(("left", "right"), bcs):
+                side = cast(Literal["left", "right"], side)
                 active_index: int = 1 if side == "left" else -2
                 same_side_active_layer_idx = [slice(None)] * self.grid.ndim
                 same_side_active_layer_idx[
