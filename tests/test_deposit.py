@@ -11,7 +11,7 @@ import gpgi
 
 
 @pytest.fixture()
-def sample_dataset():
+def sample_2D_dataset():
     nparticles = 100
     nx, ny = grid_shape = 16, 16
     prng = np.random.RandomState(0)
@@ -78,44 +78,22 @@ def test_missing_fields():
         ds.deposit("mass", method="ngp")
 
 
-def test_unknown_field(sample_dataset):
+def test_unknown_field(sample_2D_dataset):
     with pytest.raises(ValueError, match="Unknown particle field 'density'"):
-        sample_dataset.deposit("density", method="ngp")
+        sample_2D_dataset.deposit("density", method="ngp")
 
 
-def test_unknown_method(sample_dataset):
+def test_unknown_method(sample_2D_dataset):
     with pytest.raises(
         ValueError, match="Unknown deposition method 'test', expected any of (.*)"
     ):
-        sample_dataset.deposit("density", method="test")
-
-
-def test_double_deposit(sample_dataset):
-    # this test intentionally dwelves into the realm of
-    # checking implementation details rather than just checking behaviour
-    ds = sample_dataset
-    assert len(ds._cache) == 0
-
-    particle_density = ds.deposit("mass", method="ngp")
-    assert len(ds._cache) == 1
-
-    # a second call should yield the same exact array
-    particle_density_2 = ds.deposit("mass", method="ngp")
-    npt.assert_array_equal(particle_density_2, particle_density)
-    assert particle_density_2.base is particle_density.base
-    assert len(ds._cache) == 1
-
-    # using the full key shouldn't produce another array
-    particle_density_3 = ds.deposit("mass", method="nearest_grid_point")
-    npt.assert_array_equal(particle_density_3, particle_density)
-    assert particle_density_3.base is particle_density.base
-    assert len(ds._cache) == 1
+        sample_2D_dataset.deposit("density", method="test")
 
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.mpl_image_compare
-def test_2D_deposit(sample_dataset, method):
-    ds = sample_dataset
+def test_2D_deposit(sample_2D_dataset, method):
+    ds = sample_2D_dataset
     particle_density = ds.deposit("mass", method=method)
 
     fig, ax = plt.subplots()
@@ -226,7 +204,6 @@ def test_3D_deposit(method, dtype):
     # return ghost layers
     deposit_3D = ds3D.deposit("mass", method=method)
     assert deposit_3D.shape == tuple(a - 2 for a in full_deposit_3D.shape)
-    assert deposit_3D.base is full_deposit_3D
 
 
 @pytest.mark.mpl_image_compare
@@ -271,29 +248,8 @@ def test_readme_example():
     return fig
 
 
-def test_performance_logging(capsys):
-    nx = ny = 64
-    nparticles = 600_000
-
-    prng = np.random.RandomState(0)
-    ds = gpgi.load(
-        geometry="cartesian",
-        grid={
-            "cell_edges": {
-                "x": np.linspace(-1, 1, nx),
-                "y": np.linspace(-1, 1, ny),
-            },
-        },
-        particles={
-            "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-            },
-            "fields": {
-                "mass": np.ones(nparticles),
-            },
-        },
-    )
+def test_performance_logging(capsys, sample_2D_dataset):
+    ds = sample_2D_dataset
     ds.deposit("mass", method="ngp", verbose=True)
     stdout, stderr = capsys.readouterr()
     assert stderr == ""
@@ -303,8 +259,7 @@ def test_performance_logging(capsys):
     assert re.match(r"Deposited .* particles in .* s", lines[1])
 
 
-def test_return_ghost_padded_array(capsys):
-
+def test_return_ghost_padded_array():
     npart = 16
     prng = np.random.RandomState(0)
     ds = gpgi.load(
@@ -323,13 +278,6 @@ def test_return_ghost_padded_array(capsys):
         "mass", method="cic", verbose=True, return_ghost_padded_array=True
     )
     assert padded_array.shape == (7,)
-    assert active_array.base is padded_array
-
-    # check that no expensive operation is logged:
-    # the whole padded array should be cached after the first deposition
-    stdout, stderr = capsys.readouterr()
-    assert stdout == ""
-    assert stderr == ""
 
 
 @pytest.mark.parametrize(
@@ -352,29 +300,10 @@ def test_return_ghost_padded_array(capsys):
         ),
     ],
 )
-def test_deposit_invalid_boundaries(boundaries, error_type, error_message):
-    nx = ny = 64
-    nparticles = 100
-
-    prng = np.random.RandomState(0)
-    ds = gpgi.load(
-        geometry="cartesian",
-        grid={
-            "cell_edges": {
-                "x": np.linspace(-1, 1, nx),
-                "y": np.linspace(-1, 1, ny),
-            },
-        },
-        particles={
-            "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-            },
-            "fields": {
-                "mass": np.ones(nparticles),
-            },
-        },
-    )
+def test_deposit_invalid_boundaries(
+    boundaries, error_type, error_message, sample_2D_dataset
+):
+    ds = sample_2D_dataset
     with pytest.raises(error_type, match=re.escape(error_message)):
         ds.deposit("mass", method="ngp", boundaries=boundaries)
 
@@ -383,30 +312,10 @@ def test_deposit_invalid_boundaries(boundaries, error_type, error_message):
     "keyL, keyR",
     [("open", "wall"), ("periodic", "periodic"), ("antisymmetric ", "open")],
 )
-def test_builtin_boundary_recipe(keyL, keyR):
-    nx = ny = 64
-    nparticles = 100
-
-    prng = np.random.RandomState(0)
-    ds = gpgi.load(
-        geometry="cartesian",
-        grid={
-            "cell_edges": {
-                "x": np.linspace(-1, 1, nx),
-                "y": np.linspace(-1, 1, ny),
-            },
-        },
-        particles={
-            "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-            },
-            "fields": {
-                "mass": np.ones(nparticles),
-            },
-        },
-    )
+def test_builtin_boundary_recipe(keyL, keyR, sample_2D_dataset):
+    ds = sample_2D_dataset
     res1 = ds.deposit("mass", method="tsc", boundaries={"x": (keyL, keyR)})
+
     if keyR == keyL:
         return
     res2 = ds.deposit("mass", method="tsc", boundaries={"x": (keyR, keyL)})
@@ -496,30 +405,7 @@ def test_warn_register_override(capsys):
     assert out == "gotcha\n" * 4
 
 
-def test_register_custom_boundary_recipe():
-    nx = ny = 64
-    nparticles = 100
-
-    prng = np.random.RandomState(0)
-    ds = gpgi.load(
-        geometry="cartesian",
-        grid={
-            "cell_edges": {
-                "x": np.linspace(-1, 1, nx),
-                "y": np.linspace(-1, 1, ny),
-            },
-        },
-        particles={
-            "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-            },
-            "fields": {
-                "mass": np.ones(nparticles),
-            },
-        },
-    )
-
+def test_register_custom_boundary_recipe(sample_2D_dataset):
     def _my_recipe(
         same_side_active_layer,
         same_side_ghost_layer,
@@ -532,6 +418,7 @@ def test_register_custom_boundary_recipe():
         # (this is the same as the builtin 'open' boundary recipe)
         return same_side_active_layer
 
+    ds = sample_2D_dataset
     ds.boundary_recipes.register("my", _my_recipe)
     res1 = ds.deposit("mass", method="tsc", boundaries={"x": ("my", "my")})
     res2 = ds.deposit("mass", method="tsc")
