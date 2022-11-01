@@ -1,9 +1,27 @@
 from __future__ import annotations
 
 import warnings
+from typing import Any
 from typing import Callable
+from typing import cast
+from typing import Dict
+from typing import Literal
+from typing import TYPE_CHECKING
 
-BoundaryRecipeT = Callable
+if TYPE_CHECKING:
+    from ._typing import RealArray
+
+BoundaryRecipeT = Callable[
+    [
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        Literal["left", "right"],
+        Dict[str, Any],
+    ],
+    "RealArray",
+]
 
 
 class BoundaryRegistry:
@@ -51,49 +69,49 @@ class BoundaryRegistry:
 
 
 # basic recipes
-def open_boundary(  # type:ignore [no-untyped-def]
-    same_side_active_layer,
-    same_side_ghost_layer,
-    opposite_side_active_layer,
-    opposite_side_ghost_layer,
-    side,
-    metadata,
-):
+def open_boundary(
+    same_side_active_layer: RealArray,
+    same_side_ghost_layer: RealArray,
+    opposite_side_active_layer: RealArray,
+    opposite_side_ghost_layer: RealArray,
+    side: Literal["left", "right"],
+    metadata: dict[str, Any],
+) -> RealArray:
     # return the active layer unchanged
     return same_side_active_layer
 
 
-def wall_boundary(  # type:ignore [no-untyped-def]
-    same_side_active_layer,
-    same_side_ghost_layer,
-    opposite_side_active_layer,
-    opposite_side_ghost_layer,
-    side,
-    metadata,
-):
-    return same_side_active_layer + same_side_ghost_layer
+def wall_boundary(
+    same_side_active_layer: RealArray,
+    same_side_ghost_layer: RealArray,
+    opposite_side_active_layer: RealArray,
+    opposite_side_ghost_layer: RealArray,
+    side: Literal["left", "right"],
+    metadata: dict[str, Any],
+) -> RealArray:
+    return cast("RealArray", same_side_active_layer + same_side_ghost_layer)
 
 
-def antisymmetric_boundary(  # type:ignore [no-untyped-def]
-    same_side_active_layer,
-    same_side_ghost_layer,
-    opposite_side_active_layer,
-    opposite_side_ghost_layer,
-    side,
-    metadata,
-):
-    return same_side_active_layer - same_side_ghost_layer
+def antisymmetric_boundary(
+    same_side_active_layer: RealArray,
+    same_side_ghost_layer: RealArray,
+    opposite_side_active_layer: RealArray,
+    opposite_side_ghost_layer: RealArray,
+    side: Literal["left", "right"],
+    metadata: dict[str, Any],
+) -> RealArray:
+    return cast("RealArray", same_side_active_layer - same_side_ghost_layer)
 
 
-def periodic_boundary(  # type:ignore [no-untyped-def]
-    same_side_active_layer,
-    same_side_ghost_layer,
-    opposite_side_active_layer,
-    opposite_side_ghost_layer,
-    side,
-    metadata,
-):
-    return same_side_active_layer + opposite_side_ghost_layer
+def periodic_boundary(
+    same_side_active_layer: RealArray,
+    same_side_ghost_layer: RealArray,
+    opposite_side_active_layer: RealArray,
+    opposite_side_ghost_layer: RealArray,
+    side: Literal["left", "right"],
+    metadata: dict[str, Any],
+) -> RealArray:
+    return cast("RealArray", same_side_active_layer + opposite_side_ghost_layer)
 
 
 _base_registry: dict[str, BoundaryRecipeT] = {
