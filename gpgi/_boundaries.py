@@ -17,6 +17,10 @@ BoundaryRecipeT = Callable[
         "RealArray",
         "RealArray",
         "RealArray",
+        "RealArray",
+        "RealArray",
+        "RealArray",
+        "RealArray",
         Literal["left", "right"],
         Dict[str, Any],
     ],
@@ -41,6 +45,10 @@ class BoundaryRegistry:
             "same_side_ghost_layer",
             "opposite_side_active_layer",
             "opposite_side_ghost_layer",
+            "weight_same_side_active_layer",
+            "weight_same_side_ghost_layer",
+            "weight_opposite_side_active_layer",
+            "weight_opposite_side_ghost_layer",
             "side",
             "metadata",
         ]:
@@ -48,6 +56,8 @@ class BoundaryRegistry:
                 "Invalid boundary recipe. Expected a function with exactly 6 parameters, "
                 "named 'same_side_active_layer', 'same_side_ghost_layer', "
                 "'opposite_side_active_layer', 'opposite_side_ghost_layer', "
+                "'weight_same_side_active_layer', 'weight_same_side_ghost_layer', "
+                "'weight_opposite_side_active_layer', 'weight_opposite_side_ghost_layer', "
                 "'side', and 'metadata'"
             )
 
@@ -74,6 +84,10 @@ def open_boundary(
     same_side_ghost_layer: RealArray,
     opposite_side_active_layer: RealArray,
     opposite_side_ghost_layer: RealArray,
+    weight_same_side_active_layer: RealArray,
+    weight_same_side_ghost_layer: RealArray,
+    weight_opposite_side_active_layer: RealArray,
+    weight_opposite_side_ghost_layer: RealArray,
     side: Literal["left", "right"],
     metadata: dict[str, Any],
 ) -> RealArray:
@@ -86,6 +100,10 @@ def wall_boundary(
     same_side_ghost_layer: RealArray,
     opposite_side_active_layer: RealArray,
     opposite_side_ghost_layer: RealArray,
+    weight_same_side_active_layer: RealArray,
+    weight_same_side_ghost_layer: RealArray,
+    weight_opposite_side_active_layer: RealArray,
+    weight_opposite_side_ghost_layer: RealArray,
     side: Literal["left", "right"],
     metadata: dict[str, Any],
 ) -> RealArray:
@@ -97,6 +115,10 @@ def antisymmetric_boundary(
     same_side_ghost_layer: RealArray,
     opposite_side_active_layer: RealArray,
     opposite_side_ghost_layer: RealArray,
+    weight_same_side_active_layer: RealArray,
+    weight_same_side_ghost_layer: RealArray,
+    weight_opposite_side_active_layer: RealArray,
+    weight_opposite_side_ghost_layer: RealArray,
     side: Literal["left", "right"],
     metadata: dict[str, Any],
 ) -> RealArray:
@@ -108,6 +130,10 @@ def periodic_boundary(
     same_side_ghost_layer: RealArray,
     opposite_side_active_layer: RealArray,
     opposite_side_ghost_layer: RealArray,
+    weight_same_side_active_layer: RealArray,
+    weight_same_side_ghost_layer: RealArray,
+    weight_opposite_side_active_layer: RealArray,
+    weight_opposite_side_ghost_layer: RealArray,
     side: Literal["left", "right"],
     metadata: dict[str, Any],
 ) -> RealArray:

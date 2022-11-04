@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+import sys
 import warnings
 from abc import ABC
 from abc import abstractmethod
@@ -10,7 +11,6 @@ from functools import reduce
 from itertools import chain
 from time import monotonic_ns
 from typing import Any
-from typing import Callable
 from typing import cast
 from typing import Dict
 from typing import Literal
@@ -22,6 +22,12 @@ import numpy as np
 from ._boundaries import BoundaryRegistry
 from ._typing import HCIArray
 from ._typing import RealArray
+
+if sys.version_info >= (3, 9):
+    from collections.abc import Callable
+else:
+    from typing import Callable
+
 
 BoundarySpec = Tuple[Tuple[str, str, str], ...]
 
@@ -50,6 +56,7 @@ Name = str
 FieldMap = Dict[Name, np.ndarray]
 DepositionMethodT = Callable[
     [
+        "RealArray",
         "RealArray",
         "RealArray",
         "RealArray",
@@ -409,6 +416,8 @@ class Dataset(ValidatorMixin):
         boundaries: dict[Name, tuple[Name, Name]] | None = None,
         verbose: bool = False,
         return_ghost_padded_array: bool = False,
+        weight_field: Name | None = None,
+        weight_field_boundaries: dict[Name, tuple[Name, Name]] | None = None,
     ) -> np.ndarray:
         r"""
         Perform particle deposition and return the result as a grid field.
@@ -418,18 +427,41 @@ class Dataset(ValidatorMixin):
         particle_field_key (positional only): str
            label of the particle field to deposit
 
-        method (keyword only):  'ngp', 'cic' or 'tsc'
-           full names ('nearest_grid_point', 'cloud_in_cell', and 'triangular_shaped_cloud')
-           are also valid
+        method (keyword only): 'ngp', 'cic' or 'tsc'
+           full names ('nearest_grid_point', 'cloud_in_cell', and
+           'triangular_shaped_cloud') are also valid
 
         verbose (keyword only): bool (default False)
            if True, print execution time for hot loops (indexing and deposition)
 
         return_ghost_padded_array (keyword only): bool (default False)
-           if True, return the complete deposition array, including one extra cell layer
-           per direction and per side. This option is meant as a debugging tool for
-           methods that leak some particle data outside the active domain (cic and tsc).
+           if True, return the complete deposition array, including one extra
+           cell layer per direction and per side. This option is meant as a
+           debugging tool for methods that leak some particle data outside the
+           active domain (cic and tsc).
 
+        weight_field (keyword only): str
+           label of another field to use as weights. Let u be the field to
+           deposit and w be the weight field. Let u' and w' be their equivalent
+           on-grid descriptions. u' is obtained as
+
+           w'(x) = Σ w(i) c(i,x)
+           u'(x) = (1/w'(x)) Σ u(i) w(i) c(i,x)
+
+           where x is the spatial position, i is a particle index, and w(i,x)
+           are geometric coefficients associated with the deposition method.
+
+        boundaries and weigth_field_boundaries (keyword only): dict
+           Maps from axis names (str) to boundary recipe keys (str, str)
+           representing left/right boundaries. By default all axes will use
+           'open' boundaries on both sides. Specifying boundaries for all axes
+           is not mandated, but note that recipes are applied in the order of
+           specified axes (any unspecified axes will be treated last).
+
+           weight_field_boundaries is required if weight field is used in
+           combinations with boundaries.
+
+           Boundary recipes are applied the weight field (if any) first.
         """
         from .clib._deposition_methods import _deposit_ngp_1D  # type: ignore [import]
         from .clib._deposition_methods import _deposit_ngp_2D  # type: ignore [import]
@@ -469,25 +501,22 @@ class Dataset(ValidatorMixin):
 
         if boundaries is None:
             boundaries = {}
-
-        for ax in self.grid.axes:
-            boundaries.setdefault(ax, ("open", "open"))
-        for axk in boundaries:
-            if axk not in self.grid.axes:
-                raise ValueError(
-                    f"Got invalid ax key {axk!r}, expected any of {self.grid.axes!r}"
+        if weight_field_boundaries is None:
+            if boundaries and weight_field is not None:
+                raise TypeError(
+                    "weight_field_boundaries keyword argument is "
+                    "required with weight_field and boundaries"
                 )
-        for bound in boundaries.values():
-            if (
-                (not isinstance(bound, tuple))
-                or len(bound) != 2
-                or not all(isinstance(_, str) for _ in bound)
-            ):
-                raise TypeError(f"Expected a 2-tuple of strings, got {bound!r}")
+            weight_field_boundaries = {}
+        elif weight_field is None:
+            warnings.warn(
+                "weight_field_boundaries will not be used "
+                "as no weight_field was specified",
+                stacklevel=2,
+            )
 
-            for b in bound:
-                if b not in self.boundary_recipes:
-                    raise ValueError(f"Unknown boundary type {b!r}")
+        self._sanitize_boundaries(boundaries)
+        self._sanitize_boundaries(weight_field_boundaries)
 
         known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
             DepositionMethod.NEAREST_GRID_POINT: [
@@ -509,16 +538,34 @@ class Dataset(ValidatorMixin):
         if mkey not in known_methods:
             raise NotImplementedError(f"method {method} is not implemented yet")
 
-        field = np.array(self.particles.fields[particle_field_key])
+        field = self.particles.fields[particle_field_key]
         padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
+        if weight_field is not None:
+            wfield = np.array(self.particles.fields[weight_field])
+            wfield_dep = np.zeros(self.grid._padded_shape, dtype=field.dtype)
+        else:
+            wfield = np.ones(0, dtype=field.dtype)
+            wfield_dep = np.ones(1, dtype=field.dtype)
+
         self._setup_host_cell_index(verbose=verbose)
 
         func = known_methods[mkey][self.grid.ndim - 1]
         tstart = monotonic_ns()
+        if weight_field is not None:
+            func(
+                *self._get_padded_cell_edges(),
+                *self._get_3D_particle_coordinates(),
+                wfield,
+                np.ones(0, dtype=field.dtype),
+                self._hci,
+                wfield_dep,
+            )
+
         func(
             *self._get_padded_cell_edges(),
             *self._get_3D_particle_coordinates(),
             field,
+            wfield,
             self._hci,
             padded_ret_array,
         )
@@ -528,8 +575,78 @@ class Dataset(ValidatorMixin):
                 f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
             )
 
-        for iax, ax in enumerate(self.grid.axes):
-            bcs = tuple(self.boundary_recipes[key] for key in boundaries[ax])
+        if weight_field is not None:
+            self._apply_boundary_conditions(
+                array=wfield_dep,
+                boundaries=weight_field_boundaries,
+                weight_array=None,
+            )
+
+            self._apply_boundary_conditions(
+                array=padded_ret_array,
+                boundaries=boundaries,
+                weight_array=wfield_dep,
+            )
+        else:
+            self._apply_boundary_conditions(
+                array=padded_ret_array,
+                boundaries=boundaries,
+                weight_array=None,
+            )
+
+        padded_ret_array /= wfield_dep
+
+        if return_ghost_padded_array:
+            return padded_ret_array
+        elif self.grid.ndim == 1:
+            return padded_ret_array[1:-1]
+        elif self.grid.ndim == 2:
+            return padded_ret_array[1:-1, 1:-1]
+        elif self.grid.ndim == 3:
+            return padded_ret_array[1:-1, 1:-1, 1:-1]
+        else:  # pragma: no cover
+            raise RuntimeError("Caching error. Please report this.")
+
+    def _sanitize_boundaries(self, boundaries: dict[Name, tuple[Name, Name]]) -> None:
+        if self.grid is None:  # pragma: no cover
+            raise RuntimeWarning("Something took a wrong turn, please report this")
+
+        for ax in self.grid.axes:
+            boundaries.setdefault(ax, ("open", "open"))
+        for axk in boundaries:
+            if axk not in self.grid.axes:
+                raise ValueError(
+                    f"Got invalid ax key {axk!r}, expected any of {self.grid.axes!r}"
+                )
+        for bound in boundaries.values():
+            if (
+                (not isinstance(bound, tuple))
+                or len(bound) != 2
+                or not all(isinstance(_, str) for _ in bound)
+            ):
+                raise TypeError(f"Expected a 2-tuple of strings, got {bound!r}")
+
+            for b in bound:
+                if b not in self.boundary_recipes:
+                    raise ValueError(f"Unknown boundary type {b!r}")
+
+    def _apply_boundary_conditions(
+        self,
+        array: RealArray,
+        boundaries: dict[Name, tuple[Name, Name]],
+        weight_array: RealArray | None,
+    ) -> None:
+        if self.grid is None:  # pragma: no cover
+            raise RuntimeWarning("Something took a wrong turn, please report this")
+
+        axes = list(self.grid.axes)
+        for ax, bv in boundaries.items():
+            # in some applications, it is *crucial* that boundaries be applied
+            # in a specific order, so we take advantage of the fact that dictionaries
+            # are ordered in modern Python and loop over user-specified constraints
+            # as a way to *expose* ordering.
+            iax = axes.index(ax)
+            bcs = tuple(self.boundary_recipes[key] for key in bv)
             for side, bc in zip(("left", "right"), bcs):
                 side = cast(Literal["left", "right"], side)
                 active_index: int = 1 if side == "left" else -2
@@ -556,22 +673,30 @@ class Dataset(ValidatorMixin):
                     active_index % 2
                 )
 
-                padded_ret_array[tuple(same_side_active_layer_idx)] = bc(
-                    padded_ret_array[tuple(same_side_active_layer_idx)],
-                    padded_ret_array[tuple(same_side_ghost_layer_idx)],
-                    padded_ret_array[tuple(opposite_side_active_layer_idx)],
-                    padded_ret_array[tuple(opposite_side_ghost_layer_idx)],
-                    side,
-                    self.metadata,
-                )
-
-        if return_ghost_padded_array:
-            return padded_ret_array
-        elif self.grid.ndim == 1:
-            return padded_ret_array[1:-1]
-        elif self.grid.ndim == 2:
-            return padded_ret_array[1:-1, 1:-1]
-        elif self.grid.ndim == 3:
-            return padded_ret_array[1:-1, 1:-1, 1:-1]
-        else:  # pragma: no cover
-            raise RuntimeError("Caching error. Please report this.")
+                if weight_array is None:
+                    ONE = np.ones(1, dtype=array.dtype)
+                    array[tuple(same_side_active_layer_idx)] = bc(
+                        array[tuple(same_side_active_layer_idx)],
+                        array[tuple(same_side_ghost_layer_idx)],
+                        array[tuple(opposite_side_active_layer_idx)],
+                        array[tuple(opposite_side_ghost_layer_idx)],
+                        ONE,
+                        ONE,
+                        ONE,
+                        ONE,
+                        side,
+                        self.metadata,
+                    )
+                else:
+                    array[tuple(same_side_active_layer_idx)] = bc(
+                        array[tuple(same_side_active_layer_idx)],
+                        array[tuple(same_side_ghost_layer_idx)],
+                        array[tuple(opposite_side_active_layer_idx)],
+                        array[tuple(opposite_side_ghost_layer_idx)],
+                        weight_array[tuple(same_side_active_layer_idx)],
+                        weight_array[tuple(same_side_ghost_layer_idx)],
+                        weight_array[tuple(opposite_side_active_layer_idx)],
+                        weight_array[tuple(opposite_side_ghost_layer_idx)],
+                        side,
+                        self.metadata,
+                    )

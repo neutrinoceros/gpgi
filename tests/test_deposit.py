@@ -34,6 +34,8 @@ def sample_2D_dataset():
             },
             "fields": {
                 "mass": np.ones(nparticles) * un.g,
+                "vx": (2 * prng.random_sample(nparticles) - 1) * un.m / un.s,
+                "vy": (2 * prng.random_sample(nparticles) - 1) * un.m / un.s,
             },
         },
     )
@@ -355,6 +357,8 @@ def test_register_invalid_boundary_recipe():
             "Invalid boundary recipe. Expected a function with exactly 6 parameters, "
             "named 'same_side_active_layer', 'same_side_ghost_layer', "
             "'opposite_side_active_layer', 'opposite_side_ghost_layer', "
+            "'weight_same_side_active_layer', 'weight_same_side_ghost_layer', "
+            "'weight_opposite_side_active_layer', 'weight_opposite_side_ghost_layer', "
             "'side', and 'metadata'"
         ),
     ):
@@ -391,6 +395,10 @@ def test_warn_register_override(capsys):
         same_side_ghost_layer,
         opposite_side_active_layer,
         opposite_side_ghost_layer,
+        weight_same_side_active_layer,
+        weight_same_side_ghost_layer,
+        weight_opposite_side_active_layer,
+        weight_opposite_side_ghost_layer,
         side,
         metadata,
     ):
@@ -411,6 +419,10 @@ def test_register_custom_boundary_recipe(sample_2D_dataset):
         same_side_ghost_layer,
         opposite_side_active_layer,
         opposite_side_ghost_layer,
+        weight_same_side_active_layer,
+        weight_same_side_ghost_layer,
+        weight_opposite_side_active_layer,
+        weight_opposite_side_ghost_layer,
         side,
         metadata,
     ):
@@ -484,3 +496,46 @@ def test_closed_boundaries(method, boundaries, unary_mass_dataset):
     arr = ds.deposit("mass", method=method, boundaries=boundaries)
     expected = ds.particles.fields["mass"].sum()
     assert arr.sum() == pytest.approx(expected, rel=1e-12)
+
+
+def test_deposit_with_weight_field(sample_2D_dataset):
+    sample_2D_dataset.deposit("vx", method="tsc", weight_field="mass")
+
+
+def test_deposit_with_weight_field_and_incomplete_boundaries_spec(sample_2D_dataset):
+    with pytest.raises(
+        TypeError,
+        match="weight_field_boundaries keyword argument is required with weight_field and boundaries",
+    ):
+        sample_2D_dataset.deposit(
+            "vx",
+            method="tsc",
+            weight_field="mass",
+            boundaries={"x": ("periodic", "periodic")},
+        )
+
+
+def test_deposit_with_weight_field_and_complete_boundaries_spec(sample_2D_dataset):
+    ds = sample_2D_dataset
+    ds.deposit(
+        "vx",
+        method="ngp",
+        weight_field="mass",
+        boundaries={"x": ("periodic", "periodic")},
+        weight_field_boundaries={"x": ("periodic", "periodic")},
+    )
+
+
+def test_warn_unused_weight_field_boundaries(sample_2D_dataset):
+    with pytest.warns(
+        UserWarning,
+        match=(
+            "weight_field_boundaries will not be used "
+            "as no weight_field was specified"
+        ),
+    ):
+        sample_2D_dataset.deposit(
+            "vx",
+            method="ngp",
+            weight_field_boundaries={"x": ("periodic", "periodic")},
+        )

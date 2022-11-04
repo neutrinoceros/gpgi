@@ -199,12 +199,16 @@ def ones(
     same_side_ghost_layer,
     opposite_side_active_layer,
     opposite_side_ghost_layer,
+    weight_same_side_active_layer,
+    weight_same_side_ghost_layer,
+    weight_opposite_side_active_layer,
+    weight_opposite_side_ghost_layer,
     side,
     metadata,
 ):
    return 1.0
 ```
-where all first four arguments are `numpy.ndarray` objects with the same shape,
+where all first eight arguments are `numpy.ndarray` objects with the same shape (which includes ghost padding !),
 to which the return value must be broadcastable, `side` can only be either
 `"left"` or `"right"`, and `metadata` is the special `Dataset.metadata`
 attribute. Not all arguments need be used in the body of the function, but this
@@ -226,3 +230,31 @@ ds.deposit(
     }
 )
 ```
+
+Note that all first eight arguments in a boundary recipe function should
+represent an *extensive* physical quantity (as opposed to *intensive*). When
+depositing an *intensive* quantity `u`, a weight field `w` should be supplied
+(see next section), in which case, the first four arguments represent `u*w` and
+the following four represent *w*, so that *u* can still be obtained within the
+function as a ratio if needed.
+
+### Weight fields
+*new in gpgi 0.7.0*
+
+Intrisically, deposition algorithms assume that the deposited field `u`
+represents an *extensive* physical quantity (like mass or momentum).
+In order to deposit a *intentive* quantity (like velocity or temperature), one must provide an appropriate weight field `w`.
+
+Let `u'` and `w'` be the equivalent on-grid descriptions to `u` and `w`. They are obtained as
+
+```
+w'(x) = Σ w(i) c(i,x)
+u'(x) = (1/w'(x)) Σ u(i) w(i) c(i,x)
+```
+where `x` is the spatial position, `i` is a particle index, and `c(i,x)` are
+geometric coefficients associated with the deposition method.
+
+Boundary recipes may be associated to the weight field with the
+`weight_field_boundaries` argument.
+
+Call `help(ds.deposit)` for more detail.

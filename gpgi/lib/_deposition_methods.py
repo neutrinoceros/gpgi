@@ -9,12 +9,18 @@ def _deposit_ngp(
     particles_x2,
     particles_x3,
     field,
+    weight_field,
     hci,
     out,
 ):
-    for ipart in range(len(hci)):
-        md_idx = tuple(hci[ipart])
-        out[md_idx] += field[ipart]
+    if weight_field.size == 0:
+        for ipart in range(len(hci)):
+            md_idx = tuple(hci[ipart])
+            out[md_idx] += field[ipart]
+    else:
+        for ipart in range(len(hci)):
+            md_idx = tuple(hci[ipart])
+            out[md_idx] += field[ipart] * weight_field[ipart]
 
 
 def _deposit_cic_1D(
@@ -25,9 +31,13 @@ def _deposit_cic_1D(
     particles_x2,
     particles_x3,
     field,
+    weight_field,
     hci,
     out,
 ):
+    if weight_field.size > 0:
+        raise NotImplementedError
+
     nparticles = hci.shape[0]
 
     # weight array
@@ -58,9 +68,13 @@ def _deposit_cic_2D(
     particles_x2,
     particles_x3,
     field,
+    weight_field,
     hci,
     out,
 ):
+    if weight_field.size > 0:
+        raise NotImplementedError
+
     nparticles = hci.shape[0]
 
     # weight array
@@ -111,9 +125,13 @@ def _deposit_cic_3D(
     particles_x2,
     particles_x3,
     field,
+    weight_field,
     hci,
     out,
 ):
+    if weight_field.size > 0:
+        raise NotImplementedError
+
     nparticles = hci.shape[0]
 
     # weight array
@@ -179,9 +197,13 @@ def _deposit_tsc_1D(
     particles_x2,
     particles_x3,
     field,
+    weight_field,
     hci,
     out,
 ):
+    if weight_field.size > 0:
+        raise NotImplementedError
+
     nparticles = hci.shape[0]
 
     # weight array
@@ -208,9 +230,13 @@ def _deposit_tsc_2D(
     particles_x2,
     particles_x3,
     field,
+    weight_field,
     hci,
     out,
 ):
+    if weight_field.size > 0:
+        raise NotImplementedError
+
     nparticles = hci.shape[0]
 
     # weight arrays
@@ -253,9 +279,13 @@ def _deposit_tsc_3D(
     particles_x2,
     particles_x3,
     field,
+    weight_field,
     hci,
     out,
 ):
+    if weight_field.size > 0:
+        raise NotImplementedError
+
     nparticles = hci.shape[0]
 
     # weight arrays
