@@ -16,14 +16,12 @@ from typing import Dict
 from typing import Literal
 from typing import Protocol
 from typing import Tuple
-from typing import TYPE_CHECKING
 
 import numpy as np
 
 from ._boundaries import BoundaryRegistry
-
-if TYPE_CHECKING:
-    from ._typing import RealArray, HCIArray
+from ._typing import HCIArray
+from ._typing import RealArray
 
 BoundarySpec = Tuple[Tuple[str, str, str], ...]
 
@@ -232,6 +230,21 @@ class Grid(CoordinateValidatorMixin):
     @property
     def ndim(self) -> int:
         return len(self.axes)
+
+    @property
+    def cell_volumes(self) -> RealArray:
+        """
+        3D: (nx, ny, nz) array representing volumes
+        2D: (nx, ny) array representing surface
+        1D: (nx,) array representing widths (redundant with cell_widths)
+        """
+        widths = list(self.cell_widths.values())
+        if self.geometry is Geometry.CARTESIAN:
+            return cast(RealArray, np.prod(np.meshgrid(*widths), axis=0))
+        else:
+            raise NotImplementedError(
+                f"cell_volumes property is not implemented for {self.geometry}"
+            )
 
 
 class ParticleSet(CoordinateValidatorMixin):
