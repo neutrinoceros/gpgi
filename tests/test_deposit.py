@@ -423,3 +423,64 @@ def test_register_custom_boundary_recipe(sample_2D_dataset):
     res1 = ds.deposit("mass", method="tsc", boundaries={"x": ("my", "my")})
     res2 = ds.deposit("mass", method="tsc")
     npt.assert_array_equal(res1, res2)
+
+
+@pytest.fixture
+def unary_mass_dataset():
+    from itertools import product
+
+    x = np.linspace(0.5, 9.5, 10)
+    xc, yc, zc = np.array(list(product(x, x, x))).T
+
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(0, 10, 11),
+                "y": np.linspace(0, 10, 11),
+                "z": np.linspace(0, 10, 11),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": xc,
+                "y": yc,
+                "z": zc,
+            },
+            "fields": {"mass": 1e-3 * np.ones(1000)},
+        },
+    )
+    return ds
+
+
+@pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
+def test_unary_mass_dataset(method, unary_mass_dataset):
+    # check that total mass is conserved with open boundaries
+    # when including ghost zones
+    ds = unary_mass_dataset
+    base_array = ds.deposit("mass", method=method, return_ghost_padded_array=True)
+    expected = ds.particles.fields["mass"].sum()
+    assert base_array.sum() == pytest.approx(expected, rel=1e-12)
+
+
+@pytest.mark.parametrize(
+    "boundaries",
+    [
+        {
+            "x": ("periodic", "periodic"),
+            "y": ("periodic", "periodic"),
+            "z": ("periodic", "periodic"),
+        },
+        {
+            "x": ("wall", "wall"),
+            "y": ("wall", "wall"),
+            "z": ("wall", "wall"),
+        },
+    ],
+)
+@pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
+def test_closed_boundaries(method, boundaries, unary_mass_dataset):
+    ds = unary_mass_dataset
+    arr = ds.deposit("mass", method=method, boundaries=boundaries)
+    expected = ds.particles.fields["mass"].sum()
+    assert arr.sum() == pytest.approx(expected, rel=1e-12)
