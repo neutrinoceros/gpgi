@@ -13,6 +13,7 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
+from typing import Final
 from typing import Literal
 from typing import Protocol
 from typing import Tuple
@@ -528,10 +529,10 @@ class Dataset(ValidatorMixin):
                 f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
             )
 
+        sides: Final = ("left", "right")
         for iax, ax in enumerate(self.grid.axes):
             bcs = tuple(self.boundary_recipes[key] for key in boundaries[ax])
-            for side, bc in zip(("left", "right"), bcs):
-                side = cast(Literal["left", "right"], side)
+            for side, bc in zip(sides, bcs):
                 active_index: int = 1 if side == "left" else -2
                 same_side_active_layer_idx = [slice(None)] * self.grid.ndim
                 same_side_active_layer_idx[
