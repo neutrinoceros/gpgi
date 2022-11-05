@@ -540,9 +540,9 @@ class Dataset(ValidatorMixin):
 
                 same_side_ghost_layer_idx = [slice(None)] * self.grid.ndim
                 # f(-2)=-1, f(1)=0
-                same_side_ghost_layer_idx[iax] = (  # type:ignore [call-overload]
-                    active_index + 1
-                ) % 2
+                same_side_ghost_layer_idx[iax] = -(  # type:ignore [call-overload]
+                    (active_index + 1) % 2
+                )
 
                 opposite_side_active_layer_idx = [slice(None)] * self.grid.ndim
                 # f(-2)=1, f(1)=-2
