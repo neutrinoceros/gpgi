@@ -16,6 +16,7 @@ def _deposit_ngp_1D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=1] out,
 ):
@@ -28,9 +29,16 @@ def _deposit_ngp_1D(
     cdef real[:] field_v = field
     cdef real[:] out_v = out
 
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
+
     for ipart in range(particle_count):
         i = hci_v[ipart][0]
-        out_v[i] += field_v[ipart]
+        if no_weight:
+            out_v[i] += field_v[ipart]
+        else:
+            out_v[i] += field_v[ipart] * wfield_v[ipart]
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -42,6 +50,7 @@ def _deposit_ngp_2D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=2] out,
 ):
@@ -54,10 +63,17 @@ def _deposit_ngp_2D(
     cdef real[:] field_v = field
     cdef real[:, :] out_v = out
 
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
+
     for ipart in range(particle_count):
         i = hci_v[ipart][0]
         j = hci_v[ipart][1]
-        out_v[i][j] += field_v[ipart]
+        if no_weight:
+            out_v[i][j] += field_v[ipart]
+        else:
+            out_v[i][j] += field_v[ipart] * wfield_v[ipart]
 
 
 @cython.boundscheck(False)
@@ -70,6 +86,7 @@ def _deposit_ngp_3D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=3] out,
 ):
@@ -82,11 +99,18 @@ def _deposit_ngp_3D(
     cdef real[:] field_v = field
     cdef real[:, :, :] out_v = out
 
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
+
     for ipart in range(particle_count):
         i = hci_v[ipart][0]
         j = hci_v[ipart][1]
         k = hci_v[ipart][2]
-        out_v[i][j][k] += field_v[ipart]
+        if no_weight:
+            out_v[i][j][k] += field_v[ipart]
+        else:
+            out_v[i][j][k] += field_v[ipart] * wfield_v[ipart]
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -99,6 +123,7 @@ def _deposit_cic_1D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=1] out,
 ):
@@ -112,8 +137,12 @@ def _deposit_cic_1D(
     cdef real[:] field_v = field
     cdef real[:] out_v = out
 
-    # weight arrays
+    # geometric weight arrays
     cdef real[2] w
+
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
 
     for ipart in range(particle_count):
         x = particles_x1[ipart]
@@ -125,7 +154,10 @@ def _deposit_cic_1D(
 
         for i in range(2):
             oci = ci_start + i
-            out_v[oci] += w[i] * field_v[ipart]
+            if no_weight:
+                out_v[oci] += w[i] * field_v[ipart]
+            else:
+                out_v[oci] += w[i] * field_v[ipart] * wfield_v[ipart]
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -138,6 +170,7 @@ def _deposit_cic_2D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=2] out,
 ):
@@ -151,9 +184,13 @@ def _deposit_cic_2D(
     cdef real[:] field_v = field
     cdef real[:, :] out_v = out
 
-    # weight arrays
+    # geometric weight arrays
     cdef real[2] w1, w2
     cdef real[2][2] w
+
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
 
     for ipart in range(particle_count):
         x = particles_x1[ipart]
@@ -178,7 +215,10 @@ def _deposit_cic_2D(
             oci = ci_start + i
             for j in range(2):
                 ocj = cj_start + j
-                out_v[oci, ocj] += w[i][j] * field_v[ipart]
+                if no_weight:
+                    out_v[oci, ocj] += w[i][j] * field_v[ipart]
+                else:
+                    out_v[oci, ocj] += w[i][j] * field_v[ipart] * wfield_v[ipart]
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -191,6 +231,7 @@ def _deposit_cic_3D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=3] out,
 ):
@@ -204,9 +245,13 @@ def _deposit_cic_3D(
     cdef real[:] field_v = field
     cdef real[:, :, :] out_v = out
 
-    # weight arrays
+    # geometric weight arrays
     cdef real[2] w1, w2, w3
     cdef real[2][2][2] w
+
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
 
     for ipart in range(particle_count):
         x = particles_x1[ipart]
@@ -241,7 +286,10 @@ def _deposit_cic_3D(
                 ocj = cj_start + j
                 for k in range(2):
                     ock = ck_start + k
-                    out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart]
+                    if no_weight:
+                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart]
+                    else:
+                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart] * wfield_v[ipart]
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -254,6 +302,7 @@ def _deposit_tsc_1D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=1] out,
 ):
@@ -266,8 +315,12 @@ def _deposit_tsc_1D(
     cdef real[:] field_v = field
     cdef real[:] out_v = out
 
-    # weight arrays
+    # geometric weight arrays
     cdef real[3] w
+
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
 
     for ipart in range(particle_count):
         x = particles_x1[ipart]
@@ -279,7 +332,11 @@ def _deposit_tsc_1D(
 
         for i in range(3):
             oci = ci - 1 + i
-            out_v[oci] += w[i] * field_v[ipart]
+            if no_weight:
+                out_v[oci] += w[i] * field_v[ipart]
+            else:
+                out_v[oci] += w[i] * field_v[ipart] * wfield_v[ipart]
+
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -292,6 +349,7 @@ def _deposit_tsc_2D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=2] out,
 ):
@@ -304,9 +362,13 @@ def _deposit_tsc_2D(
     cdef real[:] field_v = field
     cdef real[:, :] out_v = out
 
-    # weight arrays
+    # geometric weight arrays
     cdef real[3] w1, w2
     cdef real[3][3] w
+
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
 
     for ipart in range(particle_count):
         x = particles_x1[ipart]
@@ -331,7 +393,10 @@ def _deposit_tsc_2D(
             oci = ci - 1 + i
             for j in range(3):
                 ocj = cj - 1 + j
-                out_v[oci, ocj] += w[i][j] * field_v[ipart]
+                if no_weight:
+                    out_v[oci, ocj] += w[i][j] * field_v[ipart]
+                else:
+                    out_v[oci, ocj] += w[i][j] * field_v[ipart] * wfield_v[ipart]
 
 
 @cython.cdivision(True)
@@ -345,6 +410,7 @@ def _deposit_tsc_3D(
     np.ndarray[real, ndim=1] particles_x2,
     np.ndarray[real, ndim=1] particles_x3,
     np.ndarray[real, ndim=1] field,
+    np.ndarray[real, ndim=1] weight_field,
     np.ndarray[np.uint16_t, ndim=2] hci,
     np.ndarray[real, ndim=3] out,
 ):
@@ -357,9 +423,13 @@ def _deposit_tsc_3D(
     cdef real[:] field_v = field
     cdef real[:, :, :] out_v = out
 
-    # weight arrays
+    # geometric weight arrays
     cdef real[3] w1, w2, w3
     cdef real[3][3][3] w
+
+    cdef int lw = weight_field.shape[0]
+    cdef real[:] wfield_v = weight_field
+    cdef bint no_weight = (lw == 0)
 
     for ipart in range(particle_count):
         x = particles_x1[ipart]
@@ -394,4 +464,7 @@ def _deposit_tsc_3D(
                 ocj = cj - 1 + j
                 for k in range(3):
                     ock = ck - 1 + k
-                    out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart]
+                    if no_weight:
+                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart]
+                    else:
+                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart] * wfield_v[ipart]

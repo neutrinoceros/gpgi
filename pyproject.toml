@@ -35,7 +35,7 @@ test = [
 ]
 
 typecheck = [
-    "mypy==0.971",
+    "mypy==0.982",
     "numpy~=1.23",
 ]
 
