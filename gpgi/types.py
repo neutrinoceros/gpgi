@@ -16,12 +16,15 @@ from typing import Dict
 from typing import Literal
 from typing import Protocol
 from typing import Tuple
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from ._boundaries import BoundaryRegistry
-from ._typing import HCIArray
-from ._typing import RealArray
+
+if TYPE_CHECKING:
+    from ._typing import HCIArray
+    from ._typing import RealArray
 
 if sys.version_info >= (3, 9):
     from collections.abc import Callable
@@ -247,7 +250,7 @@ class Grid(CoordinateValidatorMixin):
         """
         widths = list(self.cell_widths.values())
         if self.geometry is Geometry.CARTESIAN:
-            return cast(RealArray, np.prod(np.meshgrid(*widths), axis=0))
+            return cast("RealArray", np.prod(np.meshgrid(*widths), axis=0))
         else:
             raise NotImplementedError(
                 f"cell_volumes property is not implemented for {self.geometry}"
