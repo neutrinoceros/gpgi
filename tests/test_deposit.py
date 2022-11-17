@@ -559,7 +559,7 @@ def test_partial_boundary():
     ):
         # the return value doesn't matter, this test checks that
         # recipe validation doesn't fail
-        return same_side_active_layer
+        return same_side_active_layer  # pragma: no cover
 
     myrecipe = partial(_base_recipe, mode="test")
 
