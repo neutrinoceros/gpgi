@@ -243,7 +243,7 @@ function as a ratio if needed.
 
 Intrisically, deposition algorithms assume that the deposited field `u`
 represents an *extensive* physical quantity (like mass or momentum).
-In order to deposit a *intentive* quantity (like velocity or temperature), one must provide an appropriate weight field `w`.
+In order to deposit a *intensive* quantity (like velocity or temperature), one must provide an appropriate weight field `w`.
 
 Let `u'` and `w'` be the equivalent on-grid descriptions to `u` and `w`. They are obtained as
 
