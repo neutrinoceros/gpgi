@@ -1,5 +1,6 @@
 import re
 from copy import deepcopy
+from functools import partial
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -539,3 +540,38 @@ def test_warn_unused_weight_field_boundaries(sample_2D_dataset):
             method="ngp",
             weight_field_boundaries={"x": ("periodic", "periodic")},
         )
+
+
+def test_partial_boundary():
+    def _base_recipe(
+        same_side_active_layer,
+        same_side_ghost_layer,
+        opposite_side_active_layer,
+        opposite_side_ghost_layer,
+        weight_same_side_active_layer,
+        weight_same_side_ghost_layer,
+        weight_opposite_side_active_layer,
+        weight_opposite_side_ghost_layer,
+        side,
+        metadata,
+        *,
+        mode,  # suplementary argument that is destined to be frozen with functools.partial
+    ):
+        # the return value doesn't matter, this test checks that
+        # recipe validation doesn't fail
+        return same_side_active_layer  # pragma: no cover
+
+    myrecipe = partial(_base_recipe, mode="test")
+
+    # define a minimal single-use dataset
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(0, 10, 11),
+                "y": np.linspace(0, 10, 11),
+                "z": np.linspace(0, 10, 11),
+            },
+        },
+    )
+    ds.boundary_recipes.register("my", myrecipe, skip_validation=False)

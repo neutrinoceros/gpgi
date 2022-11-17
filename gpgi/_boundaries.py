@@ -39,7 +39,9 @@ class BoundaryRegistry:
         import inspect
 
         sig = inspect.signature(recipe)
-        params = list(sig.parameters)
+        params = [
+            name for name, p in sig.parameters.items() if p.default == inspect._empty
+        ]
         if params != [
             "same_side_active_layer",
             "same_side_ghost_layer",
