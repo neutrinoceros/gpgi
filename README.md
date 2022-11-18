@@ -10,6 +10,25 @@ This small Python library implements fundamental grid deposition algorithms to
 analyse (rectilinear) grid + particle datasets, with an emphasize on
 performance. Core algorithms are implemented as Cython extensions.
 
+## Table of Contents
+
+<!-- toc -->
+
+- [Installation](#installation)
+- [Supported applications](#supported-applications)
+  * [Supported deposition methods](#supported-deposition-methods)
+  * [Supported geometries](#supported-geometries)
+- [Time complexity](#time-complexity)
+- [Usage](#usage)
+  * [Supplying arbitrary metadata](#supplying-arbitrary-metadata)
+  * [Boundary conditions](#boundary-conditions)
+    + [Builtin recipes](#builtin-recipes)
+    + [Define custom recipes](#define-custom-recipes)
+  * [Weight fields (Depositing intensive quantities)](#weight-fields-depositing-intensive-quantities)
+- [Deposition algorithm](#deposition-algorithm)
+
+<!-- tocstop -->
+
 ## Installation
 
 ```shell
@@ -238,23 +257,96 @@ depositing an *intensive* quantity `u`, a weight field `w` should be supplied
 the following four represent *w*, so that *u* can still be obtained within the
 function as a ratio if needed.
 
-### Weight fields
+
+
+
+
+
+### Weight fields (Depositing intensive quantities)
 *new in gpgi 0.7.0*
 
-Intrisically, deposition algorithms assume that the deposited field `u`
-represents an *extensive* physical quantity (like mass or momentum).
-In order to deposit a *intensive* quantity (like velocity or temperature), one must provide an appropriate weight field `w`.
+Fundamentally, deposition algorithms construct on-grid fields by performing
+*summations*. An implication is that the physical quantities being deposited are
+required to be *extensive* (like mass or momentum). *Intensive* quantities (like
+velocity or temperature) require additional operations, and necessitate the use
+of an additional *weight field*.
 
-Let `u'` and `w'` be the equivalent on-grid descriptions to `u` and `w`. They are obtained as
+This section provides showcases their *usage*. For a detailled explanation of the deposition algorithm for intensive quantities, see [Deposition algorithm](#deposition-algorithm).
 
+In order to deposit an *intensive* field (e.g., `vx`), an additional `weight_field` argument must be provided as
+```python
+ds.deposit(
+    "vx",
+    method="cic",
+    boundaries={
+        "y": ("periodic", "periodic"),
+        "x": ("antisymmetric", "antisymmetric"),
+    },
+    weight_field="mass",
+    weight_field_boundaries={
+        "y": ("periodic", "periodic"),
+        "x": ("open", "open"),
+    },
+)
 ```
-w'(x) = Σ w(i) c(i,x)
-u'(x) = (1/w'(x)) Σ u(i) w(i) c(i,x)
-```
-where `x` is the spatial position, `i` is a particle index, and `c(i,x)` are
-geometric coefficients associated with the deposition method.
 
-Boundary recipes may be associated to the weight field with the
-`weight_field_boundaries` argument.
+Boundary recipes may be also associated to the weight field with the
+`weight_field_boundaries` argument. This arguments becomes *required* if
+`boundaries` and `weight_field` are both provided.
 
 Call `help(ds.deposit)` for more detail.
+
+
+
+## Deposition algorithm
+
+This section provides details on the general deposition algorithm, as
+implemented in `gpgi`.
+
+In all generality, we will assume that we want to deposit an *intensive* field
+(`v`), which requires the most computational steps. As it happens, depositing an
+*extensive* field (`w`) separately is actually part of the algorithm.
+
+**Definitions**
+
+- `v` is an intensive field that we want to deposit on the grid
+- `w` is an extensive field that will be used as weights
+- `u = v * w` is an extensive equivalent to `v` (conceptually, if `u` is a velocity and `w` is a mass, `u` corresponds to a momentum)
+
+`u(i)`, `v(i)` and `w(i)` are defined for each particle `i`.
+
+We note `U(x)`, `V(x)` and `W(x)` the corresponding on-grid fields, where `V(x)`
+is the final output of the algorithm. These are defined at grid cell centers
+`x`, within the *active domain*.
+
+Last, we note `U'(x)`, `V'(x)` and `W'(x)` the *raw* deposited fields, meaning
+no special treatment is applied to the outermost layers (boundary conditions).
+These are defined at grid cell centers, *including one ghost layer* that will be
+used to apply boundary conditions.
+
+**Algorithm**
+
+1) `W'` and `U'` are computed as
+```
+W'(x) = Σ c(i,x) w(i)
+U'(x) = Σ c(i,x) w(i) v(i)
+```
+where `c(i,x)` are geometric coefficients associated with the deposition method. Taking the nearest grid point (NGP) method for illustration, `c(i,x) = 1` if particle `i` is contained in the cell whose center is `x`, and `c(i,x) = 0` elsewhere.
+
+2) boundary conditions are applied
+```
+W(x) = W_BCO(W', 1, metadata)
+U(x) = U_BCO(U', W', metadata)
+```
+where `W_BCO` and `U_BCO` denote arbitrary boundary condition operators
+associated with `W` and `U` respectively, and which take 3 arguments,
+representing the field to be transformed, its associated weight field and a
+wildcard `metadata` argument which may contain any additional data relevant to
+the operator.
+
+Note `1` is used a placeholder "weight" for `W`, for symmetry reasons: all boundary condition operators must expose a similar interface, as explained in [Define custom recipes](#define-custom-recipes).
+
+3) Finally, `V(x)` is obtained as
+```
+V(x) = (U/W)(x)
+```
