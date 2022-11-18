@@ -303,9 +303,10 @@ Call `help(ds.deposit)` for more detail.
 This section provides details on the general deposition algorithm, as
 implemented in `gpgi`.
 
-In all generality, we will assume that we want to deposit an *intensive* field
-(`v`), which requires the most computational steps. As it happens, depositing an
-*extensive* field (`w`) separately is actually part of the algorithm.
+Without loss of generality, we will illustrate how  an *intensive* field (`v`)
+is deposited, since this case requires the most computational steps. As it
+happens, depositing an *extensive* field (`w`) separately is actually part of
+the algorithm.
 
 **Definitions**
 
