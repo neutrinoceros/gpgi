@@ -3,7 +3,6 @@ requires = [
     "setuptools>=61.2",
     "Cython>=0.29.22",
     "oldest-supported-numpy",
-    "wheel",
 ]
 
 [project]
