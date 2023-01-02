@@ -6,6 +6,7 @@ cdef fused real:
     np.float64_t
     np.float32_t
 
+
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
