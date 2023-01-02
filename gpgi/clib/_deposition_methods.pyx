@@ -6,6 +6,7 @@ cdef fused real:
     np.float64_t
     np.float32_t
 
+
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _deposit_ngp_1D(
@@ -39,6 +40,7 @@ def _deposit_ngp_1D(
             out_v[i] += field_v[ipart]
         else:
             out_v[i] += field_v[ipart] * wfield_v[ipart]
+
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -112,6 +114,7 @@ def _deposit_ngp_3D(
         else:
             out_v[i][j][k] += field_v[ipart] * wfield_v[ipart]
 
+
 @cython.cdivision(True)
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -158,6 +161,7 @@ def _deposit_cic_1D(
                 out_v[oci] += w[i] * field_v[ipart]
             else:
                 out_v[oci] += w[i] * field_v[ipart] * wfield_v[ipart]
+
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -219,6 +223,7 @@ def _deposit_cic_2D(
                     out_v[oci, ocj] += w[i][j] * field_v[ipart]
                 else:
                     out_v[oci, ocj] += w[i][j] * field_v[ipart] * wfield_v[ipart]
+
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -289,7 +294,8 @@ def _deposit_cic_3D(
                     if no_weight:
                         out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart]
                     else:
-                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart] * wfield_v[ipart]
+                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart] * wfield_v[ipart]  # noqa E501
+
 
 @cython.cdivision(True)
 @cython.boundscheck(False)
@@ -467,4 +473,4 @@ def _deposit_tsc_3D(
                     if no_weight:
                         out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart]
                     else:
-                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart] * wfield_v[ipart]
+                        out_v[oci, ocj, ock] += w[i][j][k] * field_v[ipart] * wfield_v[ipart]  # noqa E501
