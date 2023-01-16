@@ -312,7 +312,7 @@ the algorithm.
 
 - `v` is an intensive field that we want to deposit on the grid
 - `w` is an extensive field that will be used as weights
-- `u = v * w` is an extensive equivalent to `v` (conceptually, if `u` is a velocity and `w` is a mass, `u` corresponds to a momentum)
+- `u = v * w` is an extensive equivalent to `v` (conceptually, if `v` is a velocity and `w` is a mass, `u` corresponds to a momentum)
 
 `u(i)`, `v(i)` and `w(i)` are defined for each particle `i`.
 
