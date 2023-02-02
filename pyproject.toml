@@ -84,8 +84,21 @@ exclude_lines = [
     "-> ['\"]?NoReturn['\"]?:",
 ]
 
-[tool.black]
-target_version = ["py38",]
+[tool.ruff]
+target-version = "py38" # https://github.com/charliermarsh/ruff/issues/2039
+exclude = ["*__init__.py"]
+ignore = ["E501"]
+select = [
+    "E",
+    "F",
+    "W",
+    "B",
+    "I",
+    "UP",
+]
+
+[tool.ruff.isort]
+combine-as-imports = true
 
 [tool.mypy]
 python_version = "3.8"

@@ -3,28 +3,19 @@ from __future__ import annotations
 import enum
 import sys
 import warnings
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from copy import deepcopy
-from functools import cached_property
-from functools import reduce
+from functools import cached_property, reduce
 from itertools import chain
 from time import monotonic_ns
-from typing import Any
-from typing import cast
-from typing import Dict
-from typing import Literal
-from typing import Protocol
-from typing import Tuple
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Literal, Protocol, Tuple, cast
 
 import numpy as np
 
 from ._boundaries import BoundaryRegistry
 
 if TYPE_CHECKING:
-    from ._typing import HCIArray
-    from ._typing import RealArray
+    from ._typing import HCIArray, RealArray
 
 if sys.version_info >= (3, 9):
     from collections.abc import Callable
@@ -466,15 +457,17 @@ class Dataset(ValidatorMixin):
 
            Boundary recipes are applied the weight field (if any) first.
         """
-        from .clib._deposition_methods import _deposit_ngp_1D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_ngp_2D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_ngp_3D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_cic_1D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_cic_2D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_cic_3D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_tsc_1D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_tsc_2D  # type: ignore [import]
-        from .clib._deposition_methods import _deposit_tsc_3D  # type: ignore [import]
+        from .clib._deposition_methods import (  # type: ignore [import]
+            _deposit_cic_1D,
+            _deposit_cic_2D,
+            _deposit_cic_3D,
+            _deposit_ngp_1D,
+            _deposit_ngp_2D,
+            _deposit_ngp_3D,
+            _deposit_tsc_1D,
+            _deposit_tsc_2D,
+            _deposit_tsc_3D,
+        )
 
         if method in ("pic", "particle_in_cell"):
             warnings.warn(

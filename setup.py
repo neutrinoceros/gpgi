@@ -1,6 +1,7 @@
+from distutils.extension import Extension
+
 import numpy
 from Cython.Build import cythonize
-from distutils.extension import Extension
 from setuptools import setup
 
 ext_modules = ["gpgi/clib/_indexing.pyx"]
