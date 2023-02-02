@@ -2,11 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from .types import Dataset
-from .types import FieldMap
-from .types import Geometry
-from .types import Grid
-from .types import ParticleSet
+from .types import Dataset, FieldMap, Geometry, Grid, ParticleSet
 
 _geometry_names: dict[str, Geometry] = {g.name.lower(): g for g in Geometry}
 
@@ -18,7 +14,6 @@ def load(
     particles: dict[str, FieldMap] | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> Dataset:
-
     if geometry in _geometry_names:
         _geometry = _geometry_names[geometry]
     else:

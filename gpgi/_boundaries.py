@@ -1,12 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any
-from typing import Callable
-from typing import cast
-from typing import Dict
-from typing import Literal
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, Dict, Literal, cast
 
 if TYPE_CHECKING:
     from ._typing import RealArray

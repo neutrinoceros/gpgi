@@ -126,7 +126,6 @@ def test_2D_deposit(sample_2D_dataset, method):
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
 def test_1D_deposit(method, grid_type):
-
     xedges = {"linear": np.linspace(1, 2, 6), "geometric": np.geomspace(1, 2, 6)}[
         grid_type
     ]
