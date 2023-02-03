@@ -24,24 +24,6 @@ dependencies = [
     "numpy>=1.18",
 ]
 
-[project.optional-dependencies]
-minimal = [
-    "numpy==1.18",
-]
-
-test = [
-    "coverage[toml]>=6.5",
-    "pytest>=7.0.0",
-    "pytest-mpl>=0.16.1",
-    "matplotlib>=3.5",
-    "unyt>=2.9.2",
-]
-
-typecheck = [
-    "mypy==0.982",
-    "numpy~=1.23",
-]
-
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
