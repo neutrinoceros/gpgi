@@ -4,8 +4,6 @@ from typing import Any
 
 from .types import Dataset, FieldMap, Geometry, Grid, ParticleSet
 
-_geometry_names: dict[str, Geometry] = {g.name.lower(): g for g in Geometry}
-
 
 def load(
     *,
@@ -14,12 +12,12 @@ def load(
     particles: dict[str, FieldMap] | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> Dataset:
-    if geometry in _geometry_names:
-        _geometry = _geometry_names[geometry]
-    else:
+    try:
+        _geometry = Geometry(geometry)
+    except ValueError:
         raise ValueError(
-            f"unknown geometry {geometry!r}, expected any of {tuple(_geometry_names.keys())}"
-        )
+            f"unknown geometry {geometry!r}, expected any of {tuple(_.value for _ in Geometry)}"
+        ) from None
 
     _grid: Grid | None = None
     if grid is not None:

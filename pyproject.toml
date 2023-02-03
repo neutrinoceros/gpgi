@@ -48,6 +48,9 @@ namespaces = false
 
 [tool.coverage.run]
 parallel = true
+omit = [
+    "gpgi/_backports.py",
+]
 
 [tool.coverage.report]
 show_missing = true
@@ -93,6 +96,7 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 exclude = [
   "gpgi/lib",
+  "gpgi/_backports"
 ]
 follow_imports = "silent"
 

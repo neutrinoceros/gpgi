@@ -22,16 +22,26 @@ if sys.version_info >= (3, 9):
 else:
     from typing import Callable
 
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from ._backports import StrEnum
 
 BoundarySpec = Tuple[Tuple[str, str, str], ...]
 
 
-class Geometry(enum.Enum):
+class Geometry(StrEnum):
     CARTESIAN = enum.auto()
     POLAR = enum.auto()
     CYLINDRICAL = enum.auto()
     SPHERICAL = enum.auto()
     EQUATORIAL = enum.auto()
+
+    def __str__(self) -> str:
+        if sys.version_info >= (3, 11):
+            return super().__str__()
+        else:
+            return self.name.lower()
 
 
 class DepositionMethod(enum.Enum):
@@ -244,7 +254,7 @@ class Grid(CoordinateValidatorMixin):
             return cast("RealArray", np.prod(np.meshgrid(*widths), axis=0))
         else:
             raise NotImplementedError(
-                f"cell_volumes property is not implemented for {self.geometry}"
+                f"cell_volumes property is not implemented for {self.geometry} geometry"
             )
 
 
