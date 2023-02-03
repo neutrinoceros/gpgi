@@ -4,6 +4,7 @@ requires = [
     "Cython>=0.29.22",
     "oldest-supported-numpy",
 ]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "gpgi"
