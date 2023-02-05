@@ -29,7 +29,7 @@ jobs:
         # test with minimal requirements
         - os: ubuntu-20.04
           python-version: '3.8'
-          pip-args: --constraint requirements/minimal_dependencies.txt
+          pip-args: --constraint constraints/minimal_dependencies.txt
 
     runs-on: ${{ matrix.os }}
     steps:
