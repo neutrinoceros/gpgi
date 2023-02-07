@@ -101,7 +101,7 @@ exclude = [
 ]
 follow_imports = "silent"
 
-[tool.pytest]
+[tool.pytest.ini_options]
 filterwarnings = [
   "error",
 ]
