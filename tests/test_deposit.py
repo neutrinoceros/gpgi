@@ -46,12 +46,12 @@ def test_missing_grid():
     ds = gpgi.load(
         geometry="cartesian",
         particles={
-            "coordinates": {"x": np.arange(10)},
-            "fields": {"mass": np.ones(10)},
+            "coordinates": {"x": np.arange(10, dtype="float64")},
+            "fields": {"mass": np.ones(10, dtype="float64")},
         },
     )
-    with pytest.raises(
-        TypeError, match="Cannot deposit particle fields on a grid-less dataset"
+    with pytest.warns(
+        UserWarning, match="Depositing on a single-cell grid is undefined behaviour"
     ):
         ds.deposit("mass", method="ngp")
 

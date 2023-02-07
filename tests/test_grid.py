@@ -10,12 +10,13 @@ def test_cell_volumes_cartesian():
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.arange(11),
-                "y": np.arange(0, 1.1, 0.1),
+                "x": np.arange(11, dtype="float64"),
+                "y": np.arange(0, 1.1, 0.1, dtype="float64"),
             }
         },
     )
     expected = np.prod(np.meshgrid(np.ones(10), 0.1 * np.ones(10)), axis=0)
+    assert ds.grid.cell_volumes.dtype == expected.dtype
     npt.assert_allclose(ds.grid.cell_volumes, expected, rtol=1e-15)
 
 
