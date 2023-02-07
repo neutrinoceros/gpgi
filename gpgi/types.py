@@ -600,7 +600,8 @@ class Dataset(ValidatorMixin):
                 weight_array=None,
             )
 
-        padded_ret_array /= wfield_dep
+        with np.errstate(invalid="ignore"):
+            padded_ret_array /= wfield_dep
 
         if return_ghost_padded_array:
             return padded_ret_array
