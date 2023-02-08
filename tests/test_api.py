@@ -298,7 +298,7 @@ def test_identical_dtype_requirement():
 
     with pytest.raises(
         TypeError,
-        match=r"Got mixed data types \(\[dtype\('float32'\), dtype\('float64'\)\]\)",
+        match=r"Got mixed data types",
     ):
         gpgi.load(
             geometry="cartesian",
@@ -344,3 +344,32 @@ def test_depr_pic():
         ),
     ):
         ds.deposit("mass", method="pic")
+
+
+def test_float32_limit_validation():
+    gpgi.load(
+        geometry="polar",
+        grid={
+            "cell_edges": {
+                "radius": np.array([0, 1], dtype="float32"),
+                "azimuth": np.array([0, 2 * np.pi], dtype="float32"),
+            }
+        },
+    )
+
+
+def test_float32_limit_invalidation():
+    # domain boundaries are validated before dtype consistency,
+    # we want to make sure that this fails *despite* being
+    # knowingly tolerant with the dtype of each individual
+    # coordinate array as we validate boundaries
+    with pytest.raises(TypeError, match=r"Grid received mixed data types"):
+        gpgi.load(
+            geometry="polar",
+            grid={
+                "cell_edges": {
+                    "radius": np.array([0, 1], dtype="float64"),
+                    "azimuth": np.array([0, 2 * np.pi], dtype="float32"),
+                }
+            },
+        )
