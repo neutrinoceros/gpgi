@@ -8,7 +8,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gpgi"
-version = "0.10.1"
+version = "0.11.dev0"
 description = "A Generic Particle+Grid Interface"
 authors = [
     { name = "C.M.T. Robert" },
