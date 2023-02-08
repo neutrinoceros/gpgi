@@ -31,7 +31,7 @@ def test_load_standalone_grid():
     assert ds.grid.ndim == 3
     assert ds.grid.axes == ("x", "y", "z")
     assert ds.grid.shape == (1, 1, 1)
-    assert ds.particles is None
+    assert ds.particles.count == 0
     assert ds.metadata == {}
 
 
@@ -49,7 +49,7 @@ def test_load_standalone_particles():
     assert ds.particles.ndim == 3
     assert ds.particles.axes == ("x", "y", "z")
     assert ds.particles.count == 2
-    assert ds.grid is None
+    assert ds.grid.shape == (1, 1, 1)
     assert ds.metadata == {}
 
 
@@ -92,7 +92,7 @@ def test_unsorted_cell_edges():
         ValueError,
         match=re.escape(
             "Field 'x' is not properly sorted by ascending order. "
-            r"Got 1 (index 0) > 0 (index 1)"
+            r"Got 1.0 (index 0) > 0.0 (index 1)"
         ),
     ):
         gpgi.load(geometry="cartesian", grid={"cell_edges": {"x": np.array([1, 0])}})
@@ -266,7 +266,9 @@ def test_invalid_geometry():
 
 
 def test_out_of_bound_particles_left():
-    with pytest.raises(ValueError, match="Got particle at radius=1 < domain_left=10"):
+    with pytest.raises(
+        ValueError, match="Got particle at radius=1.0 < domain_left=10.0"
+    ):
         gpgi.load(
             geometry="spherical",
             grid={"cell_edges": {"radius": np.arange(10, 101)}},
@@ -276,7 +278,7 @@ def test_out_of_bound_particles_left():
 
 def test_out_of_bound_particles_right():
     with pytest.raises(
-        ValueError, match="Got particle at radius=1000 > domain_right=100"
+        ValueError, match="Got particle at radius=1000.0 > domain_right=100.0"
     ):
         gpgi.load(
             geometry="spherical",

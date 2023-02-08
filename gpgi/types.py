@@ -159,28 +159,46 @@ class ValidatorMixin(GeometricData, ABC):
                 )
 
 
+_AXES_LIMITS: dict[Name, tuple[float, float]] = {
+    "x": (-float("inf"), float("inf")),
+    "y": (-float("inf"), float("inf")),
+    "z": (-float("inf"), float("inf")),
+    "radius": (0, float("inf")),
+    "azimuth": (0, 2 * np.pi),
+    "colatitude": (0, np.pi),
+}
+
+
 class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
     def _validate_coordinates(self) -> None:
-        known_limits: dict[Name, tuple[float | None, float | None]] = {
-            "radius": (0, None),
-            "azimuth": (0, 2 * np.pi),
-            "colatitude": (0, np.pi),
-        }
-        for axis, coord in self.coordinates.items():
-            lims = known_limits.get(axis)
-            if lims is None:
+        for axis in self.axes:
+            coord = self.coordinates[axis]
+            if len(coord) == 0:
                 continue
-            xmin, xmax = lims
-            if xmin is not None and (cmin := np.min(coord)) < xmin:
+            xmin, xmax = _AXES_LIMITS[axis]
+            if (cmin := np.min(coord)) < xmin:
                 raise ValueError(
                     f"Invalid coordinate data for axis {axis!r} {cmin} "
                     f"(minimal allowed value is {xmin})"
                 )
-            if xmax is not None and (cmax := np.max(coord)) > xmax:
+            if (cmax := np.max(coord)) > xmax:
                 raise ValueError(
                     f"Invalid coordinate data for axis {axis!r} {cmax} "
                     f"(maximal allowed value is {xmax})"
                 )
+
+            self.coordinates[axis] = coord.astype(self._get_safe_datatype(), copy=False)
+
+    def _get_safe_datatype(self) -> np.dtype:
+        # int32 and int64 are fragile because they cannot represent "+/-inf",
+        # which we use as default box boundaries, e.g. for cartesian datasets
+
+        dt = self.coordinates[self.axes[0]].dtype
+        dt_str = str(dt)
+        if dt_str.startswith("int"):
+            return np.dtype(f"float{dt_str[3:]}")
+        else:
+            return np.dtype(dt)
 
 
 class Grid(CoordinateValidatorMixin):
@@ -188,18 +206,21 @@ class Grid(CoordinateValidatorMixin):
         self,
         geometry: Geometry,
         cell_edges: FieldMap,
-        fields: FieldMap,
+        fields: FieldMap | None = None,
     ) -> None:
         self.geometry = geometry
         self.coordinates = cell_edges
-        self.fields = fields
+
+        if fields is None:
+            fields = {}
+        self.fields: FieldMap = fields
 
         self.axes = tuple(self.coordinates.keys())
         super().__init__()
 
         self._dx = np.full((3,), -1, dtype=self.coordinates[self.axes[0]].dtype)
         for i, ax in enumerate(self.axes):
-            if np.diff(self.coordinates[ax]).std() < 1e-16:
+            if self.size == 1 or np.diff(self.coordinates[ax]).std() < 1e-16:
                 # got a constant step in this direction, store it
                 self._dx[i] = self.coordinates[ax][1] - self.coordinates[ax][0]
 
@@ -263,11 +284,14 @@ class ParticleSet(CoordinateValidatorMixin):
         self,
         geometry: Geometry,
         coordinates: FieldMap,
-        fields: FieldMap,
+        fields: FieldMap | None = None,
     ) -> None:
         self.geometry = geometry
         self.coordinates = coordinates
-        self.fields = fields
+
+        if fields is None:
+            fields = {}
+        self.fields: FieldMap = fields
 
         self.axes = tuple(self.coordinates.keys())
         super().__init__()
@@ -298,25 +322,38 @@ class Dataset(ValidatorMixin):
         metadata: dict[str, Any] | None = None,
     ) -> None:
         self.geometry = geometry
-        self.grid = grid
-        self.particles = particles
-        self.boundary_recipes = BoundaryRegistry()
 
-        if self.grid is not None:
-            self.axes = self.grid.axes
-        elif self.particles is not None:
-            self.axes = self.particles.axes
-        else:
-            raise TypeError(
-                "Cannot instantiate empty dataset. "
-                "Grid and/or particle data must be provided"
+        if grid is None:
+            if particles is None:
+                raise TypeError(
+                    "Cannot instantiate empty dataset. "
+                    "Grid and/or particle data must be provided"
+                )
+            dt = particles._get_safe_datatype()
+            grid = Grid(
+                geometry=particles.geometry,
+                cell_edges={
+                    ax: np.array(_AXES_LIMITS[ax], dtype=dt) for ax in particles.axes
+                },
             )
+        if particles is None:
+            dt = grid._get_safe_datatype()
+            particles = ParticleSet(
+                geometry=grid.geometry,
+                coordinates={ax: np.array([], dtype=dt) for ax in grid.axes},
+            )
+
+        self.grid: Grid = grid
+        self.particles: ParticleSet = particles
+
+        self.boundary_recipes = BoundaryRegistry()
+        self.axes = self.grid.axes
         self.metadata = deepcopy(metadata) if metadata is not None else {}
 
         super().__init__()
 
     def _validate(self) -> None:
-        if self.grid is None or self.particles is None:
+        if self.particles.count == 0:
             return
         for ax, edges in self.grid.cell_edges.items():
             domain_left = edges[0]
@@ -327,25 +364,31 @@ class Dataset(ValidatorMixin):
                 if x > domain_right:
                     raise ValueError(f"Got particle at {ax}={x} > {domain_right=}")
 
+        dts_grid = {
+            name: arr.dtype
+            for name, arr in chain(
+                self.grid.coordinates.items(),
+                self.grid.fields.items(),
+            )
+        }
+        dts_particles = {
+            name: arr.dtype
+            for name, arr in chain(
+                self.particles.coordinates.items(),
+                self.particles.fields.items(),
+            )
+        }
         unique_dts = sorted(
-            {
-                arr.dtype
-                for arr in chain(
-                    self.grid.coordinates.values(),
-                    self.grid.fields.values(),
-                    self.particles.coordinates.values(),
-                    self.particles.fields.values(),
-                )
-            }
+            {dtype for dtype in chain(dts_grid.values(), dts_particles.values())}
         )
         if len(unique_dts) > 1:
-            raise TypeError(f"Got mixed data types ({unique_dts})")
+            raise TypeError(
+                f"Got mixed data types ({unique_dts})\n"
+                f"- from grid data: {dts_grid}\n"
+                f"- from particles: {dts_particles}\n"
+            )
 
     def _get_padded_cell_edges(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        if self.grid is None:
-            raise RuntimeError(
-                "Something took a wrong turn, please report this."
-            )  # pragma: no cover
         edges = iter(self.grid.cell_edges.values())
 
         def pad(a: np.ndarray) -> np.ndarray:
@@ -365,11 +408,6 @@ class Dataset(ValidatorMixin):
         return cell_edges_x1, cell_edges_x2, cell_edges_x3
 
     def _get_3D_particle_coordinates(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-        if self.grid is None or self.particles is None:
-            raise RuntimeError(
-                "Something took a wrong turn, please report this."
-            )  # pragma: no cover
-
         particle_coords = iter(self.particles.coordinates.values())
         particles_x1 = next(particle_coords)
         DTYPE = particles_x1.dtype
@@ -383,7 +421,7 @@ class Dataset(ValidatorMixin):
         return particles_x1, particles_x2, particles_x3
 
     def _setup_host_cell_index(self, verbose: bool = False) -> None:
-        if hasattr(self, "_hci") or self.particles is None or self.grid is None:
+        if hasattr(self, "_hci"):
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
             return  # pragma: no cover
@@ -496,9 +534,12 @@ class Dataset(ValidatorMixin):
                 f"expected any of {tuple(_deposition_method_names.keys())}"
             )
 
-        if self.grid is None:
-            raise TypeError("Cannot deposit particle fields on a grid-less dataset")
-        if self.particles is None:
+        if self.grid.size == 1:
+            warnings.warn(
+                "Depositing on a single-cell grid is undefined behaviour",
+                stacklevel=2,
+            )
+        if self.particles.count == 0:
             raise TypeError("Cannot deposit particle fields on a particle-less dataset")
         if not self.particles.fields:
             raise TypeError("There are no particle fields")
@@ -615,9 +656,6 @@ class Dataset(ValidatorMixin):
             raise RuntimeError("Caching error. Please report this.")
 
     def _sanitize_boundaries(self, boundaries: dict[Name, tuple[Name, Name]]) -> None:
-        if self.grid is None:  # pragma: no cover
-            raise RuntimeWarning("Something took a wrong turn, please report this")
-
         for ax in self.grid.axes:
             boundaries.setdefault(ax, ("open", "open"))
         for axk in boundaries:
@@ -643,9 +681,6 @@ class Dataset(ValidatorMixin):
         boundaries: dict[Name, tuple[Name, Name]],
         weight_array: RealArray | None,
     ) -> None:
-        if self.grid is None:  # pragma: no cover
-            raise RuntimeWarning("Something took a wrong turn, please report this")
-
         axes = list(self.grid.axes)
         for ax, bv in boundaries.items():
             # in some applications, it is *crucial* that boundaries be applied
