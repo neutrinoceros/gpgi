@@ -151,11 +151,13 @@ class ValidatorMixin(GeometricData, ABC):
                 f"Unknown geometry {self.geometry.name.lower()!r}"
             )  # pragma: no cover
 
-        axes = known_axes[self.geometry]
-        for expected, actual in zip(axes, self.axes):
+        axes = known_axes[self.geometry][: len(self.axes)]
+        for i, (expected, actual) in enumerate(zip(axes, self.axes)):
             if actual != expected:
                 raise ValueError(
-                    f"Got invalid axis {actual!r} with geometry {self.geometry.name.lower()!r}"
+                    f"Got invalid axis name {actual!r} on position {i}, "
+                    f"with geometry {self.geometry.name.lower()!r}\n"
+                    f"Expected axes ordered as {axes}"
                 )
 
 

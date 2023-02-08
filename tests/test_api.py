@@ -236,21 +236,22 @@ def test_validate_empty_fields():
 
 
 @pytest.mark.parametrize(
-    "geometry, axes",
+    "geometry, axes, pos",
     [
-        ("cartesian", ("x", "azimuth")),
-        ("cartesian", ("x", "y", "colatitude")),
-        ("cartesian", ("z",)),
-        ("cartesian", ("y",)),
-        ("spherical", ("x", "y", "z")),
-        ("spherical", ("x", "y")),
-        ("spherical", ("x",)),
-        ("spherical", ("radius", "azimuth", "z")),
+        ("cartesian", ("x", "azimuth"), 1),
+        ("cartesian", ("x", "y", "colatitude"), 2),
+        ("cartesian", ("z",), 0),
+        ("cartesian", ("y",), 0),
+        ("spherical", ("x", "y", "z"), 0),
+        ("spherical", ("x", "y"), 0),
+        ("spherical", ("x",), 0),
+        ("spherical", ("radius", "azimuth", "z"), 1),
     ],
 )
-def test_invalid_axes(geometry, axes):
+def test_invalid_axes(geometry, axes, pos):
     with pytest.raises(
-        ValueError, match=rf"Got invalid axis '\w+' with geometry {geometry!r}"
+        ValueError,
+        match=rf"Got invalid axis name '\w+' on position {pos}, with geometry {geometry!r}",
     ):
         gpgi.load(
             geometry=geometry,
