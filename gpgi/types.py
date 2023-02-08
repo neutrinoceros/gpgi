@@ -84,6 +84,7 @@ class CoordinateData(Protocol):
     geometry: Geometry
     axes: tuple[Name, ...]
     coordinates: FieldMap
+    fields: FieldMap
 
 
 class ValidatorMixin(GeometricData, ABC):
@@ -172,12 +173,27 @@ _AXES_LIMITS: dict[Name, tuple[float, float]] = {
 
 
 class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
+    def __init__(self) -> None:
+        super().__init__()
+        dts = {
+            name: arr.dtype
+            for name, arr in chain(
+                self.coordinates.items(),
+                self.fields.items(),
+            )
+        }
+        unique_dts = sorted({dtype for dtype in dts.values()})
+        if len(unique_dts) > 1:
+            raise TypeError(f"Grid received mixed data types ({unique_dts}):\n{dts}")
+        else:
+            self.dtype = unique_dts.pop()
+
     def _validate_coordinates(self) -> None:
         for axis in self.axes:
             coord = self.coordinates[axis]
             if len(coord) == 0:
                 continue
-            dtype = self._get_safe_datatype().type
+            dtype = self._get_safe_datatype(coord).type
             xmin, xmax = _AXES_LIMITS[axis]
             if (cmin := np.min(coord)) < dtype(xmin):
                 raise ValueError(
@@ -190,13 +206,16 @@ class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
                     f"(maximal allowed value is {xmax})"
                 )
 
-            self.coordinates[axis] = coord.astype(self._get_safe_datatype(), copy=False)
+            self.coordinates[axis] = coord.astype(
+                self._get_safe_datatype(coord), copy=False
+            )
 
-    def _get_safe_datatype(self) -> np.dtype:
+    def _get_safe_datatype(self, reference: np.ndarray | None = None) -> np.dtype:
         # int32 and int64 are fragile because they cannot represent "+/-inf",
         # which we use as default box boundaries, e.g. for cartesian datasets
-
-        dt = self.coordinates[self.axes[0]].dtype
+        if reference is None:
+            reference = self.coordinates[self.axes[0]]
+        dt = reference.dtype
         dt_str = str(dt)
         if dt_str.startswith("int"):
             return np.dtype(f"float{dt_str[3:]}")
@@ -367,28 +386,11 @@ class Dataset(ValidatorMixin):
                 if x > domain_right:
                     raise ValueError(f"Got particle at {ax}={x} > {domain_right=}")
 
-        dts_grid = {
-            name: arr.dtype
-            for name, arr in chain(
-                self.grid.coordinates.items(),
-                self.grid.fields.items(),
-            )
-        }
-        dts_particles = {
-            name: arr.dtype
-            for name, arr in chain(
-                self.particles.coordinates.items(),
-                self.particles.fields.items(),
-            )
-        }
-        unique_dts = sorted(
-            {dtype for dtype in chain(dts_grid.values(), dts_particles.values())}
-        )
-        if len(unique_dts) > 1:
+        if self.particles.dtype != self.grid.dtype:
             raise TypeError(
-                f"Got mixed data types ({unique_dts})\n"
-                f"- from grid data: {dts_grid}\n"
-                f"- from particles: {dts_particles}\n"
+                f"Got mixed data types:\n"
+                f"- from grid data: {self.grid.dtype}\n"
+                f"- from particles: {self.particles.dtype}\n"
             )
 
     def _get_padded_cell_edges(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
