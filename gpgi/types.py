@@ -193,22 +193,21 @@ class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
             coord = self.coordinates[axis]
             if len(coord) == 0:
                 continue
-            dtype = self._get_safe_datatype(coord).type
-            xmin, xmax = _AXES_LIMITS[axis]
-            if (cmin := np.min(coord)) < dtype(xmin):
+            coord_dtype = self._get_safe_datatype(coord)
+            dt = coord_dtype.type
+            xmin, xmax = (dt(_) for _ in _AXES_LIMITS[axis])
+            if (cmin := dt(np.min(coord))) < xmin:
                 raise ValueError(
                     f"Invalid coordinate data for axis {axis!r} {cmin} "
                     f"(minimal allowed value is {xmin})"
                 )
-            if (cmax := np.max(coord)) > dtype(xmax):
+            if (cmax := dt(np.max(coord))) > xmax:
                 raise ValueError(
                     f"Invalid coordinate data for axis {axis!r} {cmax} "
                     f"(maximal allowed value is {xmax})"
                 )
 
-            self.coordinates[axis] = coord.astype(
-                self._get_safe_datatype(coord), copy=False
-            )
+            self.coordinates[axis] = coord.astype(coord_dtype, copy=False)
 
     def _get_safe_datatype(self, reference: np.ndarray | None = None) -> np.dtype:
         # int32 and int64 are fragile because they cannot represent "+/-inf",
