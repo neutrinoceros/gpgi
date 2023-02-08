@@ -175,13 +175,14 @@ class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
             coord = self.coordinates[axis]
             if len(coord) == 0:
                 continue
+            dtype = self._get_safe_datatype().type
             xmin, xmax = _AXES_LIMITS[axis]
-            if (cmin := np.min(coord)) < xmin:
+            if (cmin := np.min(coord)) < dtype(xmin):
                 raise ValueError(
                     f"Invalid coordinate data for axis {axis!r} {cmin} "
                     f"(minimal allowed value is {xmin})"
                 )
-            if (cmax := np.max(coord)) > xmax:
+            if (cmax := np.max(coord)) > dtype(xmax):
                 raise ValueError(
                     f"Invalid coordinate data for axis {axis!r} {cmax} "
                     f"(maximal allowed value is {xmax})"
