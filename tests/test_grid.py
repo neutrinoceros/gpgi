@@ -26,7 +26,7 @@ def test_cell_volumes_curvilinear():
         grid={
             "cell_edges": {
                 "radius": np.arange(11),
-                "azimuth": np.arange(0, 1.1, 0.1),
+                "z": np.arange(0, 1.1, 0.1),
             }
         },
     )

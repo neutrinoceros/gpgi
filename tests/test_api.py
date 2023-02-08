@@ -106,14 +106,18 @@ def test_unsorted_cell_edges():
         ("spherical", {"radius": np.arange(-1, 1)}, "radius", "min", 0),
         (
             "cylindrical",
-            {"radius": np.arange(10), "azimuth": np.arange(-10, 10)},
+            {
+                "radius": np.arange(10),
+                "z": np.arange(10),
+                "azimuth": np.arange(-10, 10),
+            },
             "azimuth",
             "min",
             0,
         ),
         (
             "cylindrical",
-            {"radius": np.arange(10), "azimuth": np.arange(10)},
+            {"radius": np.arange(10), "z": np.arange(10), "azimuth": np.arange(10)},
             "azimuth",
             "max",
             2 * np.pi,
