@@ -344,3 +344,15 @@ def test_depr_pic():
         ),
     ):
         ds.deposit("mass", method="pic")
+
+
+def test_float32_limit_validation():
+    gpgi.load(
+        geometry="cylindrical",
+        grid={
+            "cell_edges": {
+                "radius": [0, 1],
+                "azimuth": np.array([0, 2 * np.pi], dtype="float32"),
+            }
+        },
+    )
