@@ -41,9 +41,9 @@ python -m pip install gpgi
 
 A rectilinear grid is defined as 1D arrays representing cell left edges in each directions. Note that the last point of such an array is interpreted as the right edge of the rightmost cell, so for instance, a 1D grid containing 100 cells is defined by 101 edges.
 
-Particles are defined as points that live on the grid.
+Particles are defined as points that live within the grid's bounds.
 
-Deposition is the action of going from particule description
+Deposition is the action of going from particle description
 to a grid description of a field.
 It is useful to analyze, compare and combine simulation data that exists in a combination of the two formalisms.
 This process is not reversible as it degrades information.
