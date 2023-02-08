@@ -139,8 +139,8 @@ class ValidatorMixin(GeometricData, ABC):
     def _validate_geometry(self) -> None:
         known_axes: dict[Geometry, tuple[Name, Name, Name]] = {
             Geometry.CARTESIAN: ("x", "y", "z"),
-            Geometry.POLAR: ("radius", "z", "azimuth"),
-            Geometry.CYLINDRICAL: ("radius", "azimuth", "z"),
+            Geometry.POLAR: ("radius", "azimuth", "z"),
+            Geometry.CYLINDRICAL: ("radius", "z", "azimuth"),
             Geometry.SPHERICAL: ("radius", "colatitude", "azimuth"),
             Geometry.EQUATORIAL: ("radius", "azimuth", "latitude"),
         }
