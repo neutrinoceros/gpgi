@@ -101,37 +101,41 @@ def test_unsorted_cell_edges():
 @pytest.mark.parametrize(
     "geometry, coords, axis, side, limit",
     [
-        ("polar", {"radius": np.arange(-1, 1)}, "radius", "min", 0),
-        ("cylindrical", {"radius": np.arange(-1, 1)}, "radius", "min", 0),
-        ("spherical", {"radius": np.arange(-1, 1)}, "radius", "min", 0),
+        ("polar", {"radius": np.arange(-1.0, 1.0)}, "radius", "min", 0.0),
+        ("cylindrical", {"radius": np.arange(-1.0, 1.0)}, "radius", "min", 0.0),
+        ("spherical", {"radius": np.arange(-1.0, 1.0)}, "radius", "min", 0.0),
         (
             "cylindrical",
             {
-                "radius": np.arange(10),
-                "z": np.arange(10),
-                "azimuth": np.arange(-10, 10),
+                "radius": np.arange(10.0),
+                "z": np.arange(10.0),
+                "azimuth": np.arange(-10.0, 10.0),
             },
             "azimuth",
             "min",
-            0,
+            0.0,
         ),
         (
             "cylindrical",
-            {"radius": np.arange(10), "z": np.arange(10), "azimuth": np.arange(10)},
+            {
+                "radius": np.arange(10.0),
+                "z": np.arange(10.0),
+                "azimuth": np.arange(10.0),
+            },
             "azimuth",
             "max",
             2 * np.pi,
         ),
         (
             "spherical",
-            {"radius": np.arange(10), "colatitude": np.arange(-10, 10)},
+            {"radius": np.arange(10.0), "colatitude": np.arange(-10.0, 10.0)},
             "colatitude",
             "min",
-            0,
+            0.0,
         ),
         (
             "spherical",
-            {"radius": np.arange(10), "colatitude": np.arange(10)},
+            {"radius": np.arange(10.0), "colatitude": np.arange(10.0)},
             "colatitude",
             "max",
             np.pi,
@@ -139,20 +143,20 @@ def test_unsorted_cell_edges():
         (
             "spherical",
             {
-                "radius": np.arange(10),
-                "colatitude": np.arange(2),
-                "azimuth": np.arange(-10, 10),
+                "radius": np.arange(10.0),
+                "colatitude": np.arange(2.0),
+                "azimuth": np.arange(-10.0, 10.0),
             },
             "azimuth",
             "min",
-            0,
+            0.0,
         ),
         (
             "spherical",
             {
-                "radius": np.arange(10),
-                "colatitude": np.arange(2),
-                "azimuth": np.arange(10),
+                "radius": np.arange(10.0),
+                "colatitude": np.arange(2.0),
+                "azimuth": np.arange(10.0),
             },
             "azimuth",
             "max",
@@ -161,10 +165,11 @@ def test_unsorted_cell_edges():
     ],
 )
 def test_load_invalid_grid_coordinates(geometry, coords, axis, side, limit):
+    dt = coords[list(coords.keys())[0]].dtype.type
     if side == "min":
-        c = coords[axis].min()
+        c = dt(coords[axis].min())
     elif side == "max":
-        c = coords[axis].max()
+        c = dt(coords[axis].max())
     with pytest.raises(
         ValueError,
         match=(
