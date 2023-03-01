@@ -104,14 +104,14 @@ jobs:
     # (and especially) in case of failure.
     - name: Upload pytest-mpl report
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: gpgi_pytest_mpl_results
         path: gpgi_pytest_mpl_results/*
 
     - name: Upload pytest-mpl baseline
       if: always()
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: gpgi_pytest_mpl_new_baseline
         path: gpgi_pytest_mpl_new_baseline/*
