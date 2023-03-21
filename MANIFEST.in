@@ -1,1 +1,2 @@
 include gpgi/clib/*.pyx
+exclude gpgi/clib/*.c
