@@ -34,4 +34,4 @@ def test_cell_volumes_curvilinear():
         NotImplementedError,
         match=r"cell_volumes property is not implemented for cylindrical geometry",
     ):
-        ds.grid.cell_volumes
+        ds.grid.cell_volumes  # noqa: B018
