@@ -5,11 +5,13 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/charliermarsh/ruff/main/assets/badge/v1.json)](https://github.com/charliermarsh/ruff)
 
-A **G**eneric **P**article + **G**rid data **I**nterface
+***Fast particle deposition at post-processing time***
 
 This small Python library implements fundamental grid deposition algorithms to
 analyse (rectilinear) grid + particle datasets, with an emphasize on
 performance. Core algorithms are implemented as Cython extensions.
+
+GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
 
 ## Table of Contents
 
