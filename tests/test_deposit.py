@@ -2,13 +2,12 @@ import re
 from copy import deepcopy
 from functools import partial
 
+import gpgi
 import matplotlib.pyplot as plt
 import numpy as np
 import numpy.testing as npt
 import pytest
 import unyt as un
-
-import gpgi
 
 
 @pytest.fixture()

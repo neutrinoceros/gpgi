@@ -1,9 +1,8 @@
 import re
 
+import gpgi
 import numpy as np
 import pytest
-
-import gpgi
 
 
 def test_load_null_dataset():
