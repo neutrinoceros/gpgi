@@ -36,7 +36,11 @@ def _index_particles(
     """
     cdef Py_ssize_t ipart, particle_count
     cdef np.uint16_t iL, iR, idx
-    cdef real x
+
+    # reduce the chance of floating point arithmetic errors
+    # by forcing positions be read as double precision
+    # (instead of reading as the input type)
+    cdef np.float64_t x
 
     cdef int ndim
     if cell_edges_x3.shape[0] > 1:
