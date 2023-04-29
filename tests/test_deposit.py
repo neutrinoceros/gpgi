@@ -574,3 +574,32 @@ def test_partial_boundary():
         },
     )
     ds.boundary_recipes.register("my", myrecipe, skip_validation=False)
+
+
+@pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
+@pytest.mark.parametrize("dtype", ["float32", "float64"])
+def test_particles_on_domain_corners(method, dtype):
+    nx, ny, nz = 2, 3, 5
+    xlim = ylim = zlim = (0, 1)
+    nparticles = 6
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(*xlim, nx + 1, dtype=dtype),
+                "y": np.linspace(*ylim, ny + 1, dtype=dtype),
+                "z": np.linspace(*zlim, nz + 1, dtype=dtype),
+            },
+        },
+        particles={
+            "coordinates": {
+                "x": np.array([0, 0, 0, 1, 1, 1], dtype=dtype),
+                "y": np.array([0, 1, 1, 0, 1, 1], dtype=dtype),
+                "z": np.array([1, 0, 1, 0, 0, 1], dtype=dtype),
+            },
+            "fields": {
+                "mass": np.ones(nparticles, dtype=dtype),
+            },
+        },
+    )
+    ds.deposit("mass", method=method)

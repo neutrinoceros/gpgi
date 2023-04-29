@@ -440,6 +440,13 @@ class Dataset(ValidatorMixin):
             dx=self.grid._dx,
             out=self._hci,
         )
+        for idim in range(self._hci.shape[1]):
+            # There are at leas two edge cases where we need clipping to correct raw indices:
+            # - particles that live exactly on the domain right edge will be indexed out of bound
+            # - single precision positions can lead to overshoots by simple effect of floating point arithmetics
+            #   (double precision isn't safe either, it's just safer (by a lot))
+            self._hci[:, idim].clip(1, self.grid.shape[idim], out=self._hci[:, idim])
+
         tstop = monotonic_ns()
         if verbose:
             print(
