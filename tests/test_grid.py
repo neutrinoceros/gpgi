@@ -35,3 +35,16 @@ def test_cell_volumes_curvilinear():
         match=r"cell_volumes property is not implemented for cylindrical geometry",
     ):
         ds.grid.cell_volumes  # noqa: B018
+
+
+def test_cell_volumes_shape():
+    ds = load(
+        grid={
+            "cell_edges": {
+                "x": np.linspace(0, 1, 3),
+                "y": np.linspace(0, 1, 4),
+                "z": np.linspace(0, 1, 5),
+            }
+        }
+    )
+    assert ds.grid.cell_volumes.shape == ds.grid.shape
