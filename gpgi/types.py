@@ -293,7 +293,8 @@ class Grid(CoordinateValidatorMixin):
         """
         widths = list(self.cell_widths.values())
         if self.geometry is Geometry.CARTESIAN:
-            return cast("RealArray", np.prod(np.meshgrid(*widths), axis=0))
+            raw = np.prod(np.meshgrid(*widths), axis=0)
+            return cast("RealArray", np.swapaxes(raw, 0, 1))
         else:
             raise NotImplementedError(
                 f"cell_volumes property is not implemented for {self.geometry} geometry"
