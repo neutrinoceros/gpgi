@@ -161,15 +161,15 @@ def test_1D_deposit(method, grid_type):
 def test_3D_deposit(method, dtype):
     npart = 60
     prng = np.random.RandomState(0)
-    data_2D = dict(
-        geometry="cartesian",
-        grid={
+    data_2D = {
+        "geometry": "cartesian",
+        "grid": {
             "cell_edges": {
                 "x": np.linspace(-1, 1, 10, dtype=dtype),
                 "y": np.linspace(-1, 1, 10, dtype=dtype),
             },
         },
-        particles={
+        "particles": {
             "coordinates": {
                 "x": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
                 "y": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
@@ -178,7 +178,7 @@ def test_3D_deposit(method, dtype):
                 "mass": np.ones(npart, dtype),
             },
         },
-    )
+    }
     ds2D = gpgi.load(**data_2D)
     assert ds2D.grid.ndim == 2
 

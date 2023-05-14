@@ -182,7 +182,7 @@ class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
                 self.fields.items(),
             )
         }
-        unique_dts = sorted({dtype for dtype in dts.values()})
+        unique_dts = sorted(set(dts.values()))
         if len(unique_dts) > 1:
             raise TypeError(f"Grid received mixed data types ({unique_dts}):\n{dts}")
         else:
