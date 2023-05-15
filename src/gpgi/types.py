@@ -13,6 +13,17 @@ from typing import TYPE_CHECKING, Any, Dict, Literal, Protocol, Tuple, cast
 import numpy as np
 
 from ._boundaries import BoundaryRegistry
+from .clib._deposition_methods import (  # type: ignore [import]
+    _deposit_cic_1D,
+    _deposit_cic_2D,
+    _deposit_cic_3D,
+    _deposit_ngp_1D,
+    _deposit_ngp_2D,
+    _deposit_ngp_3D,
+    _deposit_tsc_1D,
+    _deposit_tsc_2D,
+    _deposit_tsc_3D,
+)
 
 if TYPE_CHECKING:
     from ._typing import HCIArray, RealArray
@@ -73,6 +84,25 @@ DepositionMethodT = Callable[
     ],
     None,
 ]
+
+
+_BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
+    DepositionMethod.NEAREST_GRID_POINT: [
+        _deposit_ngp_1D,
+        _deposit_ngp_2D,
+        _deposit_ngp_3D,
+    ],
+    DepositionMethod.CLOUD_IN_CELL: [
+        _deposit_cic_1D,
+        _deposit_cic_2D,
+        _deposit_cic_3D,
+    ],
+    DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
+        _deposit_tsc_1D,
+        _deposit_tsc_2D,
+        _deposit_tsc_3D,
+    ],
+}
 
 
 class GeometricData(Protocol):
@@ -466,7 +496,8 @@ class Dataset(ValidatorMixin):
             "cloud_in_cell",
             "tsc",
             "triangular_shaped_cloud",
-        ],
+        ]
+        | DepositionMethodT,
         boundaries: dict[Name, tuple[Name, Name]] | None = None,
         verbose: bool = False,
         return_ghost_padded_array: bool = False,
@@ -517,18 +548,6 @@ class Dataset(ValidatorMixin):
 
            Boundary recipes are applied the weight field (if any) first.
         """
-        from .clib._deposition_methods import (  # type: ignore [import]
-            _deposit_cic_1D,
-            _deposit_cic_2D,
-            _deposit_cic_3D,
-            _deposit_ngp_1D,
-            _deposit_ngp_2D,
-            _deposit_ngp_3D,
-            _deposit_tsc_1D,
-            _deposit_tsc_2D,
-            _deposit_tsc_3D,
-        )
-
         if method in ("pic", "particle_in_cell"):
             warnings.warn(
                 f"{method=!r} is a deprecated alias for method='ngp', "
@@ -538,13 +557,19 @@ class Dataset(ValidatorMixin):
             )
             method = "ngp"
 
-        if method in _deposition_method_names:
-            mkey = _deposition_method_names[method]
+        if callable(method):
+            func = method
         else:
-            raise ValueError(
-                f"Unknown deposition method {method!r}, "
-                f"expected any of {tuple(_deposition_method_names.keys())}"
-            )
+            if method not in _deposition_method_names:
+                raise ValueError(
+                    f"Unknown deposition method {method!r}, "
+                    f"expected any of {tuple(_deposition_method_names.keys())}"
+                )
+
+            if (mkey := _deposition_method_names[method]) not in _BUILTIN_METHODS:
+                raise NotImplementedError(f"method {method} is not implemented yet")
+
+            func = _BUILTIN_METHODS[mkey][self.grid.ndim - 1]
 
         if self.grid.size == 1:
             warnings.warn(
@@ -577,26 +602,6 @@ class Dataset(ValidatorMixin):
         self._sanitize_boundaries(boundaries)
         self._sanitize_boundaries(weight_field_boundaries)
 
-        known_methods: dict[DepositionMethod, list[DepositionMethodT]] = {
-            DepositionMethod.NEAREST_GRID_POINT: [
-                _deposit_ngp_1D,
-                _deposit_ngp_2D,
-                _deposit_ngp_3D,
-            ],
-            DepositionMethod.CLOUD_IN_CELL: [
-                _deposit_cic_1D,
-                _deposit_cic_2D,
-                _deposit_cic_3D,
-            ],
-            DepositionMethod.TRIANGULAR_SHAPED_CLOUD: [
-                _deposit_tsc_1D,
-                _deposit_tsc_2D,
-                _deposit_tsc_3D,
-            ],
-        }
-        if mkey not in known_methods:
-            raise NotImplementedError(f"method {method} is not implemented yet")
-
         field = self.particles.fields[particle_field_key]
         padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
         if weight_field is not None:
@@ -608,7 +613,6 @@ class Dataset(ValidatorMixin):
 
         self._setup_host_cell_index(verbose=verbose)
 
-        func = known_methods[mkey][self.grid.ndim - 1]
         tstart = monotonic_ns()
         if weight_field is not None:
             func(

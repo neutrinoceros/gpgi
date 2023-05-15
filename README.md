@@ -19,7 +19,7 @@ GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
 
 - [Installation](#installation)
 - [Supported applications](#supported-applications)
-  * [Supported deposition methods](#supported-deposition-methods)
+  * [Builtin deposition methods](#builtin-deposition-methods)
   * [Supported geometries](#supported-geometries)
 - [Time complexity](#time-complexity)
 - [Usage](#usage)
@@ -60,12 +60,16 @@ This example illustrates the simplest possible deposition method "Particle in Ce
 that contains it.
 
 More refined methods are also available.
-### Supported deposition methods
+### Builtin deposition methods
 | method name             | abreviated name | order |
 |-------------------------|:---------------:|:-----:|
 | Nearest Grid Point      | NGP             | 0     |
 | Cloud in Cell           | CIC             | 1     |
 | Triangular Shaped Cloud | TSC             | 2     |
+
+*new in gpgi 0.12*
+User-defined alternative methods may be provided to `Dataset.deposit` as `method=my_func`.
+Their signature need to be compatible with `gpgi.types.DepositionMethodT`.
 
 ### Supported geometries
 | geometry name | axes order                  |
