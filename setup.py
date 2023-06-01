@@ -12,12 +12,12 @@ setup(
         [
             Extension(
                 "gpgi.clib._indexing",
-                ["gpgi/clib/_indexing.pyx"],
+                ["src/gpgi/clib/_indexing.pyx"],
                 include_dirs=[numpy.get_include()],
             ),
             Extension(
                 "gpgi.clib._deposition_methods",
-                ["gpgi/clib/_deposition_methods.pyx"],
+                ["src/gpgi/clib/_deposition_methods.pyx"],
                 include_dirs=[numpy.get_include()],
             ),
         ],

@@ -42,9 +42,7 @@ license-files = [
 include-package-data = false
 
 [tool.setuptools.packages.find]
-exclude = [
-    "tests*",
-]
+where = ["src"]
 namespaces = false
 
 [tool.coverage.run]
@@ -86,6 +84,7 @@ select = [
 
 [tool.ruff.isort]
 combine-as-imports = true
+known-first-party = ["gpgi"]
 
 [tool.mypy]
 python_version = "3.8"
