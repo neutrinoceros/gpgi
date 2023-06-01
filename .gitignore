@@ -10,6 +10,6 @@ __pycache__
 MANIFEST
 build
 dist
-gpgi/clib/*.html
-gpgi/clib/*.so
-gpgi/clib/*.c
+src/gpgi/clib/*.html
+src/gpgi/clib/*.so
+src/gpgi/clib/*.c
