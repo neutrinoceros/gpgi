@@ -4,9 +4,6 @@ import numpy
 from Cython.Build import cythonize
 from setuptools import setup
 
-ext_modules = ["gpgi/clib/_indexing.pyx"]
-
-
 setup(
     ext_modules=cythonize(
         [
@@ -22,6 +19,5 @@ setup(
             ),
         ],
         compiler_directives={"language_level": 3},
-        annotate=True,
     ),
 )
