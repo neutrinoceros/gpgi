@@ -9,6 +9,7 @@ import pytest
 import unyt as un
 
 import gpgi
+from gpgi.types import _deposit_ngp_2D
 
 
 @pytest.fixture()
@@ -91,6 +92,10 @@ def test_unknown_method(sample_2D_dataset):
         ValueError, match="Unknown deposition method 'test', expected any of (.*)"
     ):
         sample_2D_dataset.deposit("density", method="test")
+
+
+def test_callable_method(sample_2D_dataset):
+    sample_2D_dataset.deposit("mass", method=_deposit_ngp_2D)
 
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
