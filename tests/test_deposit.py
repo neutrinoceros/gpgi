@@ -98,6 +98,21 @@ def test_callable_method(sample_2D_dataset):
     sample_2D_dataset.deposit("mass", method=_deposit_ngp_2D)
 
 
+def test_callable_method_with_metadata(sample_2D_dataset):
+    _is_used = False
+    _md_is_received = False
+
+    def fake_dep(*args, metadata=None, **kwargs):
+        nonlocal _is_used, _md_is_received
+        _is_used = True
+        _md_is_received = metadata is not None
+        return _deposit_ngp_2D(*args, **kwargs)
+
+    sample_2D_dataset.deposit("mass", method=fake_dep)
+    assert _is_used
+    assert _md_is_received
+
+
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.mpl_image_compare
 def test_2D_deposit(sample_2D_dataset, method):
