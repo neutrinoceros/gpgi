@@ -2,14 +2,18 @@ import re
 from copy import deepcopy
 from functools import partial
 
-import matplotlib.pyplot as plt
 import numpy as np
 import numpy.testing as npt
 import pytest
-import unyt as un
 
 import gpgi
 from gpgi.types import _deposit_ngp_2D
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:  # pragma: no cover
+    # image tests are supposed to be skipped from mpl_image_compare marker
+    pass
 
 
 @pytest.fixture()
@@ -22,22 +26,22 @@ def sample_2D_dataset():
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.linspace(-1, 1, nx + 1) * un.m,
-                "y": np.linspace(0, 2, ny + 1) * un.m,
+                "x": np.linspace(-1, 1, nx + 1),
+                "y": np.linspace(0, 2, ny + 1),
             },
             "fields": {
-                "density": np.ones(grid_shape) * un.g / un.cm**3,
+                "density": np.ones(grid_shape),
             },
         },
         particles={
             "coordinates": {
-                "x": (2 * prng.random_sample(nparticles) - 1) * un.m,
-                "y": (2 * prng.random_sample(nparticles)) * un.m,
+                "x": (2 * prng.random_sample(nparticles) - 1),
+                "y": (2 * prng.random_sample(nparticles)),
             },
             "fields": {
-                "mass": np.ones(nparticles) * un.g,
-                "vx": (2 * prng.random_sample(nparticles) - 1) * un.m / un.s,
-                "vy": (2 * prng.random_sample(nparticles) - 1) * un.m / un.s,
+                "mass": np.ones(nparticles),
+                "vx": (2 * prng.random_sample(nparticles) - 1),
+                "vy": (2 * prng.random_sample(nparticles) - 1),
             },
         },
     )
