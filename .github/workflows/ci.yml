@@ -1,6 +1,9 @@
 name: CI
 on:
   pull_request:
+  schedule:
+    # run this every Wednesday at 3 am UTC
+  - cron: 0 3 * * 3
   workflow_dispatch:
 
 concurrency:
@@ -173,3 +176,60 @@ jobs:
       run: |
         python -m pip freeze
         mypy src/gpgi
+
+
+  future:
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    name: future proofing
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.12-dev
+
+    - name: Build
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install --pre setuptools wheel Cython
+        python -m pip install --pre numpy \
+          --extra-index https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+        python -m pip install . --no-build-isolation
+
+    - name: Install minimal test env
+      run: |
+        python -m pip install --pre pytest
+
+    - name: Tests
+      run: |
+        python -m pip freeze
+        pytest
+
+
+  create-issue:
+    if: ${{ failure() && github.event_name == 'schedule' }}
+    needs: [future]
+    permissions:
+      issues: write
+    runs-on: ubuntu-latest
+    name: Create issue on failure
+
+    steps:
+    - name: Create issue on failure
+      uses: imjohnbo/issue-bot@v3
+      with:
+        title: '[TST] Upcoming dependency test failures'
+        body: |
+          The weekly build with future Python, Cython and numpy
+          has failed. Check the logs for any updates that need to be
+          made in gpgi.
+          https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}
+
+        pinned: false
+        close-previous: false
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
