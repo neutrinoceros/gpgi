@@ -2,7 +2,8 @@
 requires = [
     "setuptools>=61.2",
     "Cython>=0.29.22",
-    "oldest-supported-numpy",
+    "numpy>=1.25, <2.0; python_version >= '3.9'",
+    "oldest-supported-numpy; python_version < '3.9'",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -22,6 +23,7 @@ classifiers = [
 ]
 requires-python = ">=3.8"
 dependencies = [
+    # keep in sync with NPY_TARGET_VERSION (setup.py)
     # https://github.com/scipy/oldest-supported-numpy/issues/76#issuecomment-1628865694
     "numpy>=1.18, <2.0",
 ]
