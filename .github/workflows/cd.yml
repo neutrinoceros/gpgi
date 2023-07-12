@@ -63,6 +63,11 @@ jobs:
     needs:
     - build_wheels
     - build_sdist
+    environment:
+      name: pypi
+      url: https://pypi.org/p/gpgi
+    permissions:
+      id-token: write
 
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
@@ -79,8 +84,5 @@ jobs:
         name: wheels
         path: dist
 
-    - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.8.7
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_token }}
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
