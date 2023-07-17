@@ -32,7 +32,7 @@ jobs:
         CIBW_BUILD: cp38-* cp39-* cp310-* cp311-*
         CIBW_SKIP: '*-musllinux_*'
         CIBW_ARCHS_LINUX: x86_64
-        CIBW_ARCHS_MACOS: x86_64
+        CIBW_ARCHS_MACOS: x86_64 arm64
         CIBW_ARCHS_WINDOWS: AMD64
         MACOSX_DEPLOYMENT_TARGET: '10.9'
         CIBW_BUILD_VERBOSITY: 1
