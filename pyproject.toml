@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=61.2",
-    "Cython>=0.29.22",
+    "Cython>=3.0, <3.1",
     "numpy>=1.25, <2.0; python_version >= '3.9'",
     "oldest-supported-numpy; python_version < '3.9'",
 ]
