@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import TYPE_CHECKING, Any, Callable, Dict, Literal, cast
+from typing import TYPE_CHECKING, Any, Callable, Literal, cast
 
 if TYPE_CHECKING:
     from ._typing import RealArray
@@ -17,7 +17,7 @@ BoundaryRecipeT = Callable[
         "RealArray",
         "RealArray",
         Literal["left", "right"],
-        Dict[str, Any],
+        dict[str, Any],
     ],
     "RealArray",
 ]
