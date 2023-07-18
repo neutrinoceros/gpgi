@@ -20,7 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.9" # keep in sync with< Py_LIMITED_API (setup.py)
 dependencies = [
     # keep in sync with NPY_TARGET_VERSION (setup.py)
     # https://github.com/scipy/oldest-supported-numpy/issues/76#issuecomment-1628865694
