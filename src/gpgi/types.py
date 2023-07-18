@@ -8,7 +8,7 @@ from copy import deepcopy
 from functools import cached_property, partial, reduce
 from itertools import chain
 from time import monotonic_ns
-from typing import TYPE_CHECKING, Any, Dict, Literal, Protocol, Tuple, cast
+from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
 
 import numpy as np
 
@@ -28,17 +28,14 @@ from .clib._deposition_methods import (  # type: ignore [import]
 if TYPE_CHECKING:
     from ._typing import HCIArray, RealArray
 
-if sys.version_info >= (3, 9):
-    from collections.abc import Callable
-else:
-    from typing import Callable
+from collections.abc import Callable
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:
     from ._backports import StrEnum
 
-BoundarySpec = Tuple[Tuple[str, str, str], ...]
+BoundarySpec = tuple[tuple[str, str, str], ...]
 
 
 class Geometry(StrEnum):
@@ -68,7 +65,7 @@ _deposition_method_names: dict[str, DepositionMethod] = {
 
 
 Name = str
-FieldMap = Dict[Name, np.ndarray]
+FieldMap = dict[Name, np.ndarray]
 DepositionMethodT = Callable[
     [
         "RealArray",

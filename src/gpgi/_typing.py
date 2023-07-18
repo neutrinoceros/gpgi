@@ -1,4 +1,3 @@
-# requires numpy >= 1.21
 from typing import TypeVar
 
 import numpy as np
