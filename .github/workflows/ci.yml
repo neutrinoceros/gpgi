@@ -25,9 +25,12 @@ jobs:
         python-version: '3.11'
     - run: |
         python -m pip install --upgrade pip
+        python -m pip install --upgrade check-manifest
         python -m pip install --upgrade build
-    - name: Build
-      run: python -m build
+    - name: Check build
+      run: |
+        python -m check_manifest
+        python -m build
 
   unit-tests:
     strategy:
