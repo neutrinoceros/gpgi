@@ -71,7 +71,7 @@ jobs:
 
     - name: Test
       run: |
-        python -m pip freeze
+        python -m pip list
         python -m coverage run -m pytest --color=yes
 
     - name: Upload coverage data
@@ -224,8 +224,8 @@ jobs:
 
     - name: Tests
       run: |
-        python -m pip freeze
-        pytest
+        python -m pip list
+        pytest --color=yes
 
 
   create-issue:
