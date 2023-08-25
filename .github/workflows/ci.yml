@@ -1,5 +1,8 @@
 name: CI
 on:
+  push:
+    branches:
+    - main
   pull_request:
   schedule:
     # run this every Wednesday at 3 am UTC
@@ -197,7 +200,7 @@ jobs:
 
 
   future:
-    if: ${{ github.event_name == 'schedule' }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     name: future proofing
 
