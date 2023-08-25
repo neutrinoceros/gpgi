@@ -405,8 +405,8 @@ class Dataset(ValidatorMixin):
         if self.particles.count == 0:
             return
         for ax, edges in self.grid.cell_edges.items():
-            domain_left = edges[0]
-            domain_right = edges[-1]
+            domain_left = float(edges[0])
+            domain_right = float(edges[-1])
             for x in self.particles.coordinates[ax]:
                 if x < domain_left:
                     raise ValueError(f"Got particle at {ax}={x} < {domain_left=}")
