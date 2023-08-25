@@ -1,5 +1,8 @@
 name: CI
 on:
+  push:
+    branches:
+    - main
   pull_request:
   schedule:
     # run this every Wednesday at 3 am UTC
@@ -71,7 +74,7 @@ jobs:
 
     - name: Test
       run: |
-        python -m pip freeze
+        python -m pip list
         python -m coverage run -m pytest --color=yes
 
     - name: Upload coverage data
@@ -197,7 +200,7 @@ jobs:
 
 
   future:
-    if: ${{ github.event_name == 'schedule' }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     name: future proofing
 
@@ -224,8 +227,8 @@ jobs:
 
     - name: Tests
       run: |
-        python -m pip freeze
-        pytest
+        python -m pip list
+        pytest --color=yes
 
 
   create-issue:
