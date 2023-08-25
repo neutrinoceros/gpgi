@@ -35,6 +35,10 @@ jobs:
         CIBW_ARCHS_WINDOWS: AMD64
         MACOSX_DEPLOYMENT_TARGET: '10.9'
         CIBW_BUILD_VERBOSITY: 1
+        CIBW_TEST_COMMAND: >
+          python -m pip install -r {project}/requirements/tests.txt &&
+          pytest {project} --color=yes
+        CIBW_TEST_SKIP: '*-musllinux* cp312-*'
 
     - uses: actions/upload-artifact@v3
       with:
