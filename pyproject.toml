@@ -25,7 +25,7 @@ requires-python = ">=3.9"
 dependencies = [
     # keep in sync with NPY_TARGET_VERSION (setup.py)
     # https://github.com/scipy/oldest-supported-numpy/issues/76#issuecomment-1628865694
-    "numpy>=1.21, <2.0",
+    "numpy>=1.21",
 ]
 
 [project.readme]
