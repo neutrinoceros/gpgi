@@ -1,3 +1,5 @@
+import re
+
 import numpy as np
 import pytest
 
@@ -33,3 +35,23 @@ def test_sort(dim):
     assert not ds.is_sorted()
     sds = ds.sorted()
     assert sds.is_sorted()
+
+
+@pytest.mark.parametrize(
+    "axes, expected_message",
+    [
+        ((0, 1), "Expected exactly 3 axes, got 2"),
+        (
+            (0.0, 1.0, 2.0),
+            (
+                "Expected all axes to be integers, got (0.0, 1.0, 2.0) "
+                "with types (float, float, float)"
+            ),
+        ),
+        ((1, 2, 3), "Expected all axes to be <3, got (1, 2, 3)"),
+    ],
+)
+def test_key_errors(axes, expected_message):
+    ds = get_random_dataset(3)
+    with pytest.raises(ValueError, match=re.escape(expected_message)):
+        ds.sorted(axes=axes)
