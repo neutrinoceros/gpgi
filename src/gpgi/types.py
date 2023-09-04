@@ -32,7 +32,10 @@ from collections.abc import Callable
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
+    from typing import Self
 else:
+    from typing_extensions import Self
+
     from ._backports import StrEnum
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
@@ -480,6 +483,88 @@ class Dataset(ValidatorMixin):
             print(
                 f"Indexed {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
             )
+
+    @property
+    def host_cell_index(self) -> np.ndarray[Any, np.dtype[np.uint16]]:
+        r"""
+        The host cell index (HCI) represents the ndimensional index
+        of the host cell for each particle.
+        It has shape (particles.count, grid.ndim).
+        Indices are 0-based and ghost layers are included.
+        """
+        self._setup_host_cell_index()
+        return self._hci
+
+    @property
+    def _default_sort_axes(self) -> tuple[int, ...]:
+        return tuple(range(self.grid.ndim - 1, -1, -1))
+
+    def _validate_sort_axes(self, axes: tuple[int, ...]) -> None:
+        if len(axes) != self.grid.ndim:
+            raise ValueError(f"Expected exactly {self.grid.ndim} axes, got {len(axes)}")
+        if any(not isinstance(axis, int) for axis in axes):
+            raise ValueError(
+                f"Expected all axes to be integers, got {axes!r} "
+                f"with types {tuple(type(axis) for axis in axes)!r}"
+            )
+        if any(axis > self.grid.ndim - 1 for axis in axes):
+            raise ValueError(f"Expected all axes to be <{self.grid.ndim}, got {axes!r}")
+
+    def _get_sort_key(
+        self, axes: tuple[int, ...]
+    ) -> np.ndarray[Any, np.dtype[np.uint16]]:
+        self._validate_sort_axes(axes)
+
+        hci = self.host_cell_index
+        if self.grid.ndim == 1:
+            ind = np.lexsort((hci[:, axes[0]],))
+        elif self.grid.ndim == 2:
+            ind = np.lexsort((hci[:, axes[0]], hci[:, axes[1]]))
+        else:
+            ind = np.lexsort((hci[:, axes[0]], hci[:, axes[1]], hci[:, axes[2]]))
+        return np.array(ind, dtype="uint16")
+
+    def is_sorted(self, *, axes: tuple[int, ...] | None = None) -> bool:
+        r"""
+        Return True if and only if particles are already sorted.
+
+        Parameters
+        ----------
+
+        axes: tuple[int, ...]
+            specify in which order axes should be used for sorting.
+        """
+        sort_key = self._get_sort_key(axes or self._default_sort_axes)
+        hci = self.host_cell_index
+        return bool(np.all(hci == hci[sort_key]))
+
+    def sorted(self, axes: tuple[int, ...] | None = None) -> Self:
+        r"""
+        Return a copy of this dataset with particles sorted by host cell index.
+
+        Parameters
+        ----------
+
+        axes: tuple[int, ...]
+            specify in which order axes should be used for sorting.
+        """
+        sort_key = self._get_sort_key(axes or self._default_sort_axes)
+
+        return type(self)(
+            geometry=self.geometry,
+            grid=self.grid,
+            particles=ParticleSet(
+                self.geometry,
+                coordinates={
+                    name: arr[sort_key]
+                    for name, arr in deepcopy(self.particles.coordinates).items()
+                },
+                fields={
+                    name: arr[sort_key]
+                    for name, arr in deepcopy(self.particles.fields).items()
+                },
+            ),
+        )
 
     def deposit(
         self,
