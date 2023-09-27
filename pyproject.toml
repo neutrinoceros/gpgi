@@ -106,4 +106,5 @@ follow_imports = "silent"
 [tool.pytest.ini_options]
 filterwarnings = [
   "error",
+  'ignore:datetime\.datetime\.utcfromtimestamp\(\) is deprecated:DeprecationWarning', # https://github.com/dateutil/dateutil/pull/1285
 ]
