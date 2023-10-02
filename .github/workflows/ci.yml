@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
@@ -58,7 +58,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout Source
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
@@ -97,7 +97,7 @@ jobs:
       with:
         python-version: '3.11'
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Build library
       run: |
@@ -144,7 +144,7 @@ jobs:
     needs: unit-tests
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         # Use latest Python, so it understands all syntax.
@@ -181,7 +181,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -206,7 +206,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set up Python
       uses: actions/setup-python@v4
