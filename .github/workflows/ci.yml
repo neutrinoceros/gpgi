@@ -25,7 +25,7 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: 3.x
     - run: |
         python -m pip install --upgrade pip
         python -m pip install --upgrade check-manifest
@@ -44,11 +44,12 @@ jobs:
         - '3.9'
         - '3.10'
         - '3.11'
+        - '3.12'
         include:
         - os: macos-latest
-          python-version: '3.11'
+          python-version: '3.12'
         - os: windows-latest
-          python-version: '3.11'
+          python-version: '3.12'
 
         # test with minimal requirements
         - os: ubuntu-20.04
@@ -95,7 +96,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.11'
+        python-version: 3.x
 
     - uses: actions/checkout@v4
 
@@ -148,7 +149,7 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         # Use latest Python, so it understands all syntax.
-        python-version: '3.11'
+        python-version: 3.x
 
     - run: python -m pip install --upgrade coverage[toml]
 
@@ -175,7 +176,7 @@ jobs:
       matrix:
         python-version:
         - '3.8'
-        - '3.11'
+        - '3.12'
     runs-on: ubuntu-latest
     name: type check
 
