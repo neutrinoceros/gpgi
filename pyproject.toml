@@ -48,10 +48,17 @@ where = ["src"]
 namespaces = false
 
 [tool.coverage.run]
-parallel = true
-omit = [
-    "gpgi/_backports.py",
+source = ["src/gpgi"]
+include = [
+    "src/gpgi",
+    "tests",
 ]
+omit = [
+    "src/gpgi/_backports.py",
+    "src/gpgi/_typing.py",
+    "src/gpgi/lib/*.py",
+]
+parallel = true
 
 [tool.coverage.report]
 show_missing = true

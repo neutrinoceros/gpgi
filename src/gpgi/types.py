@@ -505,7 +505,7 @@ class Dataset(ValidatorMixin):
         if any(not isinstance(axis, int) for axis in axes):
             raise ValueError(
                 f"Expected all axes to be integers, got {axes!r} "
-                f"with types {tuple(type(axis) for axis in axes)!r}"
+                f"with types ({', '.join([type(axis).__name__ for axis in axes])})"
             )
         if any(axis > self.grid.ndim - 1 for axis in axes):
             raise ValueError(f"Expected all axes to be <{self.grid.ndim}, got {axes!r}")
