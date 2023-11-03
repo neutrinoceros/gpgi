@@ -2,11 +2,11 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from gpgi.api import load
+import gpgi
 
 
 def test_cell_volumes_cartesian():
-    ds = load(
+    ds = gpgi.load(
         geometry="cartesian",
         grid={
             "cell_edges": {
@@ -21,7 +21,7 @@ def test_cell_volumes_cartesian():
 
 
 def test_cell_volumes_curvilinear():
-    ds = load(
+    ds = gpgi.load(
         geometry="cylindrical",
         grid={
             "cell_edges": {
@@ -38,7 +38,7 @@ def test_cell_volumes_curvilinear():
 
 
 def test_cell_volumes_shape():
-    ds = load(
+    ds = gpgi.load(
         grid={
             "cell_edges": {
                 "x": np.linspace(0, 1, 3),

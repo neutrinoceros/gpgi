@@ -1,3 +1,4 @@
+r"""Define the core data structures of the library: Grid, ParticleSet, and Dataset."""
 from __future__ import annotations
 
 import enum
@@ -48,10 +49,12 @@ class Geometry(StrEnum):
     SPHERICAL = enum.auto()
     EQUATORIAL = enum.auto()
 
-    def __str__(self) -> str:
-        if sys.version_info >= (3, 11):
-            return super().__str__()
-        else:
+    if sys.version_info >= (3, 11):
+        pass
+    else:
+
+        def __str__(self) -> str:
+            r"""Return str(self)."""
             return self.name.lower()
 
 
@@ -202,7 +205,7 @@ _AXES_LIMITS: dict[Name, tuple[float, float]] = {
 }
 
 
-class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
+class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
     def __init__(self) -> None:
         super().__init__()
         dts = {
@@ -252,13 +255,26 @@ class CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
             return np.dtype(dt)
 
 
-class Grid(CoordinateValidatorMixin):
+class Grid(_CoordinateValidatorMixin):
     def __init__(
         self,
         geometry: Geometry,
         cell_edges: FieldMap,
         fields: FieldMap | None = None,
     ) -> None:
+        r"""
+        Define a Grid from cell left-edges and data fields.
+
+        Parameters
+        ----------
+        geometry: gpgi.types.Geometry
+
+        cell_edges: gpgi.types.FieldMap
+            Left cell edges in each direction as 1D arrays, including the right edge
+            of the rightmost cell.
+
+        fields: gpgi.types.FieldMap (optional)
+        """
         self.geometry = geometry
         self.coordinates = cell_edges
 
@@ -288,18 +304,22 @@ class Grid(CoordinateValidatorMixin):
 
     @property
     def cell_edges(self) -> FieldMap:
+        r"""An alias for self.coordinates."""
         return self.coordinates
 
     @cached_property
     def cell_centers(self) -> FieldMap:
+        r"""The positions of cell centers in each direction."""
         return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}
 
     @cached_property
     def cell_widths(self) -> FieldMap:
+        r"""The width of cells, expressed as the difference between consecutive left edges."""
         return {ax: np.diff(arr) for ax, arr in self.coordinates.items()}
 
     @cached_property
     def shape(self) -> tuple[int, ...]:
+        r"""The shape of the grid, as a tuple (nx1, (nx2, (nx3)))."""
         return tuple(len(_) - 1 for _ in self.cell_edges.values())
 
     @cached_property
@@ -308,18 +328,22 @@ class Grid(CoordinateValidatorMixin):
 
     @property
     def size(self) -> int:
+        r"""The total number of cells in the grid."""
         return reduce(int.__mul__, self.shape)
 
     @property
     def ndim(self) -> int:
+        r"""The number of spatial dimensions that coordinates are defined in."""
         return len(self.axes)
 
     @property
     def cell_volumes(self) -> RealArray:
-        """
+        r"""
+        The generalized ND-volume of grid cells.
+
         3D: (nx, ny, nz) array representing volumes
         2D: (nx, ny) array representing surface
-        1D: (nx,) array representing widths (redundant with cell_widths)
+        1D: (nx,) array representing widths (redundant with cell_widths).
         """
         widths = list(self.cell_widths.values())
         if self.geometry is Geometry.CARTESIAN:
@@ -331,7 +355,7 @@ class Grid(CoordinateValidatorMixin):
             )
 
 
-class ParticleSet(CoordinateValidatorMixin):
+class ParticleSet(_CoordinateValidatorMixin):
     def __init__(
         self,
         geometry: Geometry,
@@ -357,10 +381,12 @@ class ParticleSet(CoordinateValidatorMixin):
 
     @property
     def count(self) -> int:
+        r"""The total number of particles in the set."""
         return len(next(iter(self.coordinates.values())))
 
     @property
     def ndim(self) -> int:
+        r"""The number of spatial dimensions that coordinates are defined in."""
         return len(self.axes)
 
 
@@ -373,6 +399,24 @@ class Dataset(ValidatorMixin):
         particles: ParticleSet | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
+        r"""
+        Compose a Dataset from a Grid, a ParticleSet, or both.
+
+        Parameters
+        ----------
+        geometry: gpgi.types.Geometry
+            An enum member that represents the geometry.
+
+        grid: gpgi.types.Grid (optional)
+
+        particles: gpgi.types.ParticleSet (optional)
+
+        metadata: dict[str, Any] (optional)
+            A dictionnary representing arbitrary additional data, that will be attached to
+            the returned Dataset as an attribute (namely, ds.metadata). This special
+            attribute is accessible from boundary condition methods as the argument of the
+            same name.
+        """
         self.geometry = geometry
 
         if grid is None:
@@ -487,8 +531,8 @@ class Dataset(ValidatorMixin):
     @property
     def host_cell_index(self) -> np.ndarray[Any, np.dtype[np.uint16]]:
         r"""
-        The host cell index (HCI) represents the ndimensional index
-        of the host cell for each particle.
+        The ND index of the host cell for each particle.
+
         It has shape (particles.count, grid.ndim).
         Indices are 0-based and ghost layers are included.
         """
@@ -530,7 +574,6 @@ class Dataset(ValidatorMixin):
 
         Parameters
         ----------
-
         axes: tuple[int, ...]
             specify in which order axes should be used for sorting.
         """
@@ -544,7 +587,6 @@ class Dataset(ValidatorMixin):
 
         Parameters
         ----------
-
         axes: tuple[int, ...]
             specify in which order axes should be used for sorting.
         """
