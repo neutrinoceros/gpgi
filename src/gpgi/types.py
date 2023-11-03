@@ -797,15 +797,11 @@ class Dataset(ValidatorMixin):
                 side = cast(Literal["left", "right"], side)
                 active_index: int = 1 if side == "left" else -2
                 same_side_active_layer_idx = [slice(None)] * self.grid.ndim
-                same_side_active_layer_idx[
-                    iax
-                ] = active_index  # type:ignore [call-overload]
+                same_side_active_layer_idx[iax] = active_index  # type:ignore [call-overload]
 
                 same_side_ghost_layer_idx = [slice(None)] * self.grid.ndim
                 # f(-2)=-1, f(1)=0
-                same_side_ghost_layer_idx[iax] = -(  # type:ignore [call-overload]
-                    (active_index + 1) % 2
-                )
+                same_side_ghost_layer_idx[iax] = -((active_index + 1) % 2)  # type:ignore [call-overload]
 
                 opposite_side_active_layer_idx = [slice(None)] * self.grid.ndim
                 # f(-2)=1, f(1)=-2
@@ -815,9 +811,7 @@ class Dataset(ValidatorMixin):
 
                 opposite_side_ghost_layer_idx = [slice(None)] * self.grid.ndim
                 # f(-2)=0, f(1)=-1
-                opposite_side_ghost_layer_idx[iax] = -(  # type:ignore [call-overload]
-                    active_index % 2
-                )
+                opposite_side_ghost_layer_idx[iax] = -(active_index % 2)  # type:ignore [call-overload]
 
                 if weight_array is None:
                     ONE = np.ones(1, dtype=array.dtype)
