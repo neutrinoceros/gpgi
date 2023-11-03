@@ -245,7 +245,7 @@ jobs:
     - name: Create issue on failure
       uses: imjohnbo/issue-bot@v3
       with:
-        title: '[TST] Upcoming dependency test failures'
+        title: 'TST: Upcoming dependency test failures'
         body: |
           The weekly build with future Python, Cython and numpy
           has failed. Check the logs for any updates that need to be
