@@ -26,6 +26,7 @@ GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
     + [Builtin recipes](#builtin-recipes)
     + [Define custom recipes](#define-custom-recipes)
   * [Weight fields (Depositing intensive quantities)](#weight-fields-depositing-intensive-quantities)
+  * [Count Sorting](#count-sorting)
 - [Deposition algorithm](#deposition-algorithm)
 
 <!-- tocstop -->
@@ -58,6 +59,7 @@ This example illustrates the simplest possible deposition method "Particle in Ce
 that contains it.
 
 More refined methods are also available.
+
 ### Builtin deposition methods
 | method name             | abreviated name | order |
 |-------------------------|:---------------:|:-----:|
@@ -154,6 +156,7 @@ fig.colorbar(im, ax=ax)
 The example script given here takes about a second (top to bottom).
 
 
+
 ### Supplying arbitrary metadata
 *new in gpgi 0.4.0*
 
@@ -211,6 +214,7 @@ Unspecified axes will use the default `'open'` boundary.
 | wall                    | add same-side ghost layer to the active domain         | yes            |
 | antisymmetric           | substract same-side ghost layer from the active domain | no             |
 
+
 #### Define custom recipes
 
 `gpgi`'s boundary recipes can be customized. Let's illustrate this feature with a simple example.
@@ -263,10 +267,6 @@ the following four represent *w*, so that *u* can still be obtained within the
 function as a ratio if needed.
 
 
-
-
-
-
 ### Weight fields (Depositing intensive quantities)
 *new in gpgi 0.7.0*
 
@@ -301,6 +301,32 @@ Boundary recipes may be also associated to the weight field with the
 
 Call `help(ds.deposit)` for more detail.
 
+
+### Count Sorting
+*new in gpgi 0.14.0*
+
+gpgi can load arbitrarily ordered particle sets, though deposition algorithms
+perform better when the in-memory position of particles correlates with their physical positions relative to the grid, since such a state minimizes the number of cache misses.
+
+Particles may be sorted by a [counting sort algorithm](https://en.wikipedia.org/wiki/Counting_sort),
+as
+
+```python
+ds = ds.sorted()
+```
+Note that this method returns a *copy* of the dataset, so it will best perform for datasets that, at most, fit in half your RAM.
+
+This operation is costly in itself, so there may be a trade-off depending on how many
+depositions ones needs to perform on a given dataset before tossing it out.
+
+By default, axes are weighted in the order that's optimal for gpgi's deposition routines,
+but arbitrary priority order may be specify as, for instance
+```python
+ds = ds.sorted(axes=(1, 0))
+```
+
+Use the `Dataset.is_sorted` method to check wether particles are already sorted without
+performing the sort. `Dataset.is_sorted` accepts an `axes` argument just like `Dataset.sorted`. This is useful for testing and comparative purposes.
 
 
 ## Deposition algorithm
