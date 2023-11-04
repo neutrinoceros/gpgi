@@ -9,18 +9,18 @@ import gpgi
 def get_random_dataset(dimensionality: int):
     NPARTICLES = 10_000
     NX = 16
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
 
     cell_edges = {
         "x": np.linspace(-1, 1, NX + 1),
     }
-    coordinates = {"x": (2 * prng.random_sample(NPARTICLES) - 1)}
+    coordinates = {"x": (2 * rng.random(NPARTICLES) - 1)}
     if dimensionality >= 2:
         cell_edges["y"] = np.linspace(-1, 1, NX + 1)
-        coordinates["y"] = 2 * prng.random_sample(NPARTICLES) - 1
+        coordinates["y"] = 2 * rng.random(NPARTICLES) - 1
     if dimensionality == 3:
         cell_edges["z"] = np.linspace(-1, 1, NX + 1)
-        coordinates["z"] = 2 * prng.random_sample(NPARTICLES) - 1
+        coordinates["z"] = 2 * rng.random(NPARTICLES) - 1
 
     return gpgi.load(
         geometry="cartesian",

@@ -100,7 +100,7 @@ import gpgi
 nx = ny = 64
 nparticles = 600_000
 
-prng = np.random.RandomState(0)
+rng = np.random.RandomState(0)
 ds = gpgi.load(
     geometry="cartesian",
     grid={
@@ -111,8 +111,8 @@ ds = gpgi.load(
     },
     particles={
         "coordinates": {
-            "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-            "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            "x": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+            "y": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
         },
         "fields": {
             "mass": np.ones(nparticles),

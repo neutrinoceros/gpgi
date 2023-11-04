@@ -20,7 +20,7 @@ except ImportError:  # pragma: no cover
 def sample_2D_dataset():
     nparticles = 100
     nx, ny = grid_shape = 16, 16
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
 
     return gpgi.load(
         geometry="cartesian",
@@ -35,13 +35,13 @@ def sample_2D_dataset():
         },
         particles={
             "coordinates": {
-                "x": (2 * prng.random_sample(nparticles) - 1),
-                "y": (2 * prng.random_sample(nparticles)),
+                "x": (2 * rng.random(nparticles) - 1),
+                "y": (2 * rng.random(nparticles)),
             },
             "fields": {
                 "mass": np.ones(nparticles),
-                "vx": (2 * prng.random_sample(nparticles) - 1),
-                "vy": (2 * prng.random_sample(nparticles) - 1),
+                "vx": (2 * rng.random(nparticles) - 1),
+                "vy": (2 * rng.random(nparticles) - 1),
             },
         },
     )
@@ -155,14 +155,14 @@ def test_1D_deposit(method, grid_type):
     ]
 
     npart = 16
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
     ds = gpgi.load(
         geometry="cartesian",
         grid={
             "cell_edges": {"x": xedges},
         },
         particles={
-            "coordinates": {"x": 1 + prng.random_sample(npart)},
+            "coordinates": {"x": 1 + rng.random(npart)},
             "fields": {"mass": np.ones(npart)},
         },
     )
@@ -184,7 +184,7 @@ def test_1D_deposit(method, grid_type):
 @pytest.mark.parametrize("dtype", ["float32", "float64"])
 def test_3D_deposit(method, dtype):
     npart = 60
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
     data_2D = {
         "geometry": "cartesian",
         "grid": {
@@ -195,8 +195,8 @@ def test_3D_deposit(method, dtype):
         },
         "particles": {
             "coordinates": {
-                "x": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
-                "y": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
+                "x": 2 * (rng.random(npart).astype(dtype) - 0.5),
+                "y": 2 * (rng.random(npart).astype(dtype) - 0.5),
             },
             "fields": {
                 "mass": np.ones(npart, dtype),
@@ -209,7 +209,7 @@ def test_3D_deposit(method, dtype):
     data_3D = deepcopy(data_2D)
     data_3D["grid"]["cell_edges"]["z"] = np.linspace(-1, 1, 10, dtype=dtype)
     data_3D["particles"]["coordinates"]["z"] = 2 * (
-        prng.random_sample(npart).astype(dtype) - 0.5
+        rng.random(npart).astype(dtype) - 0.5
     )
     ds3D = gpgi.load(**data_3D)
     assert ds3D.grid.ndim == 3
@@ -237,7 +237,7 @@ def test_readme_example():
     nx = ny = 64
     nparticles = 600_000
 
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
 
     ds = gpgi.load(
         geometry="cartesian",
@@ -249,8 +249,8 @@ def test_readme_example():
         },
         particles={
             "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "x": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
             },
             "fields": {
                 "mass": np.ones(nparticles),
@@ -287,14 +287,14 @@ def test_performance_logging(capsys, sample_2D_dataset):
 
 def test_return_ghost_padded_array():
     npart = 16
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
     ds = gpgi.load(
         geometry="cartesian",
         grid={
             "cell_edges": {"x": np.linspace(1, 2, 6)},
         },
         particles={
-            "coordinates": {"x": 1 + prng.random_sample(npart)},
+            "coordinates": {"x": 1 + rng.random(npart)},
             "fields": {"mass": np.ones(npart)},
         },
     )
@@ -352,7 +352,7 @@ def test_register_invalid_boundary_recipe():
     nx = ny = 64
     nparticles = 100
 
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -363,8 +363,8 @@ def test_register_invalid_boundary_recipe():
         },
         particles={
             "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "x": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
             },
             "fields": {
                 "mass": np.ones(nparticles),
@@ -393,7 +393,7 @@ def test_warn_register_override(capsys):
     nx = ny = 64
     nparticles = 100
 
-    prng = np.random.RandomState(0)
+    rng = np.random.default_rng(0)
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -404,8 +404,8 @@ def test_warn_register_override(capsys):
         },
         particles={
             "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "x": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
+                "y": 2 * (rng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
             },
             "fields": {
                 "mass": np.ones(nparticles),
