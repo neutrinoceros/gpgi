@@ -55,7 +55,7 @@ against a background that represents the deposited particle count.
     <img src="https://raw.githubusercontent.com/neutrinoceros/gpgi/main/tests/pytest_mpl_baseline/test_2D_deposit_ngp.png" width="600"></a>
 </p>
 
-This example illustrates the simplest possible deposition method "Particle in Cell", in which each particle contributes only to the cell
+This example illustrates the simplest possible deposition method, "Nearest Grid Point" (NGP), in which each particle contributes only to the cell
 that contains it.
 
 More refined methods are also available.
