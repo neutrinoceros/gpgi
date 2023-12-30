@@ -317,10 +317,10 @@ ds = ds.sorted()
 Note that this method returns a *copy* of the dataset, so it will best perform for datasets that, at most, fit in half your RAM.
 
 This operation is costly in itself, so there may be a trade-off depending on how many
-depositions ones needs to perform on a given dataset before tossing it out.
+depositions one needs to perform on a given dataset before tossing it out.
 
 By default, axes are weighted in the order that's optimal for gpgi's deposition routines,
-but arbitrary priority order may be specify as, for instance
+but arbitrary priority order may be specified as, for instance
 ```python
 ds = ds.sorted(axes=(1, 0))
 ```
