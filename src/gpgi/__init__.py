@@ -5,7 +5,7 @@ from typing import Any
 
 from .types import Dataset, FieldMap, Geometry, Grid, ParticleSet
 
-__version__ = "0.14.0"
+__version__ = "1.0.0dev0"
 
 
 def load(
