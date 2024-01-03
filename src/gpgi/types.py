@@ -672,15 +672,6 @@ class Dataset(ValidatorMixin):
 
            Boundary recipes are applied the weight field (if any) first.
         """
-        if method in ("pic", "particle_in_cell"):
-            warnings.warn(
-                f"{method=!r} is a deprecated alias for method='ngp', "
-                "please use 'ngp' (or 'nearest_grid_point') directly",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            method = "ngp"
-
         if callable(method):
             from inspect import signature
 
