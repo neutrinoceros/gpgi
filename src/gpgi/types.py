@@ -186,7 +186,7 @@ class ValidatorMixin(GeometricData, ABC):
             )  # pragma: no cover
 
         axes = known_axes[self.geometry][: len(self.axes)]
-        for i, (expected, actual) in enumerate(zip(axes, self.axes)):
+        for i, (expected, actual) in enumerate(zip(axes, self.axes, strict=True)):
             if actual != expected:
                 raise ValueError(
                     f"Got invalid axis name {actual!r} on position {i}, "
@@ -826,7 +826,7 @@ class Dataset(ValidatorMixin):
             # as a way to *expose* ordering.
             iax = axes.index(ax)
             bcs = tuple(self.boundary_recipes[key] for key in bv)
-            for side, bc in zip(("left", "right"), bcs):
+            for side, bc in zip(("left", "right"), bcs, strict=True):
                 side = cast(Literal["left", "right"], side)
                 active_index: int = 1 if side == "left" else -2
                 same_side_active_layer_idx = [slice(None)] * self.grid.ndim

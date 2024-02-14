@@ -16,7 +16,7 @@ def make_ext(path: str) -> Extension:
         include_dirs=[numpy.get_include()],
         define_macros=[
             # keep in sync with runtime requirements (pyproject.toml)
-            ("NPY_TARGET_VERSION", "NPY_1_21_API_VERSION"),
+            ("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"),
             ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
         ],
     )
