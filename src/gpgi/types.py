@@ -33,9 +33,9 @@ from collections.abc import Callable
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
-    from typing import Self
+    from typing import Self, assert_never
 else:
-    from typing_extensions import Self
+    from typing_extensions import Self, assert_never
 
     from ._backports import StrEnum
 
@@ -171,27 +171,26 @@ class ValidatorMixin(GeometricData, ABC):
                         )
 
     def _validate_geometry(self) -> None:
-        known_axes: dict[Geometry, tuple[Name, Name, Name]] = {
-            Geometry.CARTESIAN: ("x", "y", "z"),
-            Geometry.POLAR: ("radius", "azimuth", "z"),
-            Geometry.CYLINDRICAL: ("radius", "z", "azimuth"),
-            Geometry.SPHERICAL: ("radius", "colatitude", "azimuth"),
-            Geometry.EQUATORIAL: ("radius", "azimuth", "latitude"),
-        }
-        if self.geometry not in known_axes:
-            # TODO: when Python 3.10 is required, refactor as a match/case block
-            # and check that the default case is unreacheable at type check time
-            raise ValueError(
-                f"Unknown geometry {self.geometry.name.lower()!r}"
-            )  # pragma: no cover
+        match self.geometry:
+            case Geometry.CARTESIAN:
+                axes3D = ("x", "y", "z")
+            case Geometry.POLAR:
+                axes3D = ("radius", "azimuth", "z")
+            case Geometry.CYLINDRICAL:
+                axes3D = ("radius", "z", "azimuth")
+            case Geometry.SPHERICAL:
+                axes3D = ("radius", "colatitude", "azimuth")
+            case Geometry.EQUATORIAL:
+                axes3D = ("radius", "azimuth", "latitude")
+            case _ as unreachable:  # pragma: no cover
+                assert_never(unreachable)
 
-        axes = known_axes[self.geometry][: len(self.axes)]
-        for i, (expected, actual) in enumerate(zip(axes, self.axes, strict=True)):
+        for i, (expected, actual) in enumerate(zip(axes3D, self.axes, strict=False)):
             if actual != expected:
                 raise ValueError(
                     f"Got invalid axis name {actual!r} on position {i}, "
                     f"with geometry {self.geometry.name.lower()!r}\n"
-                    f"Expected axes ordered as {axes}"
+                    f"Expected axes ordered as {axes3D[: len(self.axes)]}"
                 )
 
 
