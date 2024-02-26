@@ -162,6 +162,29 @@ def test_unsorted_cell_edges():
             "max",
             2 * np.pi,
         ),
+        pytest.param(
+            "equatorial",
+            {
+                "radius": np.arange(10.0),
+                "azimuth": np.arange(6.0),
+                "latitude": np.arange(-10.0, +10.0),
+            },
+            "latitude",
+            "min",
+            -np.pi / 2,
+            marks=pytest.mark.xfail,
+        ),
+        (
+            "equatorial",
+            {
+                "radius": np.arange(10.0),
+                "azimuth": np.arange(10.0),
+                "latitude": np.arange(2.0),
+            },
+            "azimuth",
+            "max",
+            2 * np.pi,
+        ),
     ],
 )
 def test_load_invalid_grid_coordinates(geometry, coords, axis, side, limit):
