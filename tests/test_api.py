@@ -162,7 +162,7 @@ def test_unsorted_cell_edges():
             "max",
             2 * np.pi,
         ),
-        pytest.param(
+        (
             "equatorial",
             {
                 "radius": np.arange(10.0),
@@ -172,7 +172,6 @@ def test_unsorted_cell_edges():
             "latitude",
             "min",
             -np.pi / 2,
-            marks=pytest.mark.xfail,
         ),
         (
             "equatorial",

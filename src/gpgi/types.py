@@ -202,6 +202,7 @@ _AXES_LIMITS: dict[Name, tuple[float, float]] = {
     "radius": (0, float("inf")),
     "azimuth": (0, 2 * np.pi),
     "colatitude": (0, np.pi),
+    "latitude": (-np.pi / 2, np.pi / 2),
 }
 
 
