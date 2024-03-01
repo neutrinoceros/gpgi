@@ -53,7 +53,7 @@ jobs:
         # test with minimal requirements
         - os: ubuntu-20.04
           python-version: '3.10'
-          minimal: true
+          deps: minimal
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -67,7 +67,7 @@ jobs:
     - name: Upgrade pip
       run: python -m pip install --upgrade pip
 
-    - if: matrix.minimal
+    - if: matrix.deps == 'minimal'
       run: |
         pipx run uv pip compile pyproject.toml --resolution=lowest-direct > mindeps.txt
         python -m pip install --requirement mindeps.txt
