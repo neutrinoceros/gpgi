@@ -24,7 +24,7 @@ dependencies = [
     # keep in sync with NPY_TARGET_VERSION (setup.py)
     # https://github.com/scipy/oldest-supported-numpy/issues/76#issuecomment-1628865694
     "numpy>=1.23",
-    "typing-extensions>=4.0.0 ; python_version < '3.11'",
+    "typing-extensions>=4.1.0 ; python_version < '3.11'",
 ]
 
 [project.readme]
