@@ -1,4 +1,5 @@
 r"""Define the core data structures of the library: Grid, ParticleSet, and Dataset."""
+
 from __future__ import annotations
 
 import enum
@@ -125,8 +126,7 @@ class ValidatorMixin(GeometricData, ABC):
         self._validate()
 
     @abstractmethod
-    def _validate(self) -> None:
-        ...
+    def _validate(self) -> None: ...
 
     def _validate_fieldmaps(
         self,
