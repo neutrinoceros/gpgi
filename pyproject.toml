@@ -2,13 +2,13 @@
 requires = [
     "setuptools>=61.2",
     "Cython>=3.0",
-    "numpy>=1.25, <2.0",
+    "numpy>=2.0.0rc1",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "gpgi"
-version = "1.0.0dev0"
+version = "1.0.0"
 description = "A Generic Particle+Grid Interface"
 authors = [
     { name = "C.M.T. Robert" },
@@ -23,7 +23,7 @@ requires-python = ">=3.10"
 dependencies = [
     # keep in sync with NPY_TARGET_VERSION (setup.py)
     # https://github.com/scipy/oldest-supported-numpy/issues/76#issuecomment-1628865694
-    "numpy>=1.23",
+    "numpy>=1.23, <3",
     "typing-extensions>=4.1.0 ; python_version < '3.11'",
 ]
 
