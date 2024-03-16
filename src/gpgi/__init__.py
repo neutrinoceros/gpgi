@@ -1,7 +1,5 @@
 """gpgi: Fast particle deposition at post-processing time."""
 
-from __future__ import annotations
-
 from typing import Any
 
 from .types import Dataset, FieldMap, Geometry, Grid, ParticleSet
