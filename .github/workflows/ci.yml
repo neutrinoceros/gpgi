@@ -83,7 +83,7 @@ jobs:
     - name: Test
       run: |
         python -m pip list
-        python -m coverage run -m pytest --color=yes
+        python -m coverage run --parallel-mode -m pytest --color=yes
 
     - name: Upload coverage data
       # only using reports from ubuntu because
