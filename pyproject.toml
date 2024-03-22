@@ -58,7 +58,6 @@ omit = [
     "src/gpgi/_typing.py",
     "src/gpgi/lib/*.py",
 ]
-parallel = true
 
 [tool.coverage.report]
 show_missing = true
