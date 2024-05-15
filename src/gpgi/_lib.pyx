@@ -1,3 +1,12 @@
+# cython: freethreading_compatible = True
+# note that this macro is defined only to prevent the interpreter from
+# re-enabling the GIL when this extension is imported from, but the functions
+# themselves are absolutely not thread-safe since they work by mutating objects
+# that can be accessed from another thread (namely, the `out` argument).
+# This design choice was made to remove the overhead of memory allocation in
+# performance measurements. It is fine to keep this interface as long as the out
+# argument isn't directly exposed in public API.
+
 cimport cython
 cimport numpy as np
 from libc.math cimport floor, fmin
