@@ -10,7 +10,7 @@ from copy import deepcopy
 from functools import cached_property, partial, reduce
 from itertools import chain
 from time import monotonic_ns
-from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 import numpy as np
 
@@ -109,12 +109,12 @@ _BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
 }
 
 
-class GeometricData(Protocol):
+class GeometricData(ABC):
     geometry: Geometry
     axes: tuple[Name, ...]
 
 
-class CoordinateData(Protocol):
+class CoordinateData(ABC):
     geometry: Geometry
     axes: tuple[Name, ...]
     coordinates: FieldMap
