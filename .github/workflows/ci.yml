@@ -240,7 +240,8 @@ jobs:
       # the correct wheels for this build
       run: |
         python -m pip install pip>=24.1
-        python -m pip install --pre setuptools wheel Cython
+        python -m pip install --pre setuptools wheel
+        python -m pip install git+https://github.com/Cython/Cython.git
         python -m pip install --pre numpy \
           --extra-index-url \
             https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
