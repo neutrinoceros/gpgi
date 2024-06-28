@@ -36,6 +36,7 @@ jobs:
         python -m build
 
   unit-tests:
+    name: ${{matrix.os}} x py${{matrix.python-version}} ${{matrix.marker}}
     strategy:
       matrix:
         os:
@@ -44,6 +45,7 @@ jobs:
         - '3.10'
         - '3.11'
         - '3.12'
+
         include:
         - os: macos-latest
           python-version: '3.12'
@@ -51,9 +53,15 @@ jobs:
           python-version: '3.12'
 
         # test with minimal requirements
-        - os: ubuntu-20.04
+        - marker: minimal
+          os: ubuntu-20.04
           python-version: '3.10'
           deps: minimal
+
+        # test GPGI_PY_LIB
+        #- marker: PY_LIB
+        #  os: ubuntu-latest
+        #  python-version: '3.12'
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -73,8 +81,12 @@ jobs:
         python -m pip install --requirement mindeps.txt
 
     - name: Build library
+      env:
+        GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
       # install in editable mode to allow coverage measurement
-      run: python -m pip install --editable .
+      run: |
+        echo GPGI_PY_LIB=$GPGI_PY_LIB
+        python -m pip install --editable .
 
     - run: python -m pip install --requirement requirements/tests.txt
 
@@ -91,7 +103,7 @@ jobs:
       if: matrix.os == 'ubuntu-latest'
       uses: actions/upload-artifact@v4
       with:
-        name: gpgi_coverage_data-${{ matrix.os }}-${{ matrix.python-version }}
+        name: gpgi_coverage_data-${{matrix.os}}-${{matrix.python-version}}-${{matrix.marker}}
         path: .coverage.*
         if-no-files-found: ignore
 

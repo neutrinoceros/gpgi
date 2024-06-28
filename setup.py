@@ -1,33 +1,37 @@
 import os
 from distutils.extension import Extension
+from pathlib import Path
 
-import numpy
+import numpy as np
 from Cython.Build import cythonize
 from setuptools import setup
 
+SRC_DIR = Path(__file__).parent / "src" / "gpgi"
 
-def make_ext(path: str) -> Extension:
-    name, _ = os.path.splitext(path)
-    name = name.replace("/", ".")
-
-    return Extension(
-        name,
-        sources=[f"src/{path}"],
-        include_dirs=[numpy.get_include()],
-        define_macros=[
-            # keep in sync with runtime requirements (pyproject.toml)
-            ("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"),
-            ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
-        ],
-    )
-
-
-setup(
-    ext_modules=cythonize(
+if os.getenv("GPGI_PY_LIB", "0").lower() in ("1", "true"):
+    if not SRC_DIR.joinpath("_lib.py").exists():
+        raise RuntimeError(
+            "GPGI's pure Python implementation can only be built "
+            "from the development version in editable mode."
+        )
+    ext_modules = []
+    for sofile in SRC_DIR.glob("*.so"):
+        os.remove(sofile)
+else:
+    ext_modules = cythonize(
         [
-            make_ext("gpgi/clib/_indexing.pyx"),
-            make_ext("gpgi/clib/_deposition_methods.pyx"),
+            Extension(
+                "gpgi._lib",
+                sources=["src/gpgi/_lib.pyx"],
+                include_dirs=[np.get_include()],
+                define_macros=[
+                    # keep in sync with runtime requirements (pyproject.toml)
+                    ("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"),
+                    ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
+                ],
+            )
         ],
         compiler_directives={"language_level": 3},
-    ),
-)
+    )
+
+setup(ext_modules=ext_modules)

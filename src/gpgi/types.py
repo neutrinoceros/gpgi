@@ -6,6 +6,7 @@ import enum
 import sys
 import warnings
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from copy import deepcopy
 from functools import cached_property, partial, reduce
 from itertools import chain
@@ -15,7 +16,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 import numpy as np
 
 from ._boundaries import BoundaryRegistry
-from .clib._deposition_methods import (  # type: ignore [import]
+from ._lib import (
     _deposit_cic_1D,
     _deposit_cic_2D,
     _deposit_cic_3D,
@@ -25,12 +26,8 @@ from .clib._deposition_methods import (  # type: ignore [import]
     _deposit_tsc_1D,
     _deposit_tsc_2D,
     _deposit_tsc_3D,
+    _index_particles,
 )
-
-if TYPE_CHECKING:
-    from ._typing import HCIArray, RealArray
-
-from collections.abc import Callable
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -39,6 +36,10 @@ else:
     from typing_extensions import Self, assert_never
 
     from ._backports import StrEnum
+
+
+if TYPE_CHECKING:
+    from ._typing import HCIArray, RealArray
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
 
@@ -504,7 +505,6 @@ class Dataset(ValidatorMixin):
             # this line is hard to cover by testing just public api
             # because it's a pure performance optimization with no other observable effect
             return  # pragma: no cover
-        from .clib._indexing import _index_particles  # type: ignore [import]
 
         self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
 
