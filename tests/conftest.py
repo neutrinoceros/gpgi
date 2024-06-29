@@ -23,6 +23,6 @@ def pytest_runtest_setup(item):
 
 def pytest_report_header(config, start_path):
     return [
-        f"{gpgi._IS_PYLIB = }",
+        f"{gpgi._IS_PY_LIB = }",
         f"gpgi._lib loads from {find_spec('gpgi._lib').origin}",
     ]

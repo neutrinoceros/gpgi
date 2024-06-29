@@ -6,7 +6,7 @@ from typing import Any, Literal
 from ._typing import _GridDict, _ParticleSetDict
 from .types import Dataset, Geometry, Grid, ParticleSet
 
-_IS_PYLIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [union-attr]
+_IS_PY_LIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [union-attr]
 
 
 def load(
