@@ -28,6 +28,7 @@ from ._lib import (
     _deposit_tsc_3D,
     _index_particles,
 )
+from ._typing import FieldMap, Name
 
 if sys.version_info >= (3, 11):
     from enum import StrEnum
@@ -72,8 +73,6 @@ _deposition_method_names: dict[str, DepositionMethod] = {
 }
 
 
-Name = str
-FieldMap = dict[Name, np.ndarray]
 DepositionMethodT = Callable[
     [
         "RealArray",
@@ -396,7 +395,7 @@ class Dataset(ValidatorMixin):
         self,
         *,
         geometry: Geometry = Geometry.CARTESIAN,
-        grid: Grid | None = None,
+        grid: Grid,
         particles: ParticleSet | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
@@ -420,19 +419,6 @@ class Dataset(ValidatorMixin):
         """
         self.geometry = geometry
 
-        if grid is None:
-            if particles is None:
-                raise TypeError(
-                    "Cannot instantiate empty dataset. "
-                    "Grid and/or particle data must be provided"
-                )
-            dt = particles._get_safe_datatype()
-            grid = Grid(
-                geometry=particles.geometry,
-                cell_edges={
-                    ax: np.array(_AXES_LIMITS[ax], dtype=dt) for ax in particles.axes
-                },
-            )
         if particles is None:
             dt = grid._get_safe_datatype()
             particles = ParticleSet(
