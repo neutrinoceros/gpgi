@@ -1,18 +1,19 @@
 """gpgi: Fast particle deposition at post-processing time."""
 
 from importlib.util import find_spec
-from typing import Any
+from typing import Any, Literal
 
-from .types import Dataset, FieldMap, Geometry, Grid, ParticleSet
+from ._typing import _GridDict, _ParticleSetDict
+from .types import Dataset, Geometry, Grid, ParticleSet
 
 _IS_PYLIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [union-attr]
 
 
 def load(
     *,
-    geometry: str = "cartesian",
-    grid: dict[str, FieldMap] | None = None,
-    particles: dict[str, FieldMap] | None = None,
+    geometry: Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"],
+    grid: _GridDict,
+    particles: _ParticleSetDict | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> Dataset:
     r"""
@@ -23,7 +24,7 @@ def load(
     geometry: Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"]
         This flag is used for validation of axis names, order and domain limits.
 
-    grid: dict[str, FieldMap] (optional)
+    grid: dict[str, FieldMap]
         A dictionary representing the grid coordinates as 1D arrays of cell left edges,
         and on-grid fields as ND arrays (fields are assumed to be defined on cell
         centers)
@@ -45,13 +46,13 @@ def load(
             f"unknown geometry {geometry!r}, expected any of {tuple(_.value for _ in Geometry)}"
         ) from None
 
-    _grid: Grid | None = None
-    if grid is not None:
-        if "cell_edges" not in grid:
-            raise ValueError("grid dictionary missing required key 'cell_edges'")
-        _grid = Grid(
-            _geometry, cell_edges=grid["cell_edges"], fields=grid.get("fields", {})
-        )
+    if "cell_edges" not in grid:
+        raise ValueError("grid dictionary missing required key 'cell_edges'")
+    _grid = Grid(
+        _geometry,
+        cell_edges=grid["cell_edges"],
+        fields=grid.get("fields"),
+    )
 
     _particles: ParticleSet | None = None
     if particles is not None:
@@ -60,7 +61,7 @@ def load(
         _particles = ParticleSet(
             _geometry,
             coordinates=particles["coordinates"],
-            fields=particles.get("fields", {}),
+            fields=particles.get("fields"),
         )
 
     return Dataset(

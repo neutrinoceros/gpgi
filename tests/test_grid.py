@@ -39,12 +39,13 @@ def test_cell_volumes_curvilinear():
 
 def test_cell_volumes_shape():
     ds = gpgi.load(
+        geometry="cartesian",
         grid={
             "cell_edges": {
                 "x": np.linspace(0, 1, 3),
                 "y": np.linspace(0, 1, 4),
                 "z": np.linspace(0, 1, 5),
             }
-        }
+        },
     )
     assert ds.grid.cell_volumes.shape == ds.grid.shape

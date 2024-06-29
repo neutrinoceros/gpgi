@@ -7,13 +7,7 @@ import gpgi
 
 
 def test_load_null_dataset():
-    with pytest.raises(
-        TypeError,
-        match=(
-            "Cannot instantiate empty dataset. "
-            "Grid and/or particle data must be provided"
-        ),
-    ):
+    with pytest.raises(TypeError):
         gpgi.load(geometry="cartesian")
 
 
@@ -35,30 +29,17 @@ def test_load_standalone_grid():
     assert ds.metadata == {}
 
 
-def test_load_standalone_particles():
+def test_metadata():
+    md = {"time": 0.1}
     ds = gpgi.load(
         geometry="cartesian",
-        particles={
-            "coordinates": {
-                "x": np.array([0, 1]),
-                "y": np.array([0, 1]),
-                "z": np.array([0, 1]),
+        grid={
+            "cell_edges": {
+                "x": np.array([-10, 10]),
+                "y": np.array([-10, 10]),
+                "z": np.array([-10, 10]),
             }
         },
-    )
-    assert ds.particles.ndim == 3
-    assert ds.particles.axes == ("x", "y", "z")
-    assert ds.particles.count == 2
-    assert ds.grid.shape == (1, 1, 1)
-    assert ds.metadata == {}
-
-
-def test_metadata():
-    md = {
-        "time": 0.1,
-    }
-    ds = gpgi.load(
-        geometry="cartesian",
         particles={
             "coordinates": {
                 "x": np.array([0, 1]),
@@ -68,6 +49,7 @@ def test_metadata():
         },
         metadata=md,
     )
+    assert ds.grid.ndim == ds.particles.ndim == 3
     assert set(ds.metadata.items()) >= set(md.items())
     assert ds.metadata == md
     assert ds.metadata is not md
@@ -84,7 +66,11 @@ def test_load_empty_particles():
     with pytest.raises(
         ValueError, match="particles dictionary missing required key 'coordinates'"
     ):
-        gpgi.load(geometry="cartesian", particles={})
+        gpgi.load(
+            geometry="cartesian",
+            grid={"cell_edges": {"x": np.array([0, 1])}},
+            particles={},
+        )
 
 
 def test_unsorted_cell_edges():
@@ -99,13 +85,39 @@ def test_unsorted_cell_edges():
 
 
 @pytest.mark.parametrize(
-    "geometry, coords, axis, side, limit",
+    "geometry, cell_edges, coords, axis, side, limit",
     [
-        ("polar", {"radius": np.arange(-1.0, 1.0)}, "radius", "min", 0.0),
-        ("cylindrical", {"radius": np.arange(-1.0, 1.0)}, "radius", "min", 0.0),
-        ("spherical", {"radius": np.arange(-1.0, 1.0)}, "radius", "min", 0.0),
+        (
+            "polar",
+            {"radius": np.array([0.0, 1.0])},
+            {"radius": np.arange(-1.0, 1.0)},
+            "radius",
+            "min",
+            0.0,
+        ),
         (
             "cylindrical",
+            {"radius": np.array([0.0, 1.0])},
+            {"radius": np.arange(-1.0, 1.0)},
+            "radius",
+            "min",
+            0.0,
+        ),
+        (
+            "spherical",
+            {"radius": np.array([0.0, 1.0])},
+            {"radius": np.arange(-1.0, 1.0)},
+            "radius",
+            "min",
+            0.0,
+        ),
+        (
+            "cylindrical",
+            {
+                "radius": np.array([0.0, 100.0]),
+                "z": np.array([0.0, 100.0]),
+                "azimuth": np.array([0.0, 2 * np.pi]),
+            },
             {
                 "radius": np.arange(10.0),
                 "z": np.arange(10.0),
@@ -117,6 +129,11 @@ def test_unsorted_cell_edges():
         ),
         (
             "cylindrical",
+            {
+                "radius": np.array([0.0, 100.0]),
+                "z": np.array([0.0, 100.0]),
+                "azimuth": np.array([0.0, 2 * np.pi]),
+            },
             {
                 "radius": np.arange(10.0),
                 "z": np.arange(10.0),
@@ -128,6 +145,7 @@ def test_unsorted_cell_edges():
         ),
         (
             "spherical",
+            {"radius": np.array([0.0, 100.0]), "colatitude": np.array([0.0, np.pi])},
             {"radius": np.arange(10.0), "colatitude": np.arange(-10.0, 10.0)},
             "colatitude",
             "min",
@@ -135,6 +153,7 @@ def test_unsorted_cell_edges():
         ),
         (
             "spherical",
+            {"radius": np.array([0.0, 100.0]), "colatitude": np.array([0.0, np.pi])},
             {"radius": np.arange(10.0), "colatitude": np.arange(10.0)},
             "colatitude",
             "max",
@@ -142,6 +161,11 @@ def test_unsorted_cell_edges():
         ),
         (
             "spherical",
+            {
+                "radius": np.array([0.0, 100.0]),
+                "colatitude": np.array([0.0, np.pi]),
+                "azimuth": np.array([0, 2 * np.pi]),
+            },
             {
                 "radius": np.arange(10.0),
                 "colatitude": np.arange(2.0),
@@ -153,6 +177,11 @@ def test_unsorted_cell_edges():
         ),
         (
             "spherical",
+            {
+                "radius": np.array([0.0, 100.0]),
+                "colatitude": np.array([0.0, np.pi]),
+                "azimuth": np.array([0, 2 * np.pi]),
+            },
             {
                 "radius": np.arange(10.0),
                 "colatitude": np.arange(2.0),
@@ -164,6 +193,11 @@ def test_unsorted_cell_edges():
         ),
         (
             "equatorial",
+            {
+                "radius": np.array([0.0, 100.0]),
+                "azimuth": np.array([0, 2 * np.pi]),
+                "latitude": np.array([-np.pi / 2, np.pi / 2]),
+            },
             {
                 "radius": np.arange(10.0),
                 "azimuth": np.arange(6.0),
@@ -176,6 +210,11 @@ def test_unsorted_cell_edges():
         (
             "equatorial",
             {
+                "radius": np.array([0.0, 100.0]),
+                "azimuth": np.array([0, 2 * np.pi]),
+                "latitude": np.array([-np.pi / 2, np.pi / 2]),
+            },
+            {
                 "radius": np.arange(10.0),
                 "azimuth": np.arange(10.0),
                 "latitude": np.arange(2.0),
@@ -186,7 +225,9 @@ def test_unsorted_cell_edges():
         ),
     ],
 )
-def test_load_invalid_grid_coordinates(geometry, coords, axis, side, limit):
+def test_load_invalid_particles_coordinates(
+    geometry, cell_edges, coords, axis, side, limit
+):
     dt = coords[list(coords.keys())[0]].dtype.type
     if side == "min":
         c = dt(coords[axis].min())
@@ -199,7 +240,11 @@ def test_load_invalid_grid_coordinates(geometry, coords, axis, side, limit):
             rf"\({side}imal allowed value is {limit}\)"
         ),
     ):
-        gpgi.load(geometry=geometry, particles={"coordinates": coords})
+        gpgi.load(
+            geometry=geometry,
+            grid={"cell_edges": cell_edges},
+            particles={"coordinates": coords},
+        )
 
 
 def test_inconsistent_shape_particle_data():
@@ -209,6 +254,12 @@ def test_inconsistent_shape_particle_data():
     ):
         gpgi.load(
             geometry="cartesian",
+            grid={
+                "cell_edges": {
+                    "x": np.array([-1.0, 1.0]),
+                    "y": np.array([-1.0, 1.0]),
+                },
+            },
             particles={
                 "coordinates": {
                     "x": np.array([0, 0]),
@@ -294,7 +345,7 @@ def test_invalid_geometry():
             r"('cartesian', 'polar', 'cylindrical', 'spherical', 'equatorial')"
         ),
     ):
-        gpgi.load(geometry="unknown")
+        gpgi.load(geometry="unknown", grid={"cell_edges": {"ax": np.array([0.0, 1.0])}})
 
 
 def test_out_of_bound_particles_left():
