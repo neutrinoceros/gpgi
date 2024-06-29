@@ -1,4 +1,5 @@
 import os
+import sys
 from distutils.extension import Extension
 from pathlib import Path
 
@@ -15,7 +16,8 @@ if os.getenv("GPGI_PY_LIB", "0").lower() in ("1", "true"):
             "from the development version in editable mode."
         )
     ext_modules = []
-    for sofile in SRC_DIR.glob("*.so"):
+    pattern = "*.pyd" if sys.platform.startswith("win") else "*.so"
+    for sofile in SRC_DIR.glob(pattern):
         os.remove(sofile)
 else:
     ext_modules = cythonize(
