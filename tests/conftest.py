@@ -17,3 +17,7 @@ def pytest_runtest_setup(item):
         return
     if any(item.iter_markers(name="mpl_image_compare")):  # pragma: no cover
         pytest.skip("missing requirement: pytest_mpl")
+
+
+def pytest_report_header(config, start_path):
+    return f"gpgi._lib loads from {find_spec('gpgi._lib').origin}"

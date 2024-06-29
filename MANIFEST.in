@@ -1,7 +1,9 @@
 include LICENCE
 include src/gpgi/py.typed
-include src/gpgi/clib/*.pyx
-exclude src/gpgi/clib/*.c
+include src/gpgi/_lib.pyi
+include src/gpgi/_lib.pyx
+exclude src/gpgi/_lib.c
+exclude src/gpgi/_lib.py
 
 recursive-exclude tests *
 exclude .pre-commit-config.yaml
