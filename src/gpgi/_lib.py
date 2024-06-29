@@ -291,6 +291,7 @@ def _deposit_tsc_1D(
 
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
+        assert d >= 0
         w[0] = 0.5 * (1 - d) ** 2
         w[1] = 0.75 - (d - 0.5) ** 2
         w[2] = 0.5 * d**2
@@ -326,7 +327,7 @@ def _deposit_tsc_2D(
         x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
-        assert d > 0
+        assert d >= 0
         w1[0] = 0.5 * (1 - d) ** 2
         w1[1] = 0.75 - (d - 0.5) ** 2
         w1[2] = 0.5 * d**2
@@ -334,7 +335,7 @@ def _deposit_tsc_2D(
         x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
-        assert d > 0
+        assert d >= 0
         w2[0] = 0.5 * (1 - d) ** 2
         w2[1] = 0.75 - (d - 0.5) ** 2
         w2[2] = 0.5 * d**2
@@ -376,7 +377,7 @@ def _deposit_tsc_3D(
         x = particles_x1[ipart]
         ci = hci[ipart, 0]
         d = (x - cell_edges_x1[ci]) / (cell_edges_x1[ci + 1] - cell_edges_x1[ci])
-        assert d > 0
+        assert d >= 0
         w1[0] = 0.5 * (1 - d) ** 2
         w1[1] = 0.75 - (d - 0.5) ** 2
         w1[2] = 0.5 * d**2
@@ -384,7 +385,7 @@ def _deposit_tsc_3D(
         x = particles_x2[ipart]
         cj = hci[ipart, 1]
         d = (x - cell_edges_x2[cj]) / (cell_edges_x2[cj + 1] - cell_edges_x2[cj])
-        assert d > 0
+        assert d >= 0
         w2[0] = 0.5 * (1 - d) ** 2
         w2[1] = 0.75 - (d - 0.5) ** 2
         w2[2] = 0.5 * d**2
@@ -392,7 +393,7 @@ def _deposit_tsc_3D(
         x = particles_x3[ipart]
         ck = hci[ipart, 2]
         d = (x - cell_edges_x3[ck]) / (cell_edges_x3[ck + 1] - cell_edges_x3[ck])
-        assert d > 0
+        assert d >= 0
         w3[0] = 0.5 * (1 - d) ** 2
         w3[1] = 0.75 - (d - 0.5) ** 2
         w3[2] = 0.5 * d**2
