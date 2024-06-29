@@ -128,7 +128,7 @@ class ValidatorMixin(GeometricData, ABC):
     @abstractmethod
     def _validate(self) -> None: ...
 
-    def _validate_fieldmaps(
+    def _validate_FieldMaps(
         self,
         *fmaps: FieldMap | None,
         require_shape_equality: bool = False,
@@ -294,8 +294,8 @@ class Grid(_CoordinateValidatorMixin):
     def _validate(self) -> None:
         self._validate_geometry()
         self._validate_coordinates()
-        self._validate_fieldmaps(self.cell_edges, ndim=1, require_sorted=True)
-        self._validate_fieldmaps(
+        self._validate_FieldMaps(self.cell_edges, ndim=1, require_sorted=True)
+        self._validate_FieldMaps(
             self.fields,
             size=self.size,
             ndim=self.ndim,
@@ -375,7 +375,7 @@ class ParticleSet(_CoordinateValidatorMixin):
     def _validate(self) -> None:
         self._validate_geometry()
         self._validate_coordinates()
-        self._validate_fieldmaps(
+        self._validate_FieldMaps(
             self.coordinates, self.fields, require_shape_equality=True, ndim=1
         )
 
