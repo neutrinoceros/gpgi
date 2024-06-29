@@ -56,7 +56,6 @@ include = [
 omit = [
     "src/gpgi/_backports.py",
     "src/gpgi/_typing.py",
-    "src/gpgi/_lib.py",
 ]
 
 [tool.coverage.report]
