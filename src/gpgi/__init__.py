@@ -1,8 +1,11 @@
 """gpgi: Fast particle deposition at post-processing time."""
 
+from importlib.util import find_spec
 from typing import Any
 
 from .types import Dataset, FieldMap, Geometry, Grid, ParticleSet
+
+_IS_PYLIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [union-attr]
 
 
 def load(
