@@ -525,6 +525,10 @@ def test_closed_boundaries(method, boundaries, unary_mass_dataset):
     assert arr.sum() == pytest.approx(expected, rel=1e-12)
 
 
+@pytest.mark.skipif(
+    gpgi._IS_PYLIB,
+    reason="weight_field is not implemented with gpgi._IS_PYLIB",
+)
 def test_deposit_with_weight_field(sample_2D_dataset):
     sample_2D_dataset.deposit("vx", method="tsc", weight_field="mass")
 
