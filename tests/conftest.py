@@ -2,6 +2,8 @@ from importlib.util import find_spec
 
 import pytest
 
+import gpgi
+
 HAVE_PYTEST_MPL = find_spec("pytest_mpl") is not None
 
 
@@ -20,4 +22,7 @@ def pytest_runtest_setup(item):
 
 
 def pytest_report_header(config, start_path):
-    return f"gpgi._lib loads from {find_spec('gpgi._lib').origin}"
+    return [
+        f"{gpgi._IS_PYLIB = }",
+        f"gpgi._lib loads from {find_spec('gpgi._lib').origin}",
+    ]
