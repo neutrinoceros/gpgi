@@ -45,6 +45,7 @@ jobs:
         - '3.10'
         - '3.11'
         - '3.12'
+        marker: [''] # needed to avoid collision with PY_LIB job
 
         include:
         - os: macos-latest
@@ -59,9 +60,9 @@ jobs:
           deps: minimal
 
         # test GPGI_PY_LIB
-        #- marker: PY_LIB
-        #  os: ubuntu-latest
-        #  python-version: '3.12'
+        - marker: PY_LIB
+          os: ubuntu-latest
+          python-version: '3.12'
 
     runs-on: ${{ matrix.os }}
     steps:
