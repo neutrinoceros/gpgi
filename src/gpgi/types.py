@@ -689,11 +689,6 @@ class Dataset(ValidatorMixin):
 
             func = _BUILTIN_METHODS[mkey][self.grid.ndim - 1]
 
-        if self.grid.size == 1:
-            warnings.warn(
-                "Depositing on a single-cell grid is undefined behavior",
-                stacklevel=2,
-            )
         if self.particles.count == 0:
             raise TypeError("Cannot deposit particle fields on a particle-less dataset")
         if not self.particles.fields:
