@@ -47,37 +47,24 @@ def sample_2D_dataset():
     )
 
 
-def test_single_cell_grid():
-    # TODO: drop support for this use case (infinite boundaries)
+@pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
+def test_single_cell_grid(method):
     ds = gpgi.load(
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.array([-np.inf, np.inf]),
+                "x": np.array([-1.0, 1.0]),
             },
         },
         particles={
-            "coordinates": {"x": np.arange(10, dtype="float64")},
+            "coordinates": {"x": 0.1 * np.arange(10, dtype="float64") - 0.5},
             "fields": {"mass": np.ones(10, dtype="float64")},
         },
     )
     with pytest.warns(
-        UserWarning, match="Depositing on a single-cell grid is undefined behaviour"
+        UserWarning, match="Depositing on a single-cell grid is undefined behavior"
     ):
-        ds.deposit("mass", method="ngp")
-
-
-def test_missing_grid():
-    with pytest.raises(
-        TypeError, match=r"load\(\) missing 1 required keyword-only argument: 'grid'"
-    ):
-        gpgi.load(
-            geometry="cartesian",
-            particles={
-                "coordinates": {"x": np.arange(10, dtype="float64")},
-                "fields": {"mass": np.ones(10, dtype="float64")},
-            },
-        )
+        ds.deposit("mass", method=method)
 
 
 def test_missing_particles():

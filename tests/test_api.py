@@ -85,6 +85,41 @@ def test_unsorted_cell_edges():
 
 
 @pytest.mark.parametrize(
+    "side, out_of_bounds_value",
+    [
+        ("min", -float("inf")),
+        ("max", float("inf")),
+    ],
+)
+def test_infinite_box_edges(side, out_of_bounds_value):
+    if side == "min":
+        xlim = np.array([-np.inf, 1.0])
+    elif side == "max":
+        xlim = np.array([-0.1, +np.inf])
+    with pytest.raises(
+        ValueError,
+        match=(
+            f"Invalid coordinate data for axis 'x' {out_of_bounds_value} "
+            rf"\(value must be finite\)"
+        ),
+    ):
+        gpgi.load(geometry="cartesian", grid={"cell_edges": {"x": xlim}})
+
+
+def test_missing_grid():
+    with pytest.raises(
+        TypeError, match=r"load\(\) missing 1 required keyword-only argument: 'grid'"
+    ):
+        gpgi.load(
+            geometry="cartesian",
+            particles={
+                "coordinates": {"x": np.arange(10, dtype="float64")},
+                "fields": {"mass": np.ones(10, dtype="float64")},
+            },
+        )
+
+
+@pytest.mark.parametrize(
     "geometry, cell_edges, coords, axis, side, limit",
     [
         (
@@ -237,7 +272,7 @@ def test_load_invalid_particles_coordinates(
         ValueError,
         match=(
             f"Invalid coordinate data for axis {axis!r} {c} "
-            rf"\({side}imal allowed value is {limit}\)"
+            rf"\({side}imal value allowed is {limit}\)"
         ),
     ):
         gpgi.load(
