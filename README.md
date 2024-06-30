@@ -178,7 +178,7 @@ ds = gpgi.load(
 
 With CIC and TSC deposition, particles contribute to cells neighbouring the one
 that contains them. For particles that live in the outermost layer of the
-domain, this means some of their contribution is lost. This behaviour
+domain, this means some of their contribution is lost. This behavior
 corresponds to the default `'open'` boundary condition, but `gpgi` has builtin
 support for more conservative boundary conditions.
 

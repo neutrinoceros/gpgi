@@ -3,6 +3,7 @@ r"""Define the core data structures of the library: Grid, ParticleSet, and Datas
 from __future__ import annotations
 
 import enum
+import math
 import sys
 import warnings
 from abc import ABC, abstractmethod
@@ -229,22 +230,32 @@ class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
             coord_dtype = self._get_safe_datatype(coord)
             dt = coord_dtype.type
             xmin, xmax = (dt(_) for _ in _AXES_LIMITS[axis])
-            if (cmin := dt(np.min(coord))) < xmin:
+            if (cmin := dt(np.min(coord))) < xmin or not math.isfinite(cmin):
+                if math.isfinite(xmin):
+                    hint = f"minimal value allowed is {xmin}"
+                else:
+                    assert xmin == -float("inf")
+                    hint = "value must be finite"
                 raise ValueError(
-                    f"Invalid coordinate data for axis {axis!r} {cmin} "
-                    f"(minimal allowed value is {xmin})"
+                    f"Invalid coordinate data for axis {axis!r} {cmin} ({hint})"
                 )
-            if (cmax := dt(np.max(coord))) > xmax:
+            if (cmax := dt(np.max(coord))) > xmax or not math.isfinite(cmax):
+                if math.isfinite(xmax):
+                    hint = f"maximal value allowed is {xmax}"
+                else:
+                    assert xmax == float("inf")
+                    hint = "value must be finite"
                 raise ValueError(
-                    f"Invalid coordinate data for axis {axis!r} {cmax} "
-                    f"(maximal allowed value is {xmax})"
+                    f"Invalid coordinate data for axis {axis!r} {cmax} ({hint})"
                 )
 
             self.coordinates[axis] = coord.astype(coord_dtype, copy=False)
 
     def _get_safe_datatype(self, reference: np.ndarray | None = None) -> np.dtype:
         # int32 and int64 are fragile because they cannot represent "+/-inf",
-        # which we use as default box boundaries, e.g. for cartesian datasets
+        # which in gpgi 1.0 were used as default box boundaries, e.g. for
+        # cartesian datasets.
+        # This behavior is preserved for backward compatibility.
         if reference is None:
             reference = self.coordinates[self.axes[0]]
         dt = reference.dtype
@@ -680,7 +691,7 @@ class Dataset(ValidatorMixin):
 
         if self.grid.size == 1:
             warnings.warn(
-                "Depositing on a single-cell grid is undefined behaviour",
+                "Depositing on a single-cell grid is undefined behavior",
                 stacklevel=2,
             )
         if self.particles.count == 0:
