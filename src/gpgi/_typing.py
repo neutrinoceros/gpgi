@@ -15,14 +15,53 @@ HCIArray = npt.NDArray[np.uint16]
 
 
 Name = str
-FieldMap = dict[Name, np.ndarray]
+FieldMap = dict[str, np.ndarray]
 
 
-class _GridDict(TypedDict):
-    cell_edges: FieldMap
+class CartesianCoordinates(TypedDict):
+    x: np.ndarray
+    y: NotRequired[np.ndarray]
+    z: NotRequired[np.ndarray]
+
+
+class CylindricalCoordinates(TypedDict):
+    radius: np.ndarray
+    azimuth: NotRequired[np.ndarray]
+    z: NotRequired[np.ndarray]
+
+
+class PolarCoordinates(TypedDict):
+    radius: np.ndarray
+    z: NotRequired[np.ndarray]
+    azimuth: NotRequired[np.ndarray]
+
+
+class SphericalCoordinates(TypedDict):
+    colatitude: np.ndarray
+    radius: NotRequired[np.ndarray]
+    azimuth: NotRequired[np.ndarray]
+
+
+class EquatorialCoordinates(TypedDict):
+    radius: np.ndarray
+    latitude: NotRequired[np.ndarray]
+    azimuth: NotRequired[np.ndarray]
+
+
+CoordMap = (
+    CartesianCoordinates
+    | CylindricalCoordinates
+    | PolarCoordinates
+    | SphericalCoordinates
+    | EquatorialCoordinates
+)
+
+
+class GridDict(TypedDict):
+    cell_edges: CoordMap
     fields: NotRequired[FieldMap]
 
 
-class _ParticleSetDict(TypedDict):
-    coordinates: FieldMap
+class ParticleSetDict(TypedDict):
+    coordinates: CoordMap
     fields: NotRequired[FieldMap]

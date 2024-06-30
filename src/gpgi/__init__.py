@@ -1,9 +1,9 @@
 """gpgi: Fast particle deposition at post-processing time."""
 
 from importlib.util import find_spec
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
-from ._typing import _GridDict, _ParticleSetDict
+from ._typing import FieldMap, GridDict, ParticleSetDict
 from .types import Dataset, Geometry, Grid, ParticleSet
 
 _IS_PY_LIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [union-attr]
@@ -12,8 +12,8 @@ _IS_PY_LIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [unio
 def load(
     *,
     geometry: Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"],
-    grid: _GridDict,
-    particles: _ParticleSetDict | None = None,
+    grid: GridDict,
+    particles: ParticleSetDict | None = None,
     metadata: dict[str, Any] | None = None,
 ) -> Dataset:
     r"""
@@ -50,7 +50,7 @@ def load(
         raise ValueError("grid dictionary missing required key 'cell_edges'")
     _grid = Grid(
         _geometry,
-        cell_edges=grid["cell_edges"],
+        cell_edges=cast(FieldMap, grid["cell_edges"]),
         fields=grid.get("fields"),
     )
 
@@ -60,7 +60,7 @@ def load(
             raise ValueError("particles dictionary missing required key 'coordinates'")
         _particles = ParticleSet(
             _geometry,
-            coordinates=particles["coordinates"],
+            coordinates=cast(FieldMap, particles["coordinates"]),
             fields=particles.get("fields"),
         )
 
