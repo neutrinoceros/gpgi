@@ -61,10 +61,8 @@ def test_single_cell_grid(method):
             "fields": {"mass": np.ones(10, dtype="float64")},
         },
     )
-    with pytest.warns(
-        UserWarning, match="Depositing on a single-cell grid is undefined behavior"
-    ):
-        ds.deposit("mass", method=method)
+    out = ds.deposit("mass", method=method, return_ghost_padded_array=True)
+    assert np.sum(out) == ds.particles.count
 
 
 def test_missing_particles():
