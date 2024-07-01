@@ -11,6 +11,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from functools import cached_property, partial, reduce
 from itertools import chain
+from textwrap import indent
 from time import monotonic_ns
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -302,6 +303,16 @@ class Grid(_CoordinateValidatorMixin):
                 # got a constant step in this direction, store it
                 self._dx[i] = self.coordinates[ax][1] - self.coordinates[ax][0]
 
+    def __repr__(self) -> str:
+        """Implement repr(Grid(...))."""
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"    geometry={str(self.geometry)!r},\n"
+            f"    cell_edges={self.coordinates},\n"
+            f"    fields={self.fields},\n"
+            ")"
+        )
+
     def _validate(self) -> None:
         self._validate_geometry()
         self._validate_coordinates()
@@ -383,6 +394,16 @@ class ParticleSet(_CoordinateValidatorMixin):
         self.axes = tuple(self.coordinates.keys())
         super().__init__()
 
+    def __repr__(self) -> str:
+        """Implement repr(ParticleSet(...))."""
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"    geometry={str(self.geometry)!r},\n"
+            f"    coordinates={self.coordinates},\n"
+            f"    fields={self.fields},\n"
+            ")"
+        )
+
     def _validate(self) -> None:
         self._validate_geometry()
         self._validate_coordinates()
@@ -445,6 +466,17 @@ class Dataset(ValidatorMixin):
         self.metadata = deepcopy(metadata) if metadata is not None else {}
 
         super().__init__()
+
+    def __repr__(self) -> Name:
+        """Implement repr(Dataset(...))."""
+        return (
+            f"{self.__class__.__name__}(\n"
+            f"    geometry={str(self.geometry)!r},\n"
+            f"    grid={indent(str(self.grid), ' '*4).lstrip()},\n"
+            f"    particles={indent(str(self.particles), ' '*4).lstrip()},\n"
+            f"    metadata={self.metadata},\n"
+            ")"
+        )
 
     def _validate(self) -> None:
         if self.particles.count == 0:
