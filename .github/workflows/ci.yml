@@ -26,10 +26,11 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: 3.x
-    - run: |
-        python -m pip install --upgrade pip
-        python -m pip install --upgrade check-manifest
-        python -m pip install --upgrade build
+    - uses: yezz123/setup-uv@v4
+      with:
+        uv-version: 0.2.18
+        uv-venv: .venv
+    - run: uv pip install check-manifest build
     - name: Check build
       run: |
         python -m check_manifest
@@ -73,13 +74,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Upgrade pip
-      run: python -m pip install --upgrade pip
+    - uses: yezz123/setup-uv@v4
+      with:
+        uv-version: 0.2.18
+        uv-venv: .venv
 
     - if: matrix.deps == 'minimal'
       run: |
-        pipx run uv pip compile pyproject.toml --resolution=lowest-direct > mindeps.txt
-        python -m pip install --requirement mindeps.txt
+        uv pip compile pyproject.toml --resolution=lowest-direct > mindeps.txt
+        uv pip install --requirement mindeps.txt
 
     - name: Build library
       env:
@@ -87,11 +90,11 @@ jobs:
       # install in editable mode to allow coverage measurement
       run: |
         echo GPGI_PY_LIB=$GPGI_PY_LIB
-        python -m pip install --editable .
+        uv pip install --editable .
 
-    - run: python -m pip install --requirement requirements/tests.txt
+    - run: uv pip install --requirement requirements/tests.txt
 
-    - run: python -m pip list
+    - run: uv pip list
 
     - name: Test
       run: |
@@ -112,19 +115,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: 3.x
 
-    - uses: actions/checkout@v4
+    - uses: yezz123/setup-uv@v4
+      with:
+        uv-version: 0.2.18
+        uv-venv: .venv
 
     - name: Build library
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install .
+      run: uv pip install .
 
-    - run: python -m pip install --requirement requirements/tests.txt
+    - run: uv pip install --requirement requirements/tests.txt
 
     - name: Run Image Tests
       run: |
@@ -170,7 +175,12 @@ jobs:
         # Use latest Python, so it understands all syntax.
         python-version: 3.x
 
-    - run: python -m pip install --upgrade coverage[toml]
+    - uses: yezz123/setup-uv@v4
+      with:
+        uv-version: 0.2.18
+        uv-venv: .venv
+
+    - run: uv pip install 'coverage[toml]'
 
     - uses: actions/download-artifact@v4
       with:
@@ -209,14 +219,17 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - uses: yezz123/setup-uv@v4
+      with:
+        uv-version: 0.2.18
+        uv-venv: .venv
+
     - name: Build
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install --requirement requirements/typecheck.txt
+      run: uv pip install --requirement requirements/typecheck.txt
 
     - name: Typecheck
       run: |
-        python -m pip freeze
+        uv pip freeze
         mypy src/gpgi
 
 
@@ -237,22 +250,25 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - uses: yezz123/setup-uv@v4
+      with:
+        uv-version: 0.2.18
+        uv-venv: .venv
+
     - name: Build
       # install numpy from source until there are nightly wheels for 3.13
       # at https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install --pre setuptools wheel Cython
-        python -m pip install --pre numpy \
+        uv pip install --pre setuptools wheel Cython
+        uv pip install --pre numpy \
           --extra-index-url \
-            https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
-        python -m pip install . --no-build-isolation
+          https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+        uv pip install . --no-build-isolation
 
     - name: Install minimal test env
-      run: |
-        python -m pip install --pre pytest
+      run: uv pip install --pre pytest
 
-    - run: python -m pip list
+    - run: uv pip list
 
     - name: Tests
       run: pytest --color=yes
