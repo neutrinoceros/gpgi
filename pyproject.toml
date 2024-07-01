@@ -122,3 +122,22 @@ filterwarnings = [
   "error",
   'ignore:datetime\.datetime\.utcfromtimestamp\(\) is deprecated:DeprecationWarning', # https://github.com/dateutil/dateutil/pull/1285
 ]
+
+[tool.cibuildwheel]
+build = "cp310-* cp311-* cp312-*"
+build-frontend = "build[uv]"
+build-verbosity = 1
+test-skip = "*-musllinux*"
+test-command = [
+    "uv pip install -r {project}/requirements/tests.txt",
+    "pytest {project} --color=yes -ra",
+]
+
+[tool.cibuildwheel.linux]
+archs = "x86_64"
+
+[tool.cibuildwheel.macos]
+archs = "auto64"
+
+[tool.cibuildwheel.windows]
+archs = "AMD64"
