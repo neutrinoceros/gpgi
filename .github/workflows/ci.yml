@@ -221,7 +221,7 @@ jobs:
 
 
   future:
-    name: py${{ matrix.python-version }}
+    name: 'py${{ matrix.python-version }} (free-threading: ${{ matrix.free-threading }})'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -230,19 +230,30 @@ jobs:
       matrix:
         python-version:
         - 3.13-dev
+        free-threading:
+        - false
+        - true
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - if: ${{ !matrix.free-threading }}
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
+    - if: ${{ matrix.free-threading }}
+      uses: deadsnakes/action@v3.1.0
+      with:
+        python-version: ${{ matrix.python-version }}
+        nogil: true
+
     - name: Build
-      # install numpy from source until there are nightly wheels for 3.13
-      # at https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
+      # pip 24.1 or newer is needed on cp313t, older versions will not pick up
+      # the correct wheels for this build
       run: |
-        python -m pip install --upgrade pip
-        python -m pip install --pre setuptools wheel Cython
+        python -m pip install pip>=24.1
+        python -m pip install --pre setuptools wheel
+        python -m pip install git+https://github.com/Cython/Cython.git
         python -m pip install --pre numpy \
           --extra-index-url \
             https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
