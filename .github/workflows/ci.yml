@@ -81,8 +81,7 @@ jobs:
 
     - if: matrix.deps == 'minimal'
       run: |
-        uv pip compile pyproject.toml --resolution=lowest-direct > mindeps.txt
-        uv pip install --requirement mindeps.txt
+        uv pip compile pyproject.toml --resolution=lowest-direct | uv pip install -r -
 
     - name: Build library
       env:
