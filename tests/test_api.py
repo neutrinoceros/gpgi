@@ -16,9 +16,9 @@ def test_load_standalone_grid():
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.array([0, 1]),
-                "y": np.array([0, 1]),
-                "z": np.array([0, 1]),
+                "x": np.array([0.0, 1.0]),
+                "y": np.array([0.0, 1]),
+                "z": np.array([0.0, 1.0]),
             }
         },
     )
@@ -35,16 +35,16 @@ def test_metadata():
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.array([-10, 10]),
-                "y": np.array([-10, 10]),
-                "z": np.array([-10, 10]),
+                "x": np.array([-10.0, 10.0]),
+                "y": np.array([-10.0, 10.0]),
+                "z": np.array([-10.0, 10.0]),
             }
         },
         particles={
             "coordinates": {
-                "x": np.array([0, 1]),
-                "y": np.array([0, 1]),
-                "z": np.array([0, 1]),
+                "x": np.array([0.0, 1.0]),
+                "y": np.array([0.0, 1.0]),
+                "z": np.array([0.0, 1.0]),
             }
         },
         metadata=md,
@@ -68,7 +68,7 @@ def test_load_empty_particles():
     ):
         gpgi.load(
             geometry="cartesian",
-            grid={"cell_edges": {"x": np.array([0, 1])}},
+            grid={"cell_edges": {"x": np.array([0.0, 1.0])}},
             particles={},
         )
 
@@ -81,7 +81,9 @@ def test_unsorted_cell_edges():
             r"Got 1.0 (index 0) > 0.0 (index 1)"
         ),
     ):
-        gpgi.load(geometry="cartesian", grid={"cell_edges": {"x": np.array([1, 0])}})
+        gpgi.load(
+            geometry="cartesian", grid={"cell_edges": {"x": np.array([1.0, 0.0])}}
+        )
 
 
 @pytest.mark.parametrize(
@@ -104,6 +106,20 @@ def test_infinite_box_edges(side, out_of_bounds_value):
         ),
     ):
         gpgi.load(geometry="cartesian", grid={"cell_edges": {"x": xlim}})
+
+
+@pytest.mark.parametrize("dtype", ["int16", "int32", "int64"])
+def test_integer_dtype(dtype):
+    with pytest.raises(
+        ValueError,
+        match=f"Invalid data type {dtype}",
+    ):
+        gpgi.load(
+            geometry="cartesian",
+            grid={
+                "cell_edges": {"x": np.arange(10, dtype=dtype)},
+            },
+        )
 
 
 def test_missing_grid():
@@ -297,8 +313,8 @@ def test_inconsistent_shape_particle_data():
             },
             particles={
                 "coordinates": {
-                    "x": np.array([0, 0]),
-                    "y": np.array([0, 0, 0]),
+                    "x": np.array([0.0, 0.0]),
+                    "y": np.array([0.0, 0.0, 0.0]),
                 }
             },
         )
@@ -324,8 +340,8 @@ def test_inconsistent_grid_data(data, invalid_attr, expected):
             geometry="cartesian",
             grid={
                 "cell_edges": {
-                    "x": np.array([0, 0]),
-                    "y": np.array([0, 0, 0]),
+                    "x": np.array([0.0, 0.0]),
+                    "y": np.array([0.0, 0.0, 0.0]),
                 },
                 "fields": {
                     "density": data,
@@ -339,8 +355,8 @@ def test_validate_empty_fields():
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.array([0, 0]),
-                "y": np.array([0, 0, 0]),
+                "x": np.array([0.0, 0.0]),
+                "y": np.array([0.0, 0.0, 0.0]),
             },
             "fields": {},
         },
@@ -389,8 +405,8 @@ def test_out_of_bound_particles_left():
     ):
         gpgi.load(
             geometry="spherical",
-            grid={"cell_edges": {"radius": np.arange(10, 101)}},
-            particles={"coordinates": {"radius": np.array([1])}},
+            grid={"cell_edges": {"radius": np.arange(10, 101, dtype="float64")}},
+            particles={"coordinates": {"radius": np.array([1.0])}},
         )
 
 
@@ -400,8 +416,8 @@ def test_out_of_bound_particles_right():
     ):
         gpgi.load(
             geometry="spherical",
-            grid={"cell_edges": {"radius": np.arange(10, 101)}},
-            particles={"coordinates": {"radius": np.array([1000])}},
+            grid={"cell_edges": {"radius": np.arange(10, 101, dtype="float64")}},
+            particles={"coordinates": {"radius": np.array([1000.0])}},
         )
 
 
