@@ -25,7 +25,7 @@ def test_cell_volumes_curvilinear():
         geometry="cylindrical",
         grid={
             "cell_edges": {
-                "radius": np.arange(11, dtype="int64"),
+                "radius": np.arange(11, dtype="float64"),
                 "z": np.arange(0, 1.1, 0.1),
             }
         },

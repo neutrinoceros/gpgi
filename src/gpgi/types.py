@@ -253,18 +253,14 @@ class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
             self.coordinates[axis] = coord.astype(coord_dtype, copy=False)
 
     def _get_safe_datatype(self, reference: np.ndarray | None = None) -> np.dtype:
-        # int32 and int64 are fragile because they cannot represent "+/-inf",
-        # which in gpgi 1.0 were used as default box boundaries, e.g. for
-        # cartesian datasets.
-        # This behavior is preserved for backward compatibility.
         if reference is None:
             reference = self.coordinates[self.axes[0]]
         dt = reference.dtype
-        dt_str = str(dt)
-        if dt_str.startswith("int"):
-            return np.dtype(f"float{dt_str[3:]}")
-        else:
-            return np.dtype(dt)
+        if dt.kind != "f":
+            raise ValueError(f"Invalid data type {dt} (expected a float dtype)")
+        # return type should already be correct but
+        # this has the benefit of convincing mypy
+        return np.dtype(dt)
 
 
 class Grid(_CoordinateValidatorMixin):

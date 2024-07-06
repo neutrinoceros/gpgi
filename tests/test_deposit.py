@@ -69,7 +69,7 @@ def test_missing_particles():
     ds = gpgi.load(
         geometry="cartesian",
         grid={
-            "cell_edges": {"x": np.arange(10)},
+            "cell_edges": {"x": np.arange(10, dtype="float64")},
         },
     )
     with pytest.raises(
@@ -82,9 +82,9 @@ def test_missing_fields():
     ds = gpgi.load(
         geometry="cartesian",
         grid={
-            "cell_edges": {"x": np.arange(10)},
+            "cell_edges": {"x": np.arange(10, dtype="float64")},
         },
-        particles={"coordinates": {"x": np.arange(10)}},
+        particles={"coordinates": {"x": np.arange(10, dtype="float64")}},
     )
     with pytest.raises(TypeError, match="There are no particle fields"):
         ds.deposit("mass", method="ngp")
