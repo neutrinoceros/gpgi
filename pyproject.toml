@@ -120,7 +120,7 @@ follow_imports = "silent"
 [tool.pytest.ini_options]
 filterwarnings = [
   "error",
-  'ignore:datetime\.datetime\.utcfromtimestamp\(\) is deprecated:DeprecationWarning', # https://github.com/dateutil/dateutil/pull/1285
+  'ignore:Matplotlib is currently using agg, which is a non-GUI backend:UserWarning',
 ]
 
 [tool.cibuildwheel]

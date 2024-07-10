@@ -8,7 +8,11 @@ HAVE_PYTEST_MPL = find_spec("pytest_mpl") is not None
 
 
 def pytest_configure(config):
-    if not HAVE_PYTEST_MPL:  # pragma: no cover
+    if HAVE_PYTEST_MPL:
+        import matplotlib as mpl
+
+        mpl.use("Agg")
+    else:  # pragma: no cover
         config.addinivalue_line(
             "markers", "mpl_image_compare: skip (missing requirement: pytest_mpl)"
         )
