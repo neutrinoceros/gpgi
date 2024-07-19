@@ -212,7 +212,7 @@ Unspecified axes will use the default `'open'` boundary.
 | open (default)          | no special treatment                                   | no             |
 | periodic                | add opposite ghost layer to the active domain          | yes            |
 | wall                    | add same-side ghost layer to the active domain         | yes            |
-| antisymmetric           | substract same-side ghost layer from the active domain | no             |
+| antisymmetric           | subtract same-side ghost layer from the active domain  | no             |
 
 
 #### Define custom recipes
