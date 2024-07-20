@@ -589,7 +589,7 @@ def test_partial_boundary():
         side,
         metadata,
         *,
-        mode,  # suplementary argument that is destined to be frozen with functools.partial
+        mode,  # supplementary argument that is destined to be frozen with functools.partial
     ):
         # the return value doesn't matter, this test checks that
         # recipe validation doesn't fail

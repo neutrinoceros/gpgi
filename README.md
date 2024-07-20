@@ -61,11 +61,11 @@ that contains it.
 More refined methods are also available.
 
 ### Builtin deposition methods
-| method name             | abreviated name | order |
-|-------------------------|:---------------:|:-----:|
-| Nearest Grid Point      | NGP             | 0     |
-| Cloud in Cell           | CIC             | 1     |
-| Triangular Shaped Cloud | TSC             | 2     |
+| method name             | abbreviated name | order |
+|-------------------------|:----------------:|:-----:|
+| Nearest Grid Point      | NGP              | 0     |
+| Cloud in Cell           | CIC              | 1     |
+| Triangular Shaped Cloud | TSC              | 2     |
 
 *new in gpgi 0.12*
 User-defined alternative methods may be provided to `Dataset.deposit` as `method=my_func`.
@@ -82,7 +82,7 @@ Their signature need to be compatible with `gpgi.types.DepositionMethodT`.
 
 ## Time complexity
 
-An important step in perfoming deposition is to associate particle indices to cell indices. This step is called "particle indexing".
+An important step in performing deposition is to associate particle indices to cell indices. This step is called "particle indexing".
 In directions where the grid is uniformly stepped (if any), indexing a particle is an O(1) operation.
 In the more general case, indexing is performed by bisection, which is a O(log(nx))) operation (where nx represents the number of cells in the direction of interest).
 
@@ -188,7 +188,7 @@ side) and active domain layers (same-side and opposite side), and replace the
 same-side active layer with the result.
 
 User-selected boundary conditions take the form of an optional argument to
-`Dataset.deposit`, as dictionnary with keys being axes names, and values being
+`Dataset.deposit`, as dictionary with keys being axes names, and values being
 2-tuples of boundary conditions names (for left and right side respectively).
 For instance, here's how one would require periodic boundary conditions on all axes:
 
@@ -207,12 +207,12 @@ Unspecified axes will use the default `'open'` boundary.
 
 #### Builtin recipes
 
-| boundary conditions     | description                                            | conservative ? |
-|-------------------------|--------------------------------------------------------|:--------------:|
-| open (default)          | no special treatment                                   | no             |
-| periodic                | add opposite ghost layer to the active domain          | yes            |
-| wall                    | add same-side ghost layer to the active domain         | yes            |
-| antisymmetric           | substract same-side ghost layer from the active domain | no             |
+| boundary conditions     | description                                           | conservative ? |
+|-------------------------|-------------------------------------------------------|:--------------:|
+| open (default)          | no special treatment                                  | no             |
+| periodic                | add opposite ghost layer to the active domain         | yes            |
+| wall                    | add same-side ghost layer to the active domain        | yes            |
+| antisymmetric           | subtract same-side ghost layer from the active domain | no             |
 
 
 #### Define custom recipes
@@ -276,7 +276,7 @@ required to be *extensive* (like mass or momentum). *Intensive* quantities (like
 velocity or temperature) require additional operations, and necessitate the use
 of an additional *weight field*.
 
-This section provides showcases their *usage*. For a detailled explanation of the deposition algorithm for intensive quantities, see [Deposition algorithm](#deposition-algorithm).
+This section provides showcases their *usage*. For a detailed explanation of the deposition algorithm for intensive quantities, see [Deposition algorithm](#deposition-algorithm).
 
 In order to deposit an *intensive* field (e.g., `vx`), an additional `weight_field` argument must be provided as
 ```python
@@ -325,7 +325,7 @@ but arbitrary priority order may be specified as, for instance
 ds = ds.sorted(axes=(1, 0))
 ```
 
-Use the `Dataset.is_sorted` method to check wether particles are already sorted without
+Use the `Dataset.is_sorted` method to check whether particles are already sorted without
 performing the sort. `Dataset.is_sorted` accepts an `axes` argument just like `Dataset.sorted`. This is useful for testing and comparative purposes.
 
 

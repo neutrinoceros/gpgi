@@ -34,7 +34,7 @@ def load(
         arrays
 
     metadata: dict[str, Any] (optional)
-        A dictionnary representing arbitrary additional data, that will be attached to
+        A dictionary representing arbitrary additional data, that will be attached to
         the returned Dataset as an attribute (namely, ds.metadata). This special
         attribute is accessible from boundary condition methods as the argument of the
         same name.
