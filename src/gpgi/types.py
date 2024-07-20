@@ -440,7 +440,7 @@ class Dataset(ValidatorMixin):
         particles: gpgi.types.ParticleSet (optional)
 
         metadata: dict[str, Any] (optional)
-            A dictionnary representing arbitrary additional data, that will be attached to
+            A dictionary representing arbitrary additional data, that will be attached to
             the returned Dataset as an attribute (namely, ds.metadata). This special
             attribute is accessible from boundary condition methods as the argument of the
             same name.
@@ -685,7 +685,7 @@ class Dataset(ValidatorMixin):
            where x is the spatial position, i is a particle index, and w(i,x)
            are geometric coefficients associated with the deposition method.
 
-        boundaries and weigth_field_boundaries (keyword only): dict
+        boundaries and weight_field_boundaries (keyword only): dict
            Maps from axis names (str) to boundary recipe keys (str, str)
            representing left/right boundaries. By default all axes will use
            'open' boundaries on both sides. Specifying boundaries for all axes

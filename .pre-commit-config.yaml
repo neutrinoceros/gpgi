@@ -13,6 +13,11 @@ repos:
   - id: end-of-file-fixer
   - id: check-toml
 
+- repo: https://github.com/crate-ci/typos
+  rev: v1.18.1
+  hooks:
+  - id: typos
+
 # this hook is broken on Python 3.12 because it depends on nodeenv, which is
 # still using removed and deprecated parts of the Python stdlib
 # see https://github.com/ekalinin/nodeenv/issues/343
