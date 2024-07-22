@@ -255,11 +255,9 @@ jobs:
         uv-venv: .venv
 
     - name: Build
-      # install numpy from source until there are nightly wheels for 3.13
-      # at https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
       run: |
-        uv pip install --pre setuptools wheel Cython
-        uv pip install --pre numpy \
+        uv pip install --pre setuptools wheel
+        uv pip install --pre numpy Cython \
           --extra-index-url \
           https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
         uv pip install . --no-build-isolation
