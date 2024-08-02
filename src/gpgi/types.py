@@ -7,13 +7,12 @@ import math
 import sys
 import warnings
 from abc import ABC, abstractmethod
-from collections.abc import Callable
 from copy import deepcopy
 from functools import cached_property, partial, reduce
 from itertools import chain
 from textwrap import indent
 from time import monotonic_ns
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
 
 import numpy as np
 
@@ -75,21 +74,38 @@ _deposition_method_names: dict[str, DepositionMethod] = {
 }
 
 
-DepositionMethodT = Callable[
-    [
-        "RealArray",
-        "RealArray",
-        "RealArray",
-        "RealArray",
-        "RealArray",
-        "RealArray",
-        "RealArray",
-        "RealArray",
-        "HCIArray",
-        "RealArray",
-    ],
-    None,
-]
+class DepositionMethodT(Protocol):
+    def __call__(  # noqa D102
+        self,
+        cell_edges_x1: RealArray,
+        cell_edges_x2: RealArray,
+        cell_edges_x3: RealArray,
+        particles_x1: RealArray,
+        particles_x2: RealArray,
+        particles_x3: RealArray,
+        field: RealArray,
+        weight_field: RealArray,
+        hci: HCIArray,
+        out: RealArray,
+    ) -> None: ...
+
+
+class DepositionMethodWithMetadataT(Protocol):
+    def __call__(  # noqa D102
+        self,
+        cell_edges_x1: RealArray,
+        cell_edges_x2: RealArray,
+        cell_edges_x3: RealArray,
+        particles_x1: RealArray,
+        particles_x2: RealArray,
+        particles_x3: RealArray,
+        field: RealArray,
+        weight_field: RealArray,
+        hci: HCIArray,
+        out: RealArray,
+        *,
+        metadata: dict[str, Any],
+    ) -> None: ...
 
 
 _BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
@@ -646,7 +662,8 @@ class Dataset(ValidatorMixin):
             "tsc",
             "triangular_shaped_cloud",
         ]
-        | DepositionMethodT,
+        | DepositionMethodT
+        | DepositionMethodWithMetadataT,
         boundaries: dict[Name, tuple[Name, Name]] | None = None,
         verbose: bool = False,
         return_ghost_padded_array: bool = False,
@@ -661,7 +678,7 @@ class Dataset(ValidatorMixin):
         particle_field_key (positional only): str
            label of the particle field to deposit
 
-        method (keyword only): 'ngp', 'cic' or 'tsc'
+        method (keyword only): 'ngp', 'cic' or 'tsc', or function
            full names ('nearest_grid_point', 'cloud_in_cell', and
            'triangular_shaped_cloud') are also valid
 
@@ -701,9 +718,12 @@ class Dataset(ValidatorMixin):
             from inspect import signature
 
             sig = signature(method)
+            func: DepositionMethodT
             if "metadata" in sig.parameters:
-                func = cast(DepositionMethodT, partial(method, metadata=self.metadata))
+                method = cast(DepositionMethodWithMetadataT, method)
+                func = partial(method, metadata=self.metadata)
             else:
+                method = cast(DepositionMethodT, method)
                 func = method
         else:
             if method not in _deposition_method_names:
