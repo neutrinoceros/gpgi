@@ -30,7 +30,7 @@ jobs:
         uv-version: 0.2.18
 
     - name: Build wheels for CPython
-      uses: pypa/cibuildwheel@v2.19.1
+      uses: pypa/cibuildwheel@v2.19.2
       with:
         output-dir: dist
 
