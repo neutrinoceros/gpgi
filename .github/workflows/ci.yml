@@ -28,7 +28,7 @@ jobs:
         python-version: 3.x
     - uses: yezz123/setup-uv@v4
       with:
-        uv-version: 0.2.18
+        uv-version: 0.2.33
         uv-venv: .venv
     - run: uv pip install check-manifest build
     - name: Check build
@@ -43,7 +43,6 @@ jobs:
         os:
         - ubuntu-latest
         python-version:
-        - '3.10'
         - '3.11'
         - '3.12'
         marker: [''] # needed to avoid collision with PY_LIB job
@@ -57,7 +56,7 @@ jobs:
         # test with minimal requirements
         - marker: minimal
           os: ubuntu-20.04
-          python-version: '3.10'
+          python-version: '3.11'
           deps: minimal
 
         # test GPGI_PY_LIB
@@ -76,7 +75,7 @@ jobs:
 
     - uses: yezz123/setup-uv@v4
       with:
-        uv-version: 0.2.18
+        uv-version: 0.2.33
         uv-venv: .venv
 
     - if: matrix.deps == 'minimal'
@@ -122,7 +121,7 @@ jobs:
 
     - uses: yezz123/setup-uv@v4
       with:
-        uv-version: 0.2.18
+        uv-version: 0.2.33
         uv-venv: .venv
 
     - name: Build library
@@ -176,7 +175,7 @@ jobs:
 
     - uses: yezz123/setup-uv@v4
       with:
-        uv-version: 0.2.18
+        uv-version: 0.2.33
         uv-venv: .venv
 
     - run: uv pip install 'coverage[toml]'
@@ -204,7 +203,7 @@ jobs:
     strategy:
       matrix:
         python-version:
-        - '3.10'
+        - '3.11'
         - '3.12'
     runs-on: ubuntu-latest
     name: type check
@@ -220,7 +219,7 @@ jobs:
 
     - uses: yezz123/setup-uv@v4
       with:
-        uv-version: 0.2.18
+        uv-version: 0.2.33
         uv-venv: .venv
 
     - name: Build
@@ -251,7 +250,7 @@ jobs:
 
     - uses: yezz123/setup-uv@v4
       with:
-        uv-version: 0.2.18
+        uv-version: 0.2.33
         uv-venv: .venv
 
     - name: Build
