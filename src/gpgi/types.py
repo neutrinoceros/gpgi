@@ -4,15 +4,15 @@ from __future__ import annotations
 
 import enum
 import math
-import sys
 import warnings
 from abc import ABC, abstractmethod
 from copy import deepcopy
+from enum import StrEnum
 from functools import cached_property, partial, reduce
 from itertools import chain
 from textwrap import indent
 from time import monotonic_ns
-from typing import TYPE_CHECKING, Any, Literal, Protocol, cast
+from typing import TYPE_CHECKING, Any, Literal, Protocol, Self, assert_never, cast
 
 import numpy as np
 
@@ -31,15 +31,6 @@ from ._lib import (
 )
 from ._typing import FieldMap, Name
 
-if sys.version_info >= (3, 11):
-    from enum import StrEnum
-    from typing import Self, assert_never
-else:
-    from typing_extensions import Self, assert_never
-
-    from ._backports import StrEnum
-
-
 if TYPE_CHECKING:
     from ._typing import HCIArray, RealArray
 
@@ -52,14 +43,6 @@ class Geometry(StrEnum):
     CYLINDRICAL = enum.auto()
     SPHERICAL = enum.auto()
     EQUATORIAL = enum.auto()
-
-    if sys.version_info >= (3, 11):
-        pass
-    else:
-
-        def __str__(self) -> str:
-            r"""Return str(self)."""
-            return self.name.lower()
 
 
 class DepositionMethod(enum.Enum):

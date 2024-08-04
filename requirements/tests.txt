@@ -2,3 +2,5 @@ coverage[toml]>=6.5
 pytest>=7.0.0
 pytest-mpl>=0.16.1
 matplotlib>=3.5
+# https://github.com/matplotlib/matplotlib/issues/28551
+matplotlib!=3.9.1 ; platform_system=='Windows'

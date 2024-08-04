@@ -28,7 +28,7 @@ else:
                 include_dirs=[np.get_include()],
                 define_macros=[
                     # keep in sync with runtime requirements (pyproject.toml)
-                    ("NPY_TARGET_VERSION", "NPY_1_23_API_VERSION"),
+                    ("NPY_TARGET_VERSION", "NPY_1_25_API_VERSION"),
                     ("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION"),
                 ],
             )

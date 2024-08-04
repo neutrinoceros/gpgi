@@ -1,13 +1,7 @@
-import sys
-from typing import TypedDict, TypeVar
+from typing import NotRequired, TypedDict, TypeVar
 
 import numpy as np
 import numpy.typing as npt
-
-if sys.version_info >= (3, 11):
-    from typing import NotRequired
-else:
-    from typing_extensions import NotRequired
 
 Real = TypeVar("Real", np.float32, np.float64)
 RealArray = npt.NDArray[Real]
