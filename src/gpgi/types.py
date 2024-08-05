@@ -619,7 +619,9 @@ class Dataset(ValidatorMixin):
         hci = self.host_cell_index
         return bool(np.all(hci == hci[sort_key]))
 
-    def sorted(self, axes: tuple[int, ...] | None = None) -> Self:
+    def sorted(
+        self, axes: tuple[int, ...] | None = None, inplace: bool = False
+    ) -> Self:
         r"""
         Return a copy of this dataset with particles sorted by host cell index.
 
@@ -627,6 +629,10 @@ class Dataset(ValidatorMixin):
         ----------
         axes: tuple[int, ...]
             specify in which order axes should be used for sorting.
+
+        inplace: bool (default: False)
+            If True, sort the dataset in place instead of creating a copy.
+            This option is thread-safe.
         """
         sort_key = self._get_sort_key(axes or self._default_sort_axes)
 
