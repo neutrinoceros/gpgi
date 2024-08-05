@@ -90,3 +90,51 @@ class TestSetupHostCellIndex:
 
         results = [f.result() for f in futures]
         self.check(results)
+
+
+class TestSortInPlace:
+    def check(self, results): ...
+    def test_concurrent_threading(self):
+        barrier = threading.Barrier(N_THREADS)
+        ds = random_dataset()
+        results = []
+
+        def closure():
+            assert not ds.is_sorted()
+
+            barrier.wait()
+            ds_out = ds.sorted(inplace=True)
+
+            assert ds.is_sorted()
+            assert ds_out is ds
+
+        workers = []
+        for _ in range(0, N_THREADS):
+            workers.append(threading.Thread(target=closure))
+
+        for worker in workers:
+            worker.start()
+
+        for worker in workers:
+            worker.join()
+
+        self.check(results)
+
+    def test_concurrent_pool(self):
+        barrier = threading.Barrier(N_THREADS)
+        ds = random_dataset()
+
+        def closure():
+            assert not ds.is_sorted()
+
+            barrier.wait()
+            ds_out = ds.sorted(inplace=True)
+
+            assert ds.is_sorted()
+            assert ds_out is ds
+
+        with ThreadPoolExecutor(max_workers=N_THREADS) as executor:
+            futures = [executor.submit(closure) for _ in range(N_THREADS)]
+
+        results = [f.result() for f in futures]
+        self.check(results)

@@ -1,6 +1,8 @@
 import re
+from itertools import chain
 
 import numpy as np
+import numpy.testing as npt
 import pytest
 
 import gpgi
@@ -15,6 +17,7 @@ def get_random_dataset(dimensionality: int):
         "x": np.linspace(-1, 1, NX + 1),
     }
     coordinates = {"x": (2 * prng.random_sample(NPARTICLES) - 1)}
+    fields = {"mass": (2 * prng.random_sample(NPARTICLES) - 1)}
     if dimensionality >= 2:
         cell_edges["y"] = np.linspace(-1, 1, NX + 1)
         coordinates["y"] = 2 * prng.random_sample(NPARTICLES) - 1
@@ -25,7 +28,7 @@ def get_random_dataset(dimensionality: int):
     return gpgi.load(
         geometry="cartesian",
         grid={"cell_edges": cell_edges},
-        particles={"coordinates": coordinates},
+        particles={"coordinates": coordinates, "fields": fields},
     )
 
 
@@ -35,6 +38,27 @@ def test_sort(dim):
     assert not ds.is_sorted()
     sds = ds.sorted()
     assert sds.is_sorted()
+    mass_dep_1 = ds.deposit("mass", method="cic")
+    mass_dep_2 = sds.deposit("mass", method="cic")
+    npt.assert_allclose(mass_dep_2, mass_dep_1)
+
+
+def test_sort_inplace():
+    ds = get_random_dataset(3)
+    assert not ds.is_sorted()
+    mass_dep_1 = ds.deposit("mass", method="cic")
+
+    sds = ds.sorted(inplace=True)
+    assert ds.is_sorted()
+    assert sds is ds
+    for arr in chain(
+        ds.particles.coordinates.values(),
+        ds.particles.fields.values(),
+    ):
+        assert arr.flags["OWNDATA"]
+
+    mass_dep_2 = ds.deposit("mass", method="cic")
+    npt.assert_allclose(mass_dep_2, mass_dep_1)
 
 
 @pytest.mark.parametrize(
