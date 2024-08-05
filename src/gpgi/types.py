@@ -634,7 +634,16 @@ class Dataset(ValidatorMixin):
             If True, sort the dataset in place instead of creating a copy.
             This option is thread-safe.
         """
-        sort_key = self._get_sort_key(axes or self._default_sort_axes)
+        sort_axes = axes or self._default_sort_axes
+        sort_key = self._get_sort_key(sort_axes)
+        if inplace:
+            for name, arr in self.particles.coordinates.items():
+                self.particles.coordinates[name] = arr[sort_key]
+            for name, arr in self.particles.fields.items():
+                self.particles.fields[name] = arr[sort_key]
+            # invalidate host cell index
+            self._hci = None
+            return self
 
         return type(self)(
             geometry=self.geometry,
