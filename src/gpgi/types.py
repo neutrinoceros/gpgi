@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import enum
 import math
+import threading
 import warnings
 from abc import ABC, abstractmethod
 from copy import deepcopy
@@ -459,6 +460,9 @@ class Dataset(ValidatorMixin):
         self.axes = self.grid.axes
         self.metadata = deepcopy(metadata) if metadata is not None else {}
 
+        self._hci: HCIArray | None = None
+        self._hci_lock = threading.Lock()
+
         super().__init__()
 
     def __repr__(self) -> Name:
@@ -523,43 +527,54 @@ class Dataset(ValidatorMixin):
 
         return particles_x1, particles_x2, particles_x3
 
-    def _setup_host_cell_index(self, verbose: bool = False) -> None:
-        if hasattr(self, "_hci"):
-            # this line is hard to cover by testing just public api
-            # because it's a pure performance optimization with no other observable effect
-            return  # pragma: no cover
-
-        self._hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
+    def _compute_host_cell_index(self, verbose: bool = False) -> HCIArray:
+        hci = np.empty((self.particles.count, self.grid.ndim), dtype="uint16")
 
         tstart = monotonic_ns()
         _index_particles(
             *self._get_padded_cell_edges(),
             *self._get_3D_particle_coordinates(),
             dx=self.grid._dx,
-            out=self._hci,
+            out=hci,
         )
-        for idim in range(self._hci.shape[1]):
+        for idim in range(hci.shape[1]):
             # There are at leas two edge cases where we need clipping to correct raw indices:
             # - particles that live exactly on the domain right edge will be indexed out of bound
             # - single precision positions can lead to overshoots by simple effect of floating point arithmetics
             #   (double precision isn't safe either, it's just safer (by a lot))
-            self._hci[:, idim].clip(1, self.grid.shape[idim], out=self._hci[:, idim])
+            hci[:, idim].clip(1, self.grid.shape[idim], out=hci[:, idim])
 
         tstop = monotonic_ns()
         if verbose:
             print(
                 f"Indexed {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
             )
+        return hci
+
+    def _setup_host_cell_index(self, verbose: bool = False) -> HCIArray:
+        """Pre-compute internal host cell index array, used for depostition.
+
+        This method is thread-safe.
+        The result is returned for testing/typechecking convenience.
+        """
+        # the first thread to acquire the lock does the computation, all other
+        # threads can skip it and reuse the result
+        with self._hci_lock:
+            if self._hci is None:
+                self._hci = self._compute_host_cell_index(verbose)
+        return self._hci
 
     @property
-    def host_cell_index(self) -> np.ndarray[Any, np.dtype[np.uint16]]:
+    def host_cell_index(self) -> HCIArray:
         r"""
         The ND index of the host cell for each particle.
 
         It has shape (particles.count, grid.ndim).
         Indices are 0-based and ghost layers are included.
         """
-        self._setup_host_cell_index()
+        if self._hci is None:
+            # rebinding for typechecking convenience only
+            self._hci = self._setup_host_cell_index()
         return self._hci
 
     @property
@@ -754,7 +769,8 @@ class Dataset(ValidatorMixin):
             wfield = np.ones(0, dtype=field.dtype)
             wfield_dep = np.ones(1, dtype=field.dtype)
 
-        self._setup_host_cell_index(verbose=verbose)
+        # rebinding for typechecking convenience only
+        self._hci = self._setup_host_cell_index(verbose)
 
         tstart = monotonic_ns()
         if weight_field is not None:

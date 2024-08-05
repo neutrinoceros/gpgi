@@ -40,8 +40,9 @@ def test__setup_host_cell_index_concurrent_threading():
     def closure():
         # Ensure that all threads reach this point before concurrent execution.
         barrier.wait()
-        ds._setup_host_cell_index()
-        results.append(id(ds._hci))
+        hci = ds._setup_host_cell_index()
+        assert ds.host_cell_index is hci
+        results.append(id(hci))
 
     # Spawn n threads that call call_unsafe concurrently.
     workers = []
@@ -86,8 +87,9 @@ def test__setup_host_cell_index_concurrent_pool():
     def closure():
         # Ensure that all threads reach this point before concurrent execution.
         barrier.wait()
-        ds._setup_host_cell_index()
-        results.append(id(ds._hci))
+        hci = ds._setup_host_cell_index()
+        assert ds.host_cell_index is hci
+        results.append(id(hci))
 
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
         futures = [executor.submit(closure) for _ in range(n_threads)]
