@@ -7,7 +7,6 @@ import math
 import warnings
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from enum import StrEnum
 from functools import cached_property, partial, reduce
 from itertools import chain
 from textwrap import indent
@@ -37,7 +36,7 @@ if TYPE_CHECKING:
 BoundarySpec = tuple[tuple[str, str, str], ...]
 
 
-class Geometry(StrEnum):
+class Geometry(enum.StrEnum):
     CARTESIAN = enum.auto()
     POLAR = enum.auto()
     CYLINDRICAL = enum.auto()
