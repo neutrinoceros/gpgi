@@ -624,6 +624,7 @@ class Dataset(ValidatorMixin):
     def sorted(
         self,
         axes: tuple[int, ...] | None = None,
+        *,
         inplace: bool = False,
     ) -> Self:
         r"""
