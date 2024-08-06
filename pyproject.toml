@@ -127,7 +127,7 @@ build-frontend = "build[uv]"
 build-verbosity = 1
 test-skip = "*-musllinux*"
 test-command = [
-    "uv pip install -r {project}/requirements/tests.txt",
+    "uv pip install -r {project}/requirements/tests.txt --no-build",
     "pytest --color=yes -ra {project}",
     "pytest --color=yes --count 500 {project}/tests/test_concurrent.py",
 ]
