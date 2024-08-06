@@ -256,7 +256,7 @@ jobs:
 
 
   future:
-    name: py${{ matrix.python-version }}
+    name: 'py${{ matrix.python-version }} (free-threading: ${{ matrix.free-threading }})'
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
@@ -265,33 +265,43 @@ jobs:
       matrix:
         python-version:
         - 3.13-dev
+        free-threading:
+        - false
+        - true
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - if: ${{ !matrix.free-threading }}
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
-    - uses: yezz123/setup-uv@v4
+    - if: ${{ matrix.free-threading }}
+      uses: deadsnakes/action@v3.1.0
       with:
-        uv-version: 0.2.33
-        uv-venv: .venv
+        python-version: ${{ matrix.python-version }}
+        nogil: true
 
     - name: Build
+      # not using uv here because it doesn't currently (0.2.33) detect python3.13t as
+      # the active interpreter, and may instead see 3.10, which is not supported in gpgi
       run: |
-        uv pip install --pre setuptools wheel
-        uv pip install --pre numpy Cython \
+        python -m pip install -U pip
+        python -m pip install --pre setuptools wheel
+        python -m pip install --pre numpy Cython \
           --extra-index-url \
           https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
-        uv pip install . --no-build-isolation
+        python -m pip install . --no-build-isolation
 
     - name: Install minimal test env
-      run: uv pip install --pre pytest
+      run: python -m pip install --pre pytest pytest-repeat
 
-    - run: uv pip list
+    - run: python -m pip list
 
     - name: Tests
-      run: pytest --color=yes
+      run: |
+        pytest --color=yes
+        pytest --color=yes --count 500 tests/test_concurrent.py
 
 
   create-issue:
