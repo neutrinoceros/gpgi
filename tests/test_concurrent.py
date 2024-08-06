@@ -4,6 +4,7 @@
 
 import threading
 from concurrent.futures import ThreadPoolExecutor
+from random import shuffle
 
 import numpy as np
 
@@ -103,10 +104,12 @@ class TestSortInPlace:
             assert not ds.is_sorted()
 
             barrier.wait()
-            ds_out = ds.sorted(inplace=True)
+            for _ in range(5):
+                axes = shuffle([0, 1, 2])
+                ds_out = ds.sorted(axes, inplace=True)
 
-            assert ds.is_sorted()
-            assert ds_out is ds
+                assert ds.is_sorted(axes=axes)
+                assert ds_out is ds
 
         workers = []
         for _ in range(0, N_THREADS):
