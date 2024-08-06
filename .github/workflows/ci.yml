@@ -80,7 +80,7 @@ jobs:
 
     - if: matrix.deps == 'minimal'
       run: |
-        uv pip compile pyproject.toml --resolution=lowest-direct | uv pip install -r -
+        uv pip compile pyproject.toml --resolution=lowest-direct | uv pip install -r - --no-build
 
     - name: Build library
       env:
@@ -88,9 +88,9 @@ jobs:
       # install in editable mode to allow coverage measurement
       run: |
         echo GPGI_PY_LIB=$GPGI_PY_LIB
-        uv pip install --editable .
+        uv pip install --editable . --no-build
 
-    - run: uv pip install --requirement requirements/tests.txt
+    - run: uv pip install --requirement requirements/tests.txt --no-build
 
     - run: uv pip list
 
@@ -125,9 +125,9 @@ jobs:
         uv-venv: .venv
 
     - name: Build library
-      run: uv pip install .
+      run: uv pip install . --only-binary numpy
 
-    - run: uv pip install --requirement requirements/tests.txt
+    - run: uv pip install --requirement requirements/tests.txt --no-build
 
     - name: Run Image Tests
       run: |
@@ -177,9 +177,9 @@ jobs:
         uv-venv: .venv
 
     - name: Build library
-      run: uv pip install .
+      run: uv pip install . --only-binary numpy
 
-    - run: uv pip install --requirement requirements/tests.txt
+    - run: uv pip install --requirement requirements/tests.txt --no-build
 
     - name: Run Concurrency Tests
       run: |
@@ -202,7 +202,7 @@ jobs:
         uv-version: 0.2.33
         uv-venv: .venv
 
-    - run: uv pip install 'coverage[toml]'
+    - run: uv pip install 'coverage[toml]' --no-build
 
     - uses: actions/download-artifact@v4
       with:
@@ -247,7 +247,7 @@ jobs:
         uv-venv: .venv
 
     - name: Build
-      run: uv pip install --requirement requirements/typecheck.txt
+      run: uv pip install --requirement requirements/typecheck.txt --no-build
 
     - name: Typecheck
       run: |
@@ -289,9 +289,10 @@ jobs:
         python -m pip install -U pip
         python -m pip install --pre setuptools wheel
         python -m pip install --pre numpy Cython \
+          --only-binary ':all:' \
           --extra-index-url \
           https://pypi.anaconda.org/scientific-python-nightly-wheels/simple
-        python -m pip install . --no-build-isolation
+        python -m pip install . --no-build-isolation --no-deps
 
     - name: Install minimal test env
       run: python -m pip install --pre pytest pytest-repeat
