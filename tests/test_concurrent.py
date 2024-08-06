@@ -105,7 +105,9 @@ class TestSortInPlace:
 
             barrier.wait()
             for _ in range(5):
-                axes = shuffle([0, 1, 2])
+                axes_list = [0, 1, 2]
+                shuffle(axes_list)
+                axes = tuple(axes_list)
                 ds_out = ds.sorted(axes, inplace=True)
 
                 assert ds.is_sorted(axes=axes)
