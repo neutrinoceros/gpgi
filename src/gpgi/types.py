@@ -622,7 +622,9 @@ class Dataset(ValidatorMixin):
         return bool(np.all(hci == hci[sort_key]))
 
     def sorted(
-        self, axes: tuple[int, ...] | None = None, inplace: bool = False
+        self,
+        axes: tuple[int, ...] | None = None,
+        inplace: bool = False,
     ) -> Self:
         r"""
         Return a copy of this dataset with particles sorted by host cell index.
