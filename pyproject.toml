@@ -128,7 +128,8 @@ build-verbosity = 1
 test-skip = "*-musllinux*"
 test-command = [
     "uv pip install -r {project}/requirements/tests.txt",
-    "pytest {project} --color=yes -ra",
+    "pytest --color=yes -ra {project}",
+    "pytest --color=yes --count 500 {project}/tests/test_concurrent.py",
 ]
 
 [tool.cibuildwheel.linux]
