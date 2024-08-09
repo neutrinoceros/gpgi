@@ -396,54 +396,6 @@ def test_register_invalid_boundary_recipe():
         ds.boundary_recipes.register("my", _my_recipe)
 
 
-def test_warn_register_override(capsys):
-    nx = ny = 64
-    nparticles = 100
-
-    prng = np.random.RandomState(0)
-    ds = gpgi.load(
-        geometry="cartesian",
-        grid={
-            "cell_edges": {
-                "x": np.linspace(-1, 1, nx),
-                "y": np.linspace(-1, 1, ny),
-            },
-        },
-        particles={
-            "coordinates": {
-                "x": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-                "y": 2 * (prng.normal(0.5, 0.25, nparticles) % 1 - 0.5),
-            },
-            "fields": {
-                "mass": np.ones(nparticles),
-            },
-        },
-        metadata={"fac": 1},
-    )
-
-    def _my_recipe(
-        same_side_active_layer,
-        same_side_ghost_layer,
-        opposite_side_active_layer,
-        opposite_side_ghost_layer,
-        weight_same_side_active_layer,
-        weight_same_side_ghost_layer,
-        weight_opposite_side_active_layer,
-        weight_opposite_side_ghost_layer,
-        side,
-        metadata,
-    ):
-        print("gotcha")
-        return same_side_active_layer * metadata["fac"]
-
-    with pytest.warns(UserWarning, match="Overriding existing method 'open'"):
-        ds.boundary_recipes.register("open", _my_recipe)
-
-    ds.deposit("mass", method="tsc")
-    out, err = capsys.readouterr()
-    assert out == "gotcha\n" * 4
-
-
 def test_register_custom_boundary_recipe(sample_2D_dataset):
     def _my_recipe(
         same_side_active_layer,

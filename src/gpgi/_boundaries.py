@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import warnings
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -60,13 +59,59 @@ class BoundaryRegistry:
             )
 
     def register(
-        self, key: str, recipe: BoundaryRecipeT, *, skip_validation: bool = False
+        self,
+        key: str,
+        recipe: BoundaryRecipeT,
+        *,
+        skip_validation: bool = False,
+        allow_unsafe_override: bool = False,
     ) -> None:
+        """
+        Register a new boundary function.
+
+        Parameters
+        ----------
+        key: str
+            A unique identifier (ideally a meaningful name) to associate with
+            the function.
+
+        recipe: Callable
+            A function matching the signature (order and names of arguments) of
+            gpgi's builtin boundary recipes.
+
+        skip_validation: bool, optional, keyword-only (default: False)
+            If set to True, signature validation is skipped.
+            This is meant to allow bypassing hypothetical bugs in the validation
+            routine.
+
+        allow_unsafe_override: bool, optional, keyword-only (default: False)
+            If set to True, registering a new function under an existing key
+            will not raise an exception. Note however that doing so is not
+            thread-safe.
+
+        Raises
+        ------
+        ValueError:
+        - if skip_validation==False and the signature of the recipe doesn't meet
+          the requirements.
+        - if allow_unsafe_override==False and a new function is being registered
+          under an already used key. Registering the same exact function under
+          multiple times either under the same key or another, unused key, is
+          always safe so it does not raise.
+        """
+        if key in self._registry:
+            if recipe is self._registry[key]:
+                return
+            elif not allow_unsafe_override:
+                raise ValueError(
+                    f"Another function is already registered with {key=!r}. "
+                    "If you meant to override the existing function, "
+                    "consider setting allow_unsafe_override=True"
+                )
+
         if not skip_validation:
             self._validate_recipe(recipe)
 
-        if key in self._registry:
-            warnings.warn(f"Overriding existing method {key!r}", stacklevel=2)
         self._registry[key] = recipe
 
     def __getitem__(self, key: str) -> BoundaryRecipeT:
