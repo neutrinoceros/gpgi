@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from threading import Lock
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 if TYPE_CHECKING:
@@ -26,6 +27,7 @@ BoundaryRecipeT = Callable[
 class BoundaryRegistry:
     def __init__(self) -> None:
         self._registry: dict[str, BoundaryRecipeT] = {}
+        self._lock = Lock()
         for key, recipe in _base_registry.items():
             self.register(key, recipe, skip_validation=True)
 
@@ -99,20 +101,21 @@ class BoundaryRegistry:
           multiple times either under the same key or another, unused key, is
           always safe so it does not raise.
         """
-        if key in self._registry:
-            if recipe is self._registry[key]:
-                return
-            elif not allow_unsafe_override:
-                raise ValueError(
-                    f"Another function is already registered with {key=!r}. "
-                    "If you meant to override the existing function, "
-                    "consider setting allow_unsafe_override=True"
-                )
+        with self._lock:
+            if key in self._registry:
+                if recipe is self._registry[key]:
+                    return
+                elif not allow_unsafe_override:
+                    raise ValueError(
+                        f"Another function is already registered with {key=!r}. "
+                        "If you meant to override the existing function, "
+                        "consider setting allow_unsafe_override=True"
+                    )
 
-        if not skip_validation:
-            self._validate_recipe(recipe)
+            if not skip_validation:
+                self._validate_recipe(recipe)
 
-        self._registry[key] = recipe
+            self._registry[key] = recipe
 
     def __getitem__(self, key: str) -> BoundaryRecipeT:
         return self._registry[key]
