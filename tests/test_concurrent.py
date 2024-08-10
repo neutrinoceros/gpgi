@@ -95,8 +95,14 @@ class TestSetupHostCellIndex:
 
 class TestBoundaryRegistry:
     def check(self, results):
-        # Check results: verify that all threads get the same obj
-        assert len(set(results)) == 1
+        # only one thread can succeed registration, all others should raise.
+        expected_msg = (
+            "Another function is already registered with key='test'. "
+            "If you meant to override the existing function, "
+            "consider setting allow_unsafe_override=True"
+        )
+        assert len(results) == N_THREADS - 1
+        assert results.count(expected_msg) == N_THREADS - 1
 
     def test_concurrent_threading(self):
         # Defines a thread barrier that will be spawned before parallel execution
@@ -106,28 +112,32 @@ class TestBoundaryRegistry:
         # This object will be shared by all the threads.
         registry = BoundaryRegistry()
 
-        def test_recipe(
-            same_side_active_layer,
-            same_side_ghost_layer,
-            opposite_side_active_layer,
-            opposite_side_ghost_layer,
-            weight_same_side_active_layer,
-            weight_same_side_ghost_layer,
-            weight_opposite_side_active_layer,
-            weight_opposite_side_ghost_layer,
-            side,
-            metadata,
-        ): ...
-
         results = []
 
         def closure():
+            def test_recipe(
+                same_side_active_layer,
+                same_side_ghost_layer,
+                opposite_side_active_layer,
+                opposite_side_ghost_layer,
+                weight_same_side_active_layer,
+                weight_same_side_ghost_layer,
+                weight_opposite_side_active_layer,
+                weight_opposite_side_ghost_layer,
+                side,
+                metadata,
+            ): ...
+
             assert "test" not in registry
 
             # Ensure that all threads reach this point before concurrent execution.
             barrier.wait()
-            registry.register("test", test_recipe)
-            results.append(registry["test"])
+            try:
+                registry.register("test", test_recipe)
+            except ValueError as exc:
+                msg, *_ = exc.args
+                results.append(msg)
+            assert "test" in registry
 
         # Spawn n threads that call _setup_host_cell_index concurrently.
         workers = []
@@ -150,31 +160,30 @@ class TestBoundaryRegistry:
         # This object will be shared by all the threads.
         registry = BoundaryRegistry()
 
-        def test_recipe(
-            same_side_active_layer,
-            same_side_ghost_layer,
-            opposite_side_active_layer,
-            opposite_side_ghost_layer,
-            weight_same_side_active_layer,
-            weight_same_side_ghost_layer,
-            weight_opposite_side_active_layer,
-            weight_opposite_side_ghost_layer,
-            side,
-            metadata,
-        ): ...
-
-        results = []
-
         def closure():
+            def test_recipe(
+                same_side_active_layer,
+                same_side_ghost_layer,
+                opposite_side_active_layer,
+                opposite_side_ghost_layer,
+                weight_same_side_active_layer,
+                weight_same_side_ghost_layer,
+                weight_opposite_side_active_layer,
+                weight_opposite_side_ghost_layer,
+                side,
+                metadata,
+            ): ...
+
             assert "test" not in registry
 
             # Ensure that all threads reach this point before concurrent execution.
             barrier.wait()
             registry.register("test", test_recipe)
-            results.append(registry["test"])
 
         with ThreadPoolExecutor(max_workers=N_THREADS) as executor:
             futures = [executor.submit(closure) for _ in range(N_THREADS)]
 
-        results = [f.result() for f in futures]
+        assert "test" in registry
+        exceptions = [f.exception() for f in futures]
+        results = [exc.args[0] for exc in exceptions if exc is not None]
         self.check(results)
