@@ -38,6 +38,8 @@ class TestSetupHostCellIndex:
     def check(self, results):
         # Check results: verify that all threads see the same array
         assert len(set(results)) == 1
+        # check that we indeed collected ids, not None
+        assert isinstance(results[0], int)
 
     def test_concurrent_threading(self):
         # Defines a thread barrier that will be spawned before parallel execution
@@ -77,14 +79,12 @@ class TestSetupHostCellIndex:
         # This object will be shared by all the threads.
         ds = random_dataset()
 
-        results = []
-
         def closure():
             # Ensure that all threads reach this point before concurrent execution.
             barrier.wait()
             hci = ds._setup_host_cell_index()
             assert ds.host_cell_index is hci
-            results.append(id(hci))
+            return id(hci)
 
         with ThreadPoolExecutor(max_workers=N_THREADS) as executor:
             futures = [executor.submit(closure) for _ in range(N_THREADS)]
