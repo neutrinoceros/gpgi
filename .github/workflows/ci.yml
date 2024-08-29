@@ -202,7 +202,7 @@ jobs:
         uv-version: 0.2.33
         uv-venv: .venv
 
-    - run: uv pip install 'coverage[toml]' --no-build
+    - run: uv pip install coverage --no-build
 
     - uses: actions/download-artifact@v4
       with:
