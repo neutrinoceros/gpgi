@@ -766,8 +766,8 @@ class Dataset(ValidatorMixin):
             wfield = np.array(self.particles.fields[weight_field])
             wfield_dep = np.zeros(self.grid._padded_shape, dtype=field.dtype)
         else:
-            wfield = np.ones(0, dtype=field.dtype)
-            wfield_dep = np.ones(1, dtype=field.dtype)
+            wfield = np.array((), dtype=field.dtype)
+            wfield_dep = np.array((1,), dtype=field.dtype)
 
         # rebinding for typechecking convenience only
         self._hci = self._setup_host_cell_index(verbose)
@@ -778,7 +778,7 @@ class Dataset(ValidatorMixin):
                 *self._get_padded_cell_edges(),
                 *self._get_3D_particle_coordinates(),
                 wfield,
-                np.ones(0, dtype=field.dtype),
+                np.array((), dtype=field.dtype),
                 self._hci,
                 wfield_dep,
             )
@@ -885,7 +885,7 @@ class Dataset(ValidatorMixin):
                 opposite_side_ghost_layer_idx[iax] = -(active_index % 2)  # type:ignore [call-overload]
 
                 if weight_array is None:
-                    ONE = np.ones(1, dtype=array.dtype)
+                    ONE = np.array((1,), dtype=array.dtype)
                     array[tuple(same_side_active_layer_idx)] = bc(
                         array[tuple(same_side_active_layer_idx)],
                         array[tuple(same_side_ghost_layer_idx)],
