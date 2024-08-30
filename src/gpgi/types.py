@@ -4,13 +4,15 @@ from __future__ import annotations
 
 import enum
 import math
-import threading
+import sys
 import warnings
 from abc import ABC, abstractmethod
+from contextlib import AbstractContextManager, nullcontext
 from copy import deepcopy
 from functools import cached_property, partial, reduce
 from itertools import chain
 from textwrap import indent
+from threading import Lock
 from time import monotonic_ns
 from typing import TYPE_CHECKING, Any, Literal, Protocol, Self, assert_never, cast
 
@@ -30,6 +32,11 @@ from ._lib import (
     _index_particles,
 )
 from ._typing import FieldMap, Name
+
+if sys.version_info >= (3, 13):
+    LockType = Lock
+else:
+    from _thread import LockType
 
 if TYPE_CHECKING:
     from ._typing import HCIArray, RealArray
@@ -461,7 +468,8 @@ class Dataset(ValidatorMixin):
         self.metadata = deepcopy(metadata) if metadata is not None else {}
 
         self._hci: HCIArray | None = None
-        self._hci_lock = threading.Lock()
+        self._hci_lock = Lock()
+        self._deposit_lock = Lock()
 
         super().__init__()
 
@@ -666,6 +674,7 @@ class Dataset(ValidatorMixin):
         return_ghost_padded_array: bool = False,
         weight_field: Name | None = None,
         weight_field_boundaries: dict[Name, tuple[Name, Name]] | None = None,
+        lock: Literal["per-instance"] | None | LockType = "per-instance",
     ) -> np.ndarray:
         r"""
         Perform particle deposition and return the result as a grid field.
@@ -710,6 +719,21 @@ class Dataset(ValidatorMixin):
            combinations with boundaries.
 
            Boundary recipes are applied the weight field (if any) first.
+
+        lock (keyword only): 'per-instance' (default), None, or threading.Lock
+           Fine tune performance for multi-threaded applications: define a
+           locking strategy around the deposition hotloop.
+           - 'per-instance': allow multiple Dataset instances to run deposition
+              concurrently, but forbid concurrent accesses to any specific
+              instance
+           - None: no locking is applied. Within some restricted conditions
+             (e.g. depositing a couple fields concurrently in a sorted dataset),
+             this may improve walltime performance, but it is also expected to
+             degrade it in a more general case as it encourages cache-misses
+           - an arbitrary threading.Lock instance may be supplied to implement
+             a custom strategy
+
+           .. versionadded:: 2.0.0
         """
         if callable(method):
             from inspect import signature
@@ -760,6 +784,20 @@ class Dataset(ValidatorMixin):
         self._sanitize_boundaries(boundaries)
         self._sanitize_boundaries(weight_field_boundaries)
 
+        lock_ctx: AbstractContextManager
+        match lock:
+            case "per-instance":
+                lock_ctx = self._deposit_lock
+            case None:
+                lock_ctx = nullcontext()
+            case LockType():
+                lock_ctx = lock
+            case _:
+                raise ValueError(
+                    f"Received {lock=!r}. Expected either 'per-instance', "
+                    "None, or an instance of threading.Lock"
+                )
+
         field = self.particles.fields[particle_field_key]
         padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
         if weight_field is not None:
@@ -773,24 +811,26 @@ class Dataset(ValidatorMixin):
         self._hci = self._setup_host_cell_index(verbose)
 
         tstart = monotonic_ns()
-        if weight_field is not None:
+        with lock_ctx:
+            if weight_field is not None:
+                func(
+                    *self._get_padded_cell_edges(),
+                    *self._get_3D_particle_coordinates(),
+                    wfield,
+                    np.array((), dtype=field.dtype),
+                    self._hci,
+                    wfield_dep,
+                )
+
             func(
                 *self._get_padded_cell_edges(),
                 *self._get_3D_particle_coordinates(),
+                field,
                 wfield,
-                np.array((), dtype=field.dtype),
                 self._hci,
-                wfield_dep,
+                padded_ret_array,
             )
 
-        func(
-            *self._get_padded_cell_edges(),
-            *self._get_3D_particle_coordinates(),
-            field,
-            wfield,
-            self._hci,
-            padded_ret_array,
-        )
         tstop = monotonic_ns()
         if verbose:
             print(
