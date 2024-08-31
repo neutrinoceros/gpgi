@@ -46,8 +46,7 @@ where = ["src"]
 namespaces = false
 
 [tool.coverage.run]
-source = ["src/gpgi"]
-include = [
+source = [
     "src/gpgi",
     "tests",
 ]

@@ -159,7 +159,7 @@ def test_1D_deposit(method, grid_type):
     elif grid_type == "geometric":
         xedges = np.geomspace(1, 2, 6)
     else:
-        raise RuntimeError
+        raise RuntimeError  # pragma: no cover
 
     npart = 16
     prng = np.random.RandomState(0)
