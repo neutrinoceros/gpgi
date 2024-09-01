@@ -1,4 +1,5 @@
 include LICENCE
+include *.md
 include src/gpgi/py.typed
 include src/gpgi/_lib.pyi
 include src/gpgi/_lib.pyx
