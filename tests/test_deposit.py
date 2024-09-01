@@ -1,6 +1,8 @@
 import re
+from contextlib import nullcontext
 from copy import deepcopy
 from functools import partial
+from threading import Lock
 
 import numpy as np
 import numpy.testing as npt
@@ -590,3 +592,18 @@ def test_particles_on_domain_corners(method, dtype):
         },
     )
     ds.deposit("mass", method=method)
+
+
+@pytest.mark.parametrize("lock", ["per-instance", None, Lock()])
+def test_explicit_lock(lock, sample_2D_dataset):
+    ds = sample_2D_dataset
+    mass_dep_ref = ds.deposit("mass", method="nearest_grid_point")
+    mass_dep_exp = ds.deposit("mass", method="nearest_grid_point", lock=lock)
+    npt.assert_array_equal(mass_dep_exp, mass_dep_ref)
+
+
+@pytest.mark.parametrize("lock", ["perinstance", 0, nullcontext()])
+def test_invalick_lock(lock, sample_2D_dataset):
+    ds = sample_2D_dataset
+    with pytest.raises(ValueError, match="Received lock="):
+        ds.deposit("mass", method="nearest_grid_point", lock=lock)

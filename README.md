@@ -382,3 +382,20 @@ Note `1` is used a placeholder "weight" for `W`, for symmetry reasons: all bound
 ```
 V(x) = (U/W)(x)
 ```
+
+
+## Thread safety
+
+Starting in gpgi 2.0.0, thread safety is guaranteed in `Dataset.host_cell_index`
+computation and `Dataset.deposit`, and both operations release the
+GIL (Global Interpreter Lock) around their respective hotloops. Thread safety is
+also tested against the experimental free-threaded build of Python 3.13.
+
+Note that, by default, `Dataset.deposit` still uses a lock per `Dataset`
+instance, which in the most general case is preferable since concurrently
+depositing many fields can cause catastrophic degradations of performances as
+it encourages cache misses. Optimal performance is however application-specific,
+so this strategy can be overridden using the `lock` parameter:
+- using `lock=None` will not use any lock, which in restricted conditions
+  leads to better walltime performances
+- alternatively, an externally managed `threading.Lock` instance may be supplied
