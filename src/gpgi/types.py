@@ -450,6 +450,8 @@ class Dataset(ValidatorMixin):
             the returned Dataset as an attribute (namely, ds.metadata). This special
             attribute is accessible from boundary condition methods as the argument of the
             same name.
+
+            .. versionadded: 0.4.0
         """
         self.geometry = geometry
 
@@ -618,6 +620,8 @@ class Dataset(ValidatorMixin):
         r"""
         Return True if and only if particles are already sorted.
 
+        .. versionadded: 0.14.0
+
         Parameters
         ----------
         axes: tuple[int, ...]
@@ -630,6 +634,8 @@ class Dataset(ValidatorMixin):
     def sorted(self, axes: tuple[int, ...] | None = None) -> Self:
         r"""
         Return a copy of this dataset with particles sorted by host cell index.
+
+        .. versionadded: 0.14.0
 
         Parameters
         ----------
@@ -682,58 +688,65 @@ class Dataset(ValidatorMixin):
         Parameters
         ----------
         particle_field_key (positional only): str
-           label of the particle field to deposit
+            label of the particle field to deposit
 
         method (keyword only): 'ngp', 'cic' or 'tsc', or function
-           full names ('nearest_grid_point', 'cloud_in_cell', and
-           'triangular_shaped_cloud') are also valid
+            full names ('nearest_grid_point', 'cloud_in_cell', and
+            'triangular_shaped_cloud') are also valid
+
+            .. versionchanged:: 0.12.0
+                Added support for user-defined functions.
 
         verbose (keyword only): bool (default False)
            if True, print execution time for hot loops (indexing and deposition)
 
         return_ghost_padded_array (keyword only): bool (default False)
-           if True, return the complete deposition array, including one extra
-           cell layer per direction and per side. This option is meant as a
-           debugging tool for methods that leak some particle data outside the
-           active domain (cic and tsc).
+            if True, return the complete deposition array, including one extra
+            cell layer per direction and per side. This option is meant as a
+            debugging tool for methods that leak some particle data outside the
+            active domain (cic and tsc).
 
         weight_field (keyword only): str
-           label of another field to use as weights. Let u be the field to
-           deposit and w be the weight field. Let u' and w' be their equivalent
-           on-grid descriptions. u' is obtained as
+            label of another field to use as weights. Let u be the field to
+            deposit and w be the weight field. Let u' and w' be their equivalent
+            on-grid descriptions. u' is obtained as
 
-           w'(x) = Σ w(i) c(i,x)
-           u'(x) = (1/w'(x)) Σ u(i) w(i) c(i,x)
+            w'(x) = Σ w(i) c(i,x)
+            u'(x) = (1/w'(x)) Σ u(i) w(i) c(i,x)
 
-           where x is the spatial position, i is a particle index, and w(i,x)
-           are geometric coefficients associated with the deposition method.
+            where x is the spatial position, i is a particle index, and w(i,x)
+            are geometric coefficients associated with the deposition method.
+
+            .. versionadded: 0.7.0
 
         boundaries and weight_field_boundaries (keyword only): dict
-           Maps from axis names (str) to boundary recipe keys (str, str)
-           representing left/right boundaries. By default all axes will use
-           'open' boundaries on both sides. Specifying boundaries for all axes
-           is not mandated, but note that recipes are applied in the order of
-           specified axes (any unspecified axes will be treated last).
+            Maps from axis names (str) to boundary recipe keys (str, str)
+            representing left/right boundaries. By default all axes will use
+            'open' boundaries on both sides. Specifying boundaries for all axes
+            is not mandated, but note that recipes are applied in the order of
+            specified axes (any unspecified axes will be treated last).
 
-           weight_field_boundaries is required if weight field is used in
-           combinations with boundaries.
+            weight_field_boundaries is required if weight field is used in
+            combinations with boundaries.
 
-           Boundary recipes are applied the weight field (if any) first.
+            Boundary recipes are applied the weight field (if any) first.
+
+            .. versionadded: 0.5.0
 
         lock (keyword only): 'per-instance' (default), None, or threading.Lock
-           Fine tune performance for multi-threaded applications: define a
-           locking strategy around the deposition hotloop.
-           - 'per-instance': allow multiple Dataset instances to run deposition
-              concurrently, but forbid concurrent accesses to any specific
-              instance
-           - None: no locking is applied. Within some restricted conditions
-             (e.g. depositing a couple fields concurrently in a sorted dataset),
-             this may improve walltime performance, but it is also expected to
-             degrade it in a more general case as it encourages cache-misses
-           - an arbitrary threading.Lock instance may be supplied to implement
-             a custom strategy
+            Fine tune performance for multi-threaded applications: define a
+            locking strategy around the deposition hotloop.
+            - 'per-instance': allow multiple Dataset instances to run deposition
+                concurrently, but forbid concurrent accesses to any specific
+                instance
+            - None: no locking is applied. Within some restricted conditions
+                (e.g. depositing a couple fields concurrently in a sorted dataset),
+                this may improve walltime performance, but it is also expected to
+                degrade it in a more general case as it encourages cache-misses
+            - an arbitrary threading.Lock instance may be supplied to implement
+                a custom strategy
 
-           .. versionadded:: 2.0.0
+            .. versionadded:: 2.0.0
         """
         if callable(method):
             from inspect import signature
