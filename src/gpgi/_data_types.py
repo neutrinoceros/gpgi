@@ -14,12 +14,12 @@ from itertools import chain
 from textwrap import indent
 from threading import Lock
 from time import monotonic_ns
-from typing import TYPE_CHECKING, Any, Literal, Protocol, Self, assert_never, cast
+from typing import TYPE_CHECKING, Literal, assert_never, cast
 
 import numpy as np
 
-from ._boundaries import BoundaryRegistry
-from ._lib import (
+from gpgi._boundaries import BoundaryRegistry
+from gpgi._lib import (
     _deposit_cic_1D,
     _deposit_cic_2D,
     _deposit_cic_3D,
@@ -31,6 +31,8 @@ from ._lib import (
     _deposit_tsc_3D,
     _index_particles,
 )
+from gpgi._typing import FieldMap, Name
+from gpgi.typing import DepositionMethodT, DepositionMethodWithMetadataT
 
 if sys.version_info >= (3, 13):
     LockType = Lock
@@ -38,7 +40,9 @@ else:
     from _thread import LockType
 
 if TYPE_CHECKING:
-    from ._typing import FieldMap, HCIArray, Name, RealArray
+    from typing import Any, Self
+
+    from gpgi._typing import FieldMap, HCIArray, Name, RealArray
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
 
@@ -61,40 +65,6 @@ _deposition_method_names: dict[str, DepositionMethod] = {
     **{m.name.lower(): m for m in DepositionMethod},
     **{"".join([w[0] for w in m.name.split("_")]).lower(): m for m in DepositionMethod},
 }
-
-
-class DepositionMethodT(Protocol):
-    def __call__(  # noqa D102
-        self,
-        cell_edges_x1: RealArray,
-        cell_edges_x2: RealArray,
-        cell_edges_x3: RealArray,
-        particles_x1: RealArray,
-        particles_x2: RealArray,
-        particles_x3: RealArray,
-        field: RealArray,
-        weight_field: RealArray,
-        hci: HCIArray,
-        out: RealArray,
-    ) -> None: ...
-
-
-class DepositionMethodWithMetadataT(Protocol):
-    def __call__(  # noqa D102
-        self,
-        cell_edges_x1: RealArray,
-        cell_edges_x2: RealArray,
-        cell_edges_x3: RealArray,
-        particles_x1: RealArray,
-        particles_x2: RealArray,
-        particles_x3: RealArray,
-        field: RealArray,
-        weight_field: RealArray,
-        hci: HCIArray,
-        out: RealArray,
-        *,
-        metadata: dict[str, Any],
-    ) -> None: ...
 
 
 _BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
@@ -271,6 +241,7 @@ class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
 class Grid(_CoordinateValidatorMixin):
     def __init__(
         self,
+        *,
         geometry: Geometry,
         cell_edges: FieldMap,
         fields: FieldMap | None = None,
@@ -280,13 +251,13 @@ class Grid(_CoordinateValidatorMixin):
 
         Parameters
         ----------
-        geometry: gpgi.types.Geometry
+        geometry (keyword-only): gpgi.Geometry
 
-        cell_edges: gpgi.types.FieldMap
+        cell_edges (keyword-only): gpgi.typing.FieldMap
             Left cell edges in each direction as 1D arrays, including the right edge
             of the rightmost cell.
 
-        fields: gpgi.types.FieldMap (optional)
+        fields (keyword-only, optional): gpgi.typing.FieldMap
         """
         self.geometry = geometry
         self.coordinates = cell_edges
@@ -381,10 +352,23 @@ class Grid(_CoordinateValidatorMixin):
 class ParticleSet(_CoordinateValidatorMixin):
     def __init__(
         self,
+        *,
         geometry: Geometry,
         coordinates: FieldMap,
         fields: FieldMap | None = None,
     ) -> None:
+        r"""
+        Define a ParticleSet from point positions and data fields.
+
+        Parameters
+        ----------
+        geometry (keyword-only): gpgi.Geometry
+
+        coordinates (keyword-only): gpgi.typing.FieldMap
+            Particle positions in each direction as 1D arrays.
+
+        fields (keyword-only, optional): gpgi.typing.FieldMap
+        """
         self.geometry = geometry
         self.coordinates = coordinates
 
@@ -437,18 +421,18 @@ class Dataset(ValidatorMixin):
 
         Parameters
         ----------
-        geometry: gpgi.types.Geometry
+        geometry (keyword-only): gpgi.Geometry
             An enum member that represents the geometry.
 
-        grid: gpgi.types.Grid (optional)
+        grid (keyword-only): gpgi.Grid
 
-        particles: gpgi.types.ParticleSet (optional)
+        particles(keyword-only, optional): gpgi.ParticleSet
 
-        metadata: dict[str, Any] (optional)
-            A dictionary representing arbitrary additional data, that will be attached to
-            the returned Dataset as an attribute (namely, ds.metadata). This special
-            attribute is accessible from boundary condition methods as the argument of the
-            same name.
+        metadata (keyword-only, optional): dict[str, Any]
+            A dictionary representing arbitrary additional data, that will be attached
+            to the returned Dataset as an attribute (namely, ds.metadata). This special
+            attribute is accessible from boundary condition methods as the argument of
+            the same name.
 
             .. versionadded: 0.4.0
         """
@@ -623,14 +607,14 @@ class Dataset(ValidatorMixin):
 
         Parameters
         ----------
-        axes: tuple[int, ...]
+        axes (keyword-only, optional): tuple[int, ...]
             specify in which order axes should be used for sorting.
         """
         sort_key = self._get_sort_key(axes or self._default_sort_axes)
         hci = self.host_cell_index
         return bool(np.all(hci == hci[sort_key]))
 
-    def sorted(self, axes: tuple[int, ...] | None = None) -> Self:
+    def sorted(self, *, axes: tuple[int, ...] | None = None) -> Self:
         r"""
         Return a copy of this dataset with particles sorted by host cell index.
 
@@ -638,7 +622,7 @@ class Dataset(ValidatorMixin):
 
         Parameters
         ----------
-        axes: tuple[int, ...]
+        axes (keyword-only, optional): tuple[int, ...]
             specify in which order axes should be used for sorting.
         """
         sort_key = self._get_sort_key(axes or self._default_sort_axes)
@@ -647,7 +631,7 @@ class Dataset(ValidatorMixin):
             geometry=self.geometry,
             grid=self.grid,
             particles=ParticleSet(
-                self.geometry,
+                geometry=self.geometry,
                 coordinates={
                     name: arr[sort_key]
                     for name, arr in deepcopy(self.particles.coordinates).items()
@@ -696,16 +680,16 @@ class Dataset(ValidatorMixin):
             .. versionchanged:: 0.12.0
                 Added support for user-defined functions.
 
-        verbose (keyword only): bool (default False)
-           if True, print execution time for hot loops (indexing and deposition)
+        verbose (keyword only, optional): bool (default False)
+            if True, print execution time for hot loops (indexing and deposition)
 
-        return_ghost_padded_array (keyword only): bool (default False)
+        return_ghost_padded_array (keyword only, optional): bool (default False)
             if True, return the complete deposition array, including one extra
             cell layer per direction and per side. This option is meant as a
             debugging tool for methods that leak some particle data outside the
             active domain (cic and tsc).
 
-        weight_field (keyword only): str
+        weight_field (keyword only, optional): str
             label of another field to use as weights. Let u be the field to
             deposit and w be the weight field. Let u' and w' be their equivalent
             on-grid descriptions. u' is obtained as
@@ -718,7 +702,7 @@ class Dataset(ValidatorMixin):
 
             .. versionadded: 0.7.0
 
-        boundaries and weight_field_boundaries (keyword only): dict
+        boundaries and weight_field_boundaries (keyword only, optional): dict
             Maps from axis names (str) to boundary recipe keys (str, str)
             representing left/right boundaries. By default all axes will use
             'open' boundaries on both sides. Specifying boundaries for all axes
@@ -732,7 +716,7 @@ class Dataset(ValidatorMixin):
 
             .. versionadded: 0.5.0
 
-        lock (keyword only): 'per-instance' (default), None, or threading.Lock
+        lock (keyword only, optional): 'per-instance' (default), None, or threading.Lock
             Fine tune performance for multi-threaded applications: define a
             locking strategy around the deposition hotloop.
             - 'per-instance': allow multiple Dataset instances to run deposition
