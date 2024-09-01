@@ -46,23 +46,33 @@ jobs:
         - '3.11'
         - '3.12'
         marker: [''] # needed to avoid collision with PY_LIB job
+        install-args: [--no-build]
 
         include:
         - os: macos-latest
           python-version: '3.12'
+          install-args: --no-build
         - os: windows-latest
           python-version: '3.12'
+          install-args: --no-build
 
         # test with minimal requirements
         - marker: minimal
           os: ubuntu-20.04
           python-version: '3.11'
           deps: minimal
+          install-args: --no-build
 
         # test GPGI_PY_LIB
         - marker: PY_LIB
           os: ubuntu-latest
           python-version: '3.12'
+          install-args: --no-build
+
+        # add coverage for Python dev
+        - os: ubuntu-latest
+          python-version: 3.13-dev
+          install-args: # allow building dependencies for now
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -90,7 +100,7 @@ jobs:
         echo GPGI_PY_LIB=$GPGI_PY_LIB
         uv pip install --editable . --no-build
 
-    - run: uv pip install --requirement requirements/tests.txt --no-build
+    - run: uv pip install --requirement requirements/tests.txt ${{matrix.install-args}}
 
     - run: uv pip list
 
