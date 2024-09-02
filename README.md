@@ -68,7 +68,7 @@ More refined methods are also available.
 | Cloud in Cell           | CIC              | 1     |
 | Triangular Shaped Cloud | TSC              | 2     |
 
-*new in gpgi 0.12*
+*new in gpgi 0.12.0*
 User-defined alternative methods may be provided to `Dataset.deposit` as `method=my_func`.
 Their signature need to be compatible with `gpgi.types.DepositionMethodT`.
 
