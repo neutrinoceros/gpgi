@@ -28,6 +28,7 @@ GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
   * [Weight fields (Depositing intensive quantities)](#weight-fields-depositing-intensive-quantities)
   * [Count Sorting](#count-sorting)
 - [Deposition algorithm](#deposition-algorithm)
+- [Thread safety](#thread-safety)
 
 <!-- tocstop -->
 
@@ -84,7 +85,7 @@ Their signature need to be compatible with `gpgi.types.DepositionMethodT`.
 
 An important step in performing deposition is to associate particle indices to cell indices. This step is called "particle indexing".
 In directions where the grid is uniformly stepped (if any), indexing a particle is an O(1) operation.
-In the more general case, indexing is performed by bisection, which is a O(log(nx))) operation (where nx represents the number of cells in the direction of interest).
+In the more general case, indexing is performed by bisection, which is a O(log(nx)) operation (where nx represents the number of cells in the direction of interest).
 
 
 ## Usage
