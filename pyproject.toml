@@ -81,6 +81,7 @@ select = [
     "D",   # pydocstyle
     "C4",  # flake8-comprehensions
     "B",   # flake8-bugbear
+    "TCH", # flake8-type-checking
     "YTT", # flake8-2020
     "I",   # isort
     "UP",  # pyupgrade
