@@ -31,7 +31,6 @@ from ._lib import (
     _deposit_tsc_3D,
     _index_particles,
 )
-from ._typing import FieldMap, Name
 
 if sys.version_info >= (3, 13):
     LockType = Lock
@@ -39,7 +38,7 @@ else:
     from _thread import LockType
 
 if TYPE_CHECKING:
-    from ._typing import HCIArray, RealArray
+    from ._typing import FieldMap, HCIArray, Name, RealArray
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
 
