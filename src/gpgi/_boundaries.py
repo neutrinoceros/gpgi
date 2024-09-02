@@ -5,7 +5,7 @@ from threading import Lock
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 if TYPE_CHECKING:
-    from ._typing import RealArray
+    from gpgi._typing import RealArray
 
 BoundaryRecipeT = Callable[
     [

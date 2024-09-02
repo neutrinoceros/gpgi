@@ -70,7 +70,7 @@ More refined methods are also available.
 
 *new in gpgi 0.12.0*
 User-defined alternative methods may be provided to `Dataset.deposit` as `method=my_func`.
-Their signature need to be compatible with `gpgi.types.DepositionMethodT`.
+Their signature need to be compatible with `gpgi.typing.DepositionMethodT` or `gpgi.typing.DepositionMethodWithMetadataT` .
 
 ### Supported geometries
 | geometry name | axes order                  |

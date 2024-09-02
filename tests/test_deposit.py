@@ -9,7 +9,7 @@ import numpy.testing as npt
 import pytest
 
 import gpgi
-from gpgi.types import _deposit_ngp_2D
+from gpgi._lib import _deposit_ngp_2D
 
 try:
     import matplotlib.pyplot as plt
