@@ -22,11 +22,11 @@ repos:
 # still using removed and deprecated parts of the Python stdlib
 # see https://github.com/ekalinin/nodeenv/issues/343
 # see https://github.com/ekalinin/nodeenv/issues/341
-# - repo: https://github.com/Lucas-C/pre-commit-hooks-nodejs
-#   rev: v1.1.2
-#   hooks:
-#   - id: markdown-toc
-#     files: README.md
+- repo: https://github.com/Lucas-C/pre-commit-hooks-nodejs
+  rev: v1.1.2
+  hooks:
+  - id: markdown-toc
+    files: README.md
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.5.0
