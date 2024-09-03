@@ -400,3 +400,7 @@ so this strategy can be overridden using the `lock` parameter:
 - using `lock=None` will not use any lock, which in restricted conditions
   leads to better walltime performances
 - alternatively, an externally managed `threading.Lock` instance may be supplied
+
+`Dataset.boundary_recipes.register` is also thread-safe: registering a shared
+function multiple times is supported, but an error is raised in case one
+attempts registering a different function under an existing key.
