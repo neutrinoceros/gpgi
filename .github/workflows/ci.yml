@@ -117,6 +117,7 @@ jobs:
         name: gpgi_coverage_data-${{matrix.os}}-${{matrix.python-version}}-${{matrix.marker}}
         path: .coverage.*
         if-no-files-found: ignore
+        include-hidden-files: true
 
   image-tests:
     name: Image tests
