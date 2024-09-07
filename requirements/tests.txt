@@ -1,4 +1,5 @@
-coverage>=6.5
+# using --editable install makes it drastically easier to combine coverage reports
+--editable .
 pytest>=7.0.0
 pytest-mpl>=0.16.1
 pytest-repeat>=0.9.3
