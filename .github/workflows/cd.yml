@@ -25,16 +25,11 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-
-    - uses: yezz123/setup-uv@v4
-      with:
-        uv-version: 0.2.18
-
+    - uses: astral-sh/setup-uv@v2
     - name: Build wheels for CPython
       uses: pypa/cibuildwheel@v2.20.0
       with:
         output-dir: dist
-
     - uses: actions/upload-artifact@v4
       with:
         name: wheels-${{ matrix.os }}
@@ -46,10 +41,9 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v4
-
+    - uses: astral-sh/setup-uv@v2
     - name: Build sdist
-      run: pipx run build --sdist
-
+      run: uv build --sdist
     - name: Upload sdist
       uses: actions/upload-artifact@v4
       with:
