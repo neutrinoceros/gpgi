@@ -14,7 +14,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 jobs:
 
   build-test:
@@ -22,19 +21,14 @@ jobs:
     steps:
     - name: Checkout Source
       uses: actions/checkout@v4
-    - name: Setup Python
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v2
       with:
-        python-version: 3.x
-    - uses: yezz123/setup-uv@v4
-      with:
-        uv-version: 0.2.33
-        uv-venv: .venv
-    - run: uv pip install check-manifest build
+        enable-cache: true
+        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Check build
       run: |
-        python -m check_manifest
-        python -m build
+        uvx check-manifest
+        uv build
 
   unit-tests:
     name: ${{matrix.os}} x py${{matrix.python-version}} ${{matrix.marker}}
@@ -52,6 +46,7 @@ jobs:
         - os: macos-latest
           python-version: '3.12'
           install-args: --no-build
+
         - os: windows-latest
           python-version: '3.12'
           install-args: --no-build
@@ -60,8 +55,7 @@ jobs:
         - marker: minimal
           os: ubuntu-20.04
           python-version: '3.11'
-          deps: minimal
-          install-args: --no-build
+          install-args: --no-build --resolution=lowest-direct
 
         # test GPGI_PY_LIB
         - marker: PY_LIB
@@ -72,7 +66,6 @@ jobs:
         # add coverage for Python dev
         - os: ubuntu-latest
           python-version: 3.13-dev
-          install-args: # allow building dependencies for now
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -82,31 +75,23 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
-
-    - uses: yezz123/setup-uv@v4
+    - uses: astral-sh/setup-uv@v2
       with:
-        uv-version: 0.2.33
-        uv-venv: .venv
+        enable-cache: true
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - if: matrix.deps == 'minimal'
-      run: |
-        uv pip compile pyproject.toml --resolution=lowest-direct | uv pip install -r - --no-build
-
-    - name: Build library
-      env:
-        GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
-      # install in editable mode to allow coverage measurement
-      run: |
-        echo GPGI_PY_LIB=$GPGI_PY_LIB
-        uv pip install --editable . --no-build
-
-    - run: uv pip install --requirement requirements/tests.txt ${{matrix.install-args}}
-
-    - run: uv pip list
+    - run: echo $(pwd) # TODO: clean up (maybe use it on other archs first)
+      if: matrix.os == 'ubuntu-latest'
 
     - name: Test
+      env:
+        GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
+      shell: bash # for windows-compat (using `\` as a line continuation)
+      # pinning coverage@x.y.z inline so it's up to date
+      # even with UV_RESOLUTION=lowest-direct
       run: |
-        python -m coverage run --parallel-mode -m pytest --color=yes -ra
+        uvx --with-requirements=requirements/tests.txt ${{ matrix.install-args }} \
+          coverage@7.6.1 run --parallel-mode -m pytest --color=yes -ra
 
     - name: Upload coverage data
       # only using reports from ubuntu because
@@ -124,34 +109,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v2
       with:
-        python-version: 3.x
-
-    - uses: yezz123/setup-uv@v4
-      with:
-        uv-version: 0.2.33
-        uv-venv: .venv
-
-    - name: Build library
-      run: uv pip install . --only-binary numpy
-
-    - run: uv pip install --requirement requirements/tests.txt --no-build
-
+        enable-cache: true
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: uv python install 3.12
     - name: Run Image Tests
       run: |
-        pytest --color=yes --mpl -m mpl_image_compare \
-               --mpl-generate-summary=html \
-               --mpl-results-path=gpgi_pytest_mpl_results \
-               --mpl-baseline-path=tests/pytest_mpl_baseline
+        uvx --with-requirements=requirements/tests.txt --no-build \
+          pytest --color=yes --mpl -m mpl_image_compare \
+                --mpl-generate-summary=html \
+                --mpl-results-path=gpgi_pytest_mpl_results \
+                --mpl-baseline-path=tests/pytest_mpl_baseline
 
     - name: Generate new image baseline
       if: failure()
       run: |
-        pytest --color=yes --mpl -m mpl_image_compare \
-               --mpl-generate-path=gpgi_pytest_mpl_new_baseline \
-               --last-failed
+        uvx --with-requirements=requirements/tests.txt --no-build \
+          pytest --color=yes --mpl -m mpl_image_compare \
+                --mpl-generate-path=gpgi_pytest_mpl_new_baseline \
+                --last-failed
 
     # always attempt to upload artifacts, even
     # (and especially) in case of failure.
@@ -176,24 +153,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v2
       with:
-        python-version: 3.x
-
-    - uses: yezz123/setup-uv@v4
-      with:
-        uv-version: 0.2.33
-        uv-venv: .venv
-
-    - name: Build library
-      run: uv pip install . --only-binary numpy
-
-    - run: uv pip install --requirement requirements/tests.txt --no-build
-
+        enable-cache: true
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: uv python install 3.12
     - name: Run Concurrency Tests
       run: |
-        pytest --color=yes --count 500 tests/test_concurrent.py
+        uvx --with-requirements=requirements/tests.txt --no-build \
+          pytest --color=yes --count 500 tests/test_concurrent.py
 
   coverage:
     name: Combine & check coverage.
@@ -202,17 +170,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v2
       with:
-        # Use latest Python, so it understands all syntax.
-        python-version: 3.x
-
-    - uses: yezz123/setup-uv@v4
-      with:
-        uv-version: 0.2.33
-        uv-venv: .venv
-
-    - run: uv pip install coverage --no-build
+        enable-cache: true
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+    - run: uv python install 3.12
 
     - uses: actions/download-artifact@v4
       with:
@@ -221,9 +183,11 @@ jobs:
 
     - name: Check coverage
       run: |
-        python -m coverage combine
-        python -m coverage html --skip-covered --skip-empty
-        python -m coverage report --fail-under=100
+        uv python install 3.12
+        uv tool install coverage
+        coverage combine
+        coverage html --skip-covered --skip-empty
+        coverage report --fail-under=100 # >> $GITHUB_STEP_SUMMARY
 
     - name: Upload HTML report if check failed.
       uses: actions/upload-artifact@v4
@@ -246,23 +210,16 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: astral-sh/setup-uv@v2
       with:
-        python-version: ${{ matrix.python-version }}
+        enable-cache: true
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
-    - uses: yezz123/setup-uv@v4
-      with:
-        uv-version: 0.2.33
-        uv-venv: .venv
-
-    - name: Build
-      run: uv pip install --requirement requirements/typecheck.txt --no-build
-
+    - run: uv python install ${{ matrix.python-version }}
     - name: Typecheck
       run: |
-        uv pip freeze
-        mypy src/gpgi
+        uvx --with-requirements=requirements/typecheck.txt \
+          mypy src/gpgi
 
 
   future:
