@@ -24,7 +24,6 @@ jobs:
     - uses: astral-sh/setup-uv@v2
       with:
         enable-cache: true
-        github-token: ${{ secrets.GITHUB_TOKEN }}
     - name: Check build
       run: |
         uvx check-manifest
@@ -78,7 +77,6 @@ jobs:
     - uses: astral-sh/setup-uv@v2
       with:
         enable-cache: true
-        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: echo $(pwd) # TODO: clean up (maybe use it on other archs first)
       if: matrix.os == 'ubuntu-latest'
@@ -113,7 +111,6 @@ jobs:
     - uses: astral-sh/setup-uv@v2
       with:
         enable-cache: true
-        github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: uv python install 3.12
     - name: Run Image Tests
       run: |
@@ -157,7 +154,6 @@ jobs:
     - uses: astral-sh/setup-uv@v2
       with:
         enable-cache: true
-        github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: uv python install 3.12
     - name: Run Concurrency Tests
       run: |
@@ -174,7 +170,6 @@ jobs:
     - uses: astral-sh/setup-uv@v2
       with:
         enable-cache: true
-        github-token: ${{ secrets.GITHUB_TOKEN }}
     - run: uv python install 3.12
 
     - uses: actions/download-artifact@v4
@@ -214,7 +209,6 @@ jobs:
     - uses: astral-sh/setup-uv@v2
       with:
         enable-cache: true
-        github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - run: uv python install ${{ matrix.python-version }}
     - name: Typecheck
