@@ -1,10 +1,10 @@
 [build-system]
 requires = [
-    "setuptools>=61.2",
+    "meson-python>=0.17.1",
     "Cython>=3.0",
     "numpy>=2.0.0",
 ]
-build-backend = "setuptools.build_meta"
+build-backend = "mesonpy"
 
 [project]
 name = "gpgi"
@@ -21,7 +21,7 @@ classifiers = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    # keep in sync with NPY_TARGET_VERSION (setup.py)
+    # keep in sync with NPY_TARGET_VERSION (meson.build)
     "numpy>=1.25, <3",
 ]
 
@@ -54,16 +54,6 @@ typecheck = [
     "mypy>=1.13.0",
     "pyright>=1.1.391",
 ]
-
-[tool.setuptools]
-license-files = [
-    "LICENSE",
-]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-where = ["src"]
-namespaces = false
 
 [tool.coverage.run]
 source = [
@@ -117,7 +107,6 @@ convention = "numpy"
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["D"]
-"setup.py" = ["D"]
 "_backports.py" = ["D"]
 
 [tool.mypy]
