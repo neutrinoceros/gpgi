@@ -24,7 +24,6 @@ jobs:
     - uses: astral-sh/setup-uv@4db96194c378173c656ce18a155ffc14a9fc4355 # v5.2.2
     - name: Check build
       run: |
-        uvx check-manifest
         uv sync --only-dev
         uv build
 
@@ -61,12 +60,14 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    # TODO: add --no-editable
-    - run: |
-        uv sync --only-dev
-        uv sync --group covcheck
-      env:
-        GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
+    - run: uv sync --group covcheck --no-install-project
+    - if: ${{ matrix.marker != 'PY_LIB' }}
+      # using editable mode for simplicity regarding coverage analysis
+      run: uv pip install --editable . --no-deps
+    - if: ${{ matrix.marker == 'PY_LIB' }}
+      # disabling caching here to avoid shadowing the pure Python module
+      # with a remnant .so from a previous run
+      run: uv pip install --editable . --no-deps -Csetup-args='-Dpylib=true' --no-cache
     - name: Test
       run: uv run --no-sync coverage run --parallel-mode -m pytest --color=yes
 
@@ -253,6 +254,10 @@ jobs:
         echo "PYTHON_GIL=0" >> $GITHUB_ENV
         echo
     - name: Build
+      # ninja is a system level requirement to meson-python
+      # it is automatically obtained from PyPI if lacking at the system level
+      # when building a package in isolation, which is why it's not listed
+      # under our build-system requirements.
       run: |
         uv venv
         uv lock --upgrade --prerelease=allow --no-build
