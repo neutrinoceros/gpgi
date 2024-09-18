@@ -77,6 +77,7 @@ jobs:
     - uses: astral-sh/setup-uv@v2
       with:
         enable-cache: true
+        version: 0.4.9
 
     - run: echo $(pwd) # TODO: clean up (maybe use it on other archs first)
       if: matrix.os == 'ubuntu-latest'
