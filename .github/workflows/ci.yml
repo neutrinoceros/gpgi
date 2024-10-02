@@ -22,8 +22,6 @@ jobs:
     - name: Checkout Source
       uses: actions/checkout@v4
     - uses: astral-sh/setup-uv@v3
-      with:
-        enable-cache: true
     - name: Check build
       run: |
         uvx check-manifest
@@ -77,6 +75,9 @@ jobs:
     - uses: astral-sh/setup-uv@v3
       with:
         enable-cache: true
+        cache-dependency-glob: |
+          **/requirements/tests.txt
+          **/pyproject.toml
 
     - run: echo $(pwd) # TODO: clean up (maybe use it on other archs first)
       if: matrix.os == 'ubuntu-latest'
@@ -111,6 +112,9 @@ jobs:
     - uses: astral-sh/setup-uv@v3
       with:
         enable-cache: true
+        cache-dependency-glob: |
+          **/requirements/tests.txt
+          **/pyproject.toml
     - run: uv python install 3.12
     - name: Run Image Tests
       run: |
@@ -154,6 +158,9 @@ jobs:
     - uses: astral-sh/setup-uv@v3
       with:
         enable-cache: true
+        cache-dependency-glob: |
+          **/requirements/tests.txt
+          **/pyproject.toml
     - run: uv python install 3.12
     - name: Run Concurrency Tests
       run: |
@@ -168,8 +175,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: astral-sh/setup-uv@v3
-      with:
-        enable-cache: true
     - run: uv python install 3.12
 
     - uses: actions/download-artifact@v4
@@ -179,7 +184,6 @@ jobs:
 
     - name: Check coverage
       run: |
-        uv python install 3.12
         uv tool install coverage
         coverage combine
         coverage html --skip-covered --skip-empty
@@ -209,6 +213,9 @@ jobs:
     - uses: astral-sh/setup-uv@v3
       with:
         enable-cache: true
+        cache-dependency-glob: |
+          **/requirements/typecheck.txt
+          **/pyproject.toml
 
     - run: uv python install ${{ matrix.python-version }}
     - name: Typecheck
