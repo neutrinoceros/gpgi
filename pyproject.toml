@@ -2,7 +2,7 @@
 requires = [
     "setuptools>=61.2",
     "Cython>=3.0",
-    "numpy>=2.0.0rc1",
+    "numpy>=2.0.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -122,7 +122,7 @@ filterwarnings = [
 ]
 
 [tool.cibuildwheel]
-build = "cp311-* cp312-*"
+build = "cp311-* cp312-* cp313-*"
 build-frontend = "build[uv]"
 build-verbosity = 1
 before-test = "uv pip install -r requirements/tests.txt --no-build"
