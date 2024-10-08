@@ -36,16 +36,17 @@ jobs:
         python-version:
         - '3.11'
         - '3.12'
+        - '3.13'
         marker: [''] # needed to avoid collision with PY_LIB job
         install-args: [--no-build]
 
         include:
         - os: macos-latest
-          python-version: '3.12'
+          python-version: '3.13'
           install-args: --no-build
 
         - os: windows-latest
-          python-version: '3.12'
+          python-version: '3.13'
           install-args: --no-build
 
         # test with minimal requirements
@@ -57,7 +58,7 @@ jobs:
         # test GPGI_PY_LIB
         - marker: PY_LIB
           os: ubuntu-latest
-          python-version: '3.12'
+          python-version: '3.13'
           install-args: --no-build
 
         # add coverage for Python dev
@@ -115,7 +116,7 @@ jobs:
         cache-dependency-glob: |
           **/requirements/tests.txt
           **/pyproject.toml
-    - run: uv python install 3.12
+    - run: uv python install 3.13
     - name: Run Image Tests
       run: |
         uvx --with-requirements=requirements/tests.txt --no-build \
@@ -161,7 +162,7 @@ jobs:
         cache-dependency-glob: |
           **/requirements/tests.txt
           **/pyproject.toml
-    - run: uv python install 3.12
+    - run: uv python install 3.13
     - name: Run Concurrency Tests
       run: |
         uvx --with-requirements=requirements/tests.txt --no-build \
@@ -175,7 +176,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: astral-sh/setup-uv@v3
-    - run: uv python install 3.12
+    - run: uv python install 3.13
 
     - uses: actions/download-artifact@v4
       with:
@@ -203,6 +204,7 @@ jobs:
         python-version:
         - '3.11'
         - '3.12'
+        - '3.13'
     runs-on: ubuntu-latest
     name: type check
 
