@@ -65,7 +65,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 - RFC: drop misleading use of typing.Protocol [#199](https://github.com/neutrinoceros/gpgi/pull/199) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: test CPython 3.13 (free-threading flavor) [#198](https://github.com/neutrinoceros/gpgi/pull/198) ([neutrinoceros](https://github.com/neutrinoceros))
 - [pre-commit.ci] pre-commit autoupdate [#195](https://github.com/neutrinoceros/gpgi/pull/195) ([pre-commit-ci](https://github.com/pre-commit-ci))
-- REL: prepare release 1.0.0 [#174](https://github.com/neutrinoceros/gpgi/pull/174) ([neutrinoceros](https://github.com/neutrinoceros))
 
 ## [v1.0.0](https://github.com/neutrinoceros/gpgi/tree/v1.0.0) - 2024-03-30
 
@@ -81,6 +80,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 ### Other
 
+- REL: prepare release 1.0.0 [#174](https://github.com/neutrinoceros/gpgi/pull/174) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: move --parallel-mode from configuration file to workflow to allow local coverage runs [#194](https://github.com/neutrinoceros/gpgi/pull/194) ([neutrinoceros](https://github.com/neutrinoceros))
 - CLN: cleanup unused future import [#193](https://github.com/neutrinoceros/gpgi/pull/193) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: test wheels on MacOS AMD [#192](https://github.com/neutrinoceros/gpgi/pull/192) ([neutrinoceros](https://github.com/neutrinoceros))
