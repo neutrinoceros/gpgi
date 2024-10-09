@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org).
 
-## Unreleased
+## [v2.0.0](https://github.com/neutrinoceros/gpgi/tree/v2.0.0) - 2024-10-09
+
+[Full Changelog](https://github.com/neutrinoceros/gpgi/compare/v1.0.0...v2.0.0)
 
 - TST: add CPython 3.13 to regular test matrix [#275](https://github.com/neutrinoceros/gpgi/pull/275) ([neutrinoceros](https://github.com/neutrinoceros))
 - [pre-commit.ci] pre-commit autoupdate [#274](https://github.com/neutrinoceros/gpgi/pull/274) ([pre-commit-ci](https://github.com/pre-commit-ci))
