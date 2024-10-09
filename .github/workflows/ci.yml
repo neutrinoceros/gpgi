@@ -38,32 +38,24 @@ jobs:
         - '3.12'
         - '3.13'
         marker: [''] # needed to avoid collision with PY_LIB job
-        install-args: [--no-build]
 
         include:
         - os: macos-latest
           python-version: '3.13'
-          install-args: --no-build
 
         - os: windows-latest
           python-version: '3.13'
-          install-args: --no-build
 
         # test with minimal requirements
         - marker: minimal
           os: ubuntu-20.04
           python-version: '3.11'
-          install-args: --no-build --resolution=lowest-direct
+          install-args: --resolution=lowest-direct
 
         # test GPGI_PY_LIB
         - marker: PY_LIB
           os: ubuntu-latest
           python-version: '3.13'
-          install-args: --no-build
-
-        # add coverage for Python dev
-        - os: ubuntu-latest
-          python-version: 3.13-dev
 
     runs-on: ${{ matrix.os }}
     steps:
@@ -90,7 +82,7 @@ jobs:
       # pinning coverage@x.y.z inline so it's up to date
       # even with UV_RESOLUTION=lowest-direct
       run: |
-        uvx --with-requirements=requirements/tests.txt ${{ matrix.install-args }} \
+        uvx --with-requirements=requirements/tests.txt --no-build ${{ matrix.install-args }} \
           coverage@7.6.1 run --parallel-mode -m pytest --color=yes -ra
 
     - name: Upload coverage data
@@ -227,30 +219,15 @@ jobs:
 
 
   future:
-    name: 'py${{ matrix.python-version }} (free-threading: ${{ matrix.free-threading }})'
+    name: free-threading Python 3.13
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version:
-        - 3.13-dev
-        free-threading:
-        - false
-        - true
-
     steps:
     - uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
-    - if: ${{ !matrix.free-threading }}
-      uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3 # v5.2.0
+    - uses: deadsnakes/action@e640ac8743173a67cca4d7d77cd837e514bf98e8 # v3.2.0
       with:
-        python-version: ${{ matrix.python-version }}
-
-    - if: ${{ matrix.free-threading }}
-      uses: deadsnakes/action@e640ac8743173a67cca4d7d77cd837e514bf98e8 # v3.2.0
-      with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.13
         nogil: true
 
     - name: Build
