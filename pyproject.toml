@@ -36,6 +36,22 @@ text = "GPL-3.0"
 Homepage = "https://github.com/neutrinoceros/gpgi"
 Changelog = "https://github.com/neutrinoceros/gpgi/blob/main/CHANGELOG.md"
 
+[dependency-groups]
+covcheck = [
+    "coverage>=7.6.1",
+]
+concurrency = [
+    "pytest-repeat>=0.9.3",
+]
+test = [
+    "matplotlib>=3.6.0",
+    "pytest-mpl>=0.16.1",
+    "pytest>=7.0.0",
+]
+typecheck = [
+    "mypy>=1.11.2",
+]
+
 [tool.setuptools]
 license-files = [
     "LICENSE",
@@ -126,10 +142,10 @@ filterwarnings = [
 build = "cp311-* cp312-* cp313-*"
 build-frontend = "build[uv]"
 build-verbosity = 1
-before-test = "uv pip install -r requirements/tests.txt --no-build"
+before-test = "uv sync --project {project} --only-group test --only-group concurrency --no-build"
 test-command = [
-    "pytest --color=yes -ra {project}/tests",
-    "pytest --color=yes --count 500 {project}/tests/test_concurrent.py",
+    "uv run pytest --color=yes -ra {project}/tests",
+    "uv run pytest --color=yes --count 500 {project}/tests/test_concurrent.py",
 ]
 test-skip = "*-musllinux*"
 
