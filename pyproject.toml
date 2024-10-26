@@ -142,6 +142,7 @@ filterwarnings = [
 build = "cp311-* cp312-* cp313-*"
 build-frontend = "build[uv]"
 build-verbosity = 1
+environment = {"UV_PROJECT_ENVIRONMENT" = "$VIRTUAL_ENV"}
 before-test = "uv sync --project {project} --only-group test --only-group concurrency --no-build"
 test-command = [
     "uv run pytest --color=yes -ra {project}/tests",
