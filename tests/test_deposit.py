@@ -11,12 +11,6 @@ import pytest
 import gpgi
 from gpgi._lib import _deposit_ngp_2D
 
-try:
-    import matplotlib.pyplot as plt
-except ImportError:  # pragma: no cover
-    # image tests are supposed to be skipped from mpl_image_compare marker
-    pass
-
 
 @pytest.fixture()
 def sample_2D_dataset():
@@ -126,10 +120,13 @@ def test_callable_method_with_metadata(sample_2D_dataset):
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.mpl_image_compare
 def test_2D_deposit(sample_2D_dataset, method):
+    from matplotlib.figure import Figure
+
     ds = sample_2D_dataset
     particle_density = ds.deposit("mass", method=method)
 
-    fig, ax = plt.subplots()
+    fig = Figure()
+    ax = fig.add_subplot()
 
     im = ax.pcolormesh(
         "x",
@@ -156,6 +153,8 @@ def test_2D_deposit(sample_2D_dataset, method):
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
 def test_1D_deposit(method, grid_type):
+    from matplotlib.figure import Figure
+
     if grid_type == "linear":
         xedges = np.linspace(1, 2, 6)
     elif grid_type == "geometric":
@@ -179,7 +178,8 @@ def test_1D_deposit(method, grid_type):
     if method == "ngp":
         assert mass.sum() == ds.particles.count
 
-    fig, ax = plt.subplots()
+    fig = Figure()
+    ax = fig.add_subplot()
     ax.set(xlabel="x", ylabel="particle mass", title=f"Deposition method '{method}'")
     ax.bar(
         ds.grid.cell_centers["x"], mass, width=ds.grid.cell_widths["x"], edgecolor=None
@@ -243,6 +243,8 @@ def test_3D_deposit(method, dtype):
 
 @pytest.mark.mpl_image_compare
 def test_readme_example():
+    from matplotlib.figure import Figure
+
     nx = ny = 64
     nparticles = 600_000
 
@@ -269,7 +271,8 @@ def test_readme_example():
 
     particle_mass = ds.deposit("mass", method="nearest_grid_point")
 
-    fig, ax = plt.subplots()
+    fig = Figure()
+    ax = fig.add_subplot()
     ax.set(aspect=1, xlabel="x", ylabel="y")
 
     im = ax.pcolormesh(
