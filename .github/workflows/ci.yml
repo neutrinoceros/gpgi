@@ -72,9 +72,6 @@ jobs:
           **/requirements/tests.txt
           **/pyproject.toml
 
-    - run: echo $(pwd) # TODO: clean up (maybe use it on other archs first)
-      if: matrix.os == 'ubuntu-latest'
-
     - name: Test
       env:
         GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
