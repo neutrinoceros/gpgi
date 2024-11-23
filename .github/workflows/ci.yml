@@ -30,6 +30,7 @@ jobs:
   unit-tests:
     name: ${{matrix.os}} x py${{matrix.python-version}} ${{matrix.marker}}
     strategy:
+      fail-fast: false
       matrix:
         os:
         - ubuntu-latest
@@ -69,18 +70,16 @@ jobs:
       with:
         enable-cache: true
         cache-dependency-glob: |
-          **/requirements/tests.txt
           **/pyproject.toml
 
     - name: Test
       env:
         GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
       shell: bash # for windows-compat (using `\` as a line continuation)
-      # pinning coverage@x.y.z inline so it's up to date
-      # even with UV_RESOLUTION=lowest-direct
       run: |
-        uvx --with-requirements=requirements/tests.txt --no-build ${{ matrix.install-args }} \
-          coverage@7.6.1 run --parallel-mode -m pytest --color=yes -ra
+        uv sync --only-group test --only-group covcheck --no-build ${{ matrix.install-args }}
+        uv run  ${{ matrix.install-args }} \
+          coverage run --parallel-mode -m pytest --color=yes -ra
 
     - name: Upload coverage data
       # only using reports from ubuntu because
@@ -103,12 +102,12 @@ jobs:
       with:
         enable-cache: true
         cache-dependency-glob: |
-          **/requirements/tests.txt
           **/pyproject.toml
     - run: uv python install 3.13
     - name: Run Image Tests
       run: |
-        uvx --with-requirements=requirements/tests.txt --no-build \
+        uv sync --only-group test --no-build
+        uv run \
           pytest --color=yes --mpl -m mpl_image_compare \
                 --mpl-generate-summary=html \
                 --mpl-results-path=gpgi_pytest_mpl_results \
@@ -117,7 +116,8 @@ jobs:
     - name: Generate new image baseline
       if: failure()
       run: |
-        uvx --with-requirements=requirements/tests.txt --no-build \
+        uv sync --only-group test --no-build
+        uv run \
           pytest --color=yes --mpl -m mpl_image_compare \
                 --mpl-generate-path=gpgi_pytest_mpl_new_baseline \
                 --last-failed
@@ -149,12 +149,12 @@ jobs:
       with:
         enable-cache: true
         cache-dependency-glob: |
-          **/requirements/tests.txt
           **/pyproject.toml
     - run: uv python install 3.13
     - name: Run Concurrency Tests
       run: |
-        uvx --with-requirements=requirements/tests.txt --no-build \
+        uv sync --only-group test --only-group concurrency --no-build
+        uv run \
           pytest --color=yes --count 500 tests/test_concurrent.py
 
   coverage:
@@ -205,14 +205,13 @@ jobs:
       with:
         enable-cache: true
         cache-dependency-glob: |
-          **/requirements/typecheck.txt
           **/pyproject.toml
 
     - run: uv python install ${{ matrix.python-version }}
     - name: Typecheck
       run: |
-        uvx --with-requirements=requirements/typecheck.txt \
-          mypy src/gpgi
+        uv sync --only-group typecheck --no-build
+        uv run mypy src/gpgi
 
 
   future:
