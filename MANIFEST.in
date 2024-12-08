@@ -9,3 +9,4 @@ exclude src/gpgi/_lib.py
 recursive-exclude tests *
 exclude .pre-commit-config.yaml
 exclude _typos.toml
+exclude uv.lock

@@ -37,16 +37,18 @@ Homepage = "https://github.com/neutrinoceros/gpgi"
 Changelog = "https://github.com/neutrinoceros/gpgi/blob/main/CHANGELOG.md"
 
 [dependency-groups]
-covcheck = [
-    "coverage>=7.6.1",
-]
-concurrency = [
-    "pytest-repeat>=0.9.3",
-]
 test = [
     "matplotlib>=3.6.0",
     "pytest-mpl>=0.16.1",
     "pytest>=7.0.0",
+]
+covcheck = [
+    {include-group = "test"},
+    "coverage>=7.6.1",
+]
+concurrency = [
+    {include-group = "test"},
+    "pytest-repeat>=0.9.3",
 ]
 typecheck = [
     "mypy>=1.13.0",
