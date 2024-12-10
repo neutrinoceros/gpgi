@@ -45,9 +45,13 @@ else:
     from _thread import LockType
 
 if TYPE_CHECKING:
-    from typing import Any, Self
+    from typing import Any, Self, TypeVar
 
-    from gpgi._typing import FieldMap, HCIArray, Name, RealArray
+    from numpy.typing import NDArray
+
+    from gpgi._typing import FieldMap, HCIArray, Name, RealArray, RealT
+
+    _FloatingT = TypeVar("_FloatingT", bound=np.floating)
 
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
@@ -116,8 +120,8 @@ class Grid:
         self,
         *,
         geometry: Geometry,
-        cell_edges: FieldMap,
-        fields: FieldMap | None = None,
+        cell_edges: FieldMap[RealT],
+        fields: FieldMap[RealT] | None = None,
     ) -> None:
         r"""
         Define a Grid from cell left-edges and data fields.
@@ -144,6 +148,7 @@ class Grid:
         self.dtype = self.coordinates[self.axes[0]].dtype
 
         self._dx = np.full((3,), -1, dtype=self.coordinates[self.axes[0]].dtype)
+
         for i, ax in enumerate(self.axes):
             if self.size == 1 or np.diff(self.coordinates[ax]).std() < 1e-16:
                 # got a constant step in this direction, store it
@@ -172,17 +177,17 @@ class Grid:
         )
 
     @property
-    def cell_edges(self) -> FieldMap:
+    def cell_edges(self) -> FieldMap[RealT]:
         r"""An alias for self.coordinates."""
         return self.coordinates
 
     @cached_property
-    def cell_centers(self) -> FieldMap:
+    def cell_centers(self) -> FieldMap[RealT]:
         r"""The positions of cell centers in each direction."""
         return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}
 
     @cached_property
-    def cell_widths(self) -> FieldMap:
+    def cell_widths(self) -> FieldMap[RealT]:
         r"""The width of cells, expressed as the difference between consecutive left edges."""
         return {ax: np.diff(arr) for ax, arr in self.coordinates.items()}
 
@@ -206,7 +211,7 @@ class Grid:
         return len(self.axes)
 
     @property
-    def cell_volumes(self) -> RealArray:
+    def cell_volumes(self) -> RealArray[RealT]:
         r"""
         The generalized ND-volume of grid cells.
 
@@ -241,8 +246,8 @@ class ParticleSet:
         self,
         *,
         geometry: Geometry,
-        coordinates: FieldMap,
-        fields: FieldMap | None = None,
+        coordinates: FieldMap[RealT],
+        fields: FieldMap[RealT] | None = None,
     ) -> None:
         r"""
         Define a ParticleSet from point positions and data fields.
@@ -261,7 +266,7 @@ class ParticleSet:
 
         if fields is None:
             fields = {}
-        self.fields: FieldMap = fields
+        self.fields = fields
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
