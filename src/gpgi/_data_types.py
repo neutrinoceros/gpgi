@@ -380,10 +380,10 @@ class Dataset:
                 f"- from particles: {self.particles.dtype}\n"
             )
 
-    def _get_padded_cell_edges(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _get_padded_cell_edges(self) -> tuple[RealArray, RealArray, RealArray]:
         edges = iter(self.grid.cell_edges.values())
 
-        def pad(a: np.ndarray) -> np.ndarray:
+        def pad(a: RealArray) -> RealArray:
             dx = a[1] - a[0]
             return np.concatenate([[a[0] - dx], a, [a[-1] + dx]])
 
@@ -399,7 +399,7 @@ class Dataset:
 
         return cell_edges_x1, cell_edges_x2, cell_edges_x3
 
-    def _get_3D_particle_coordinates(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _get_3D_particle_coordinates(self) -> tuple[RealArray, RealArray, RealArray]:
         particle_coords = iter(self.particles.coordinates.values())
         particles_x1 = next(particle_coords)
         DTYPE = particles_x1.dtype
@@ -477,9 +477,7 @@ class Dataset:
         if any(axis > self.grid.ndim - 1 for axis in axes):
             raise ValueError(f"Expected all axes to be <{self.grid.ndim}, got {axes!r}")
 
-    def _get_sort_key(
-        self, axes: tuple[int, ...]
-    ) -> np.ndarray[Any, np.dtype[np.uint16]]:
+    def _get_sort_key(self, axes: tuple[int, ...]) -> NDArray[np.uint16]:
         self._validate_sort_axes(axes)
 
         hci = self.host_cell_index
