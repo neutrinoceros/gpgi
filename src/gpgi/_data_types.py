@@ -15,7 +15,7 @@ from itertools import chain
 from textwrap import indent
 from threading import Lock
 from time import monotonic_ns
-from typing import TYPE_CHECKING, Literal, assert_never, cast
+from typing import TYPE_CHECKING, Generic, Literal, assert_never, cast, overload
 
 import numpy as np
 
@@ -32,7 +32,7 @@ from gpgi._lib import (
     _deposit_tsc_3D,
     _index_particles,
 )
-from gpgi._typing import FieldMap, Name
+from gpgi._typing import FieldMap, Name, RealT
 from gpgi.typing import DepositionMethodT, DepositionMethodWithMetadataT
 
 if sys.version_info >= (3, 13):
@@ -41,11 +41,13 @@ else:
     from _thread import LockType
 
 if TYPE_CHECKING:
-    from typing import Any, Self
+    from typing import Any, Self, TypeVar
 
     from numpy.typing import NDArray
 
     from gpgi._typing import FieldMap, HCIArray, Name, Real, RealArray
+
+    _FloatingT = TypeVar("_FloatingT", bound=np.floating)
 
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
@@ -95,11 +97,11 @@ class GeometricData(ABC):
     axes: tuple[Name, ...]
 
 
-class CoordinateData(ABC):
+class CoordinateData(ABC, Generic[RealT]):
     geometry: Geometry
     axes: tuple[Name, ...]
-    coordinates: FieldMap
-    fields: FieldMap
+    coordinates: FieldMap[RealT]
+    fields: FieldMap[RealT]
 
 
 @dataclass
@@ -225,7 +227,7 @@ class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
             coord = self.coordinates[axis]
             if len(coord) == 0:
                 continue
-            coord_dtype = self._get_safe_datatype(coord)
+            coord_dtype = self._get_safe_datatype(reference=coord)
             dt = coord_dtype.type
             xmin, xmax = (dt(_) for _ in _AXES_LIMITS[axis])
             if (cmin := dt(np.min(coord))) < xmin or not math.isfinite(cmin):
@@ -249,9 +251,15 @@ class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
 
             self.coordinates[axis] = coord.astype(coord_dtype, copy=False)
 
+    @overload
+    def _get_safe_datatype(self, *, reference: None) -> np.dtype[np.floating]: ...
+
+    @overload
     def _get_safe_datatype(
-        self, reference: NDArray[np.floating] | None = None
-    ) -> np.dtype[np.floating]:
+        self, *, reference: NDArray[_FloatingT]
+    ) -> np.dtype[_FloatingT]: ...
+
+    def _get_safe_datatype(self, reference):  # type: ignore[no-untyped-def]
         if reference is None:
             reference = self.coordinates[self.axes[0]]
         dt = reference.dtype
@@ -260,13 +268,13 @@ class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
         return dt
 
 
-class Grid(_CoordinateValidatorMixin):
+class Grid(_CoordinateValidatorMixin, Generic[RealT]):
     def __init__(
         self,
         *,
         geometry: Geometry,
-        cell_edges: FieldMap,
-        fields: FieldMap | None = None,
+        cell_edges: FieldMap[RealT],
+        fields: FieldMap[RealT] | None = None,
     ) -> None:
         r"""
         Define a Grid from cell left-edges and data fields.
@@ -291,7 +299,9 @@ class Grid(_CoordinateValidatorMixin):
         self.axes = tuple(self.coordinates.keys())
         super().__init__()
 
-        self._dx = np.full((3,), -1, dtype=self.coordinates[self.axes[0]].dtype)
+        dt = self._get_safe_datatype(reference=None)
+        self._dx = np.full((3,), -1, dtype=dt)
+
         for i, ax in enumerate(self.axes):
             if self.size == 1 or np.diff(self.coordinates[ax]).std() < 1e-16:
                 # got a constant step in this direction, store it
@@ -319,17 +329,17 @@ class Grid(_CoordinateValidatorMixin):
         )
 
     @property
-    def cell_edges(self) -> FieldMap:
+    def cell_edges(self) -> FieldMap[RealT]:
         r"""An alias for self.coordinates."""
         return self.coordinates
 
     @cached_property
-    def cell_centers(self) -> FieldMap:
+    def cell_centers(self) -> FieldMap[RealT]:
         r"""The positions of cell centers in each direction."""
         return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}
 
     @cached_property
-    def cell_widths(self) -> FieldMap:
+    def cell_widths(self) -> FieldMap[RealT]:
         r"""The width of cells, expressed as the difference between consecutive left edges."""
         return {ax: np.diff(arr) for ax, arr in self.coordinates.items()}
 
@@ -353,7 +363,7 @@ class Grid(_CoordinateValidatorMixin):
         return len(self.axes)
 
     @property
-    def cell_volumes(self) -> RealArray:
+    def cell_volumes(self) -> RealArray[RealT]:
         r"""
         The generalized ND-volume of grid cells.
 
@@ -376,8 +386,8 @@ class ParticleSet(_CoordinateValidatorMixin):
         self,
         *,
         geometry: Geometry,
-        coordinates: FieldMap,
-        fields: FieldMap | None = None,
+        coordinates: FieldMap[RealT],
+        fields: FieldMap[RealT] | None = None,
     ) -> None:
         r"""
         Define a ParticleSet from point positions and data fields.
@@ -396,7 +406,7 @@ class ParticleSet(_CoordinateValidatorMixin):
 
         if fields is None:
             fields = {}
-        self.fields: FieldMap = fields
+        self.fields = fields
 
         self.axes = tuple(self.coordinates.keys())
         super().__init__()
@@ -461,7 +471,7 @@ class Dataset(ValidatorMixin):
         self.geometry = geometry
 
         if particles is None:
-            dt = grid._get_safe_datatype()
+            dt = grid._get_safe_datatype(reference=None)
             particles = ParticleSet(
                 geometry=grid.geometry,
                 coordinates={ax: np.array([], dtype=dt) for ax in grid.axes},
@@ -510,10 +520,10 @@ class Dataset(ValidatorMixin):
                 f"- from particles: {self.particles.dtype}\n"
             )
 
-    def _get_padded_cell_edges(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _get_padded_cell_edges(self) -> tuple[RealArray, RealArray, RealArray]:
         edges = iter(self.grid.cell_edges.values())
 
-        def pad(a: np.ndarray) -> np.ndarray:
+        def pad(a: RealArray) -> RealArray:
             dx = a[1] - a[0]
             return np.concatenate([[a[0] - dx], a, [a[-1] + dx]])
 
@@ -529,7 +539,7 @@ class Dataset(ValidatorMixin):
 
         return cell_edges_x1, cell_edges_x2, cell_edges_x3
 
-    def _get_3D_particle_coordinates(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _get_3D_particle_coordinates(self) -> tuple[RealArray, RealArray, RealArray]:
         particle_coords = iter(self.particles.coordinates.values())
         particles_x1 = next(particle_coords)
         DTYPE = particles_x1.dtype
@@ -607,9 +617,7 @@ class Dataset(ValidatorMixin):
         if any(axis > self.grid.ndim - 1 for axis in axes):
             raise ValueError(f"Expected all axes to be <{self.grid.ndim}, got {axes!r}")
 
-    def _get_sort_key(
-        self, axes: tuple[int, ...]
-    ) -> np.ndarray[Any, np.dtype[np.uint16]]:
+    def _get_sort_key(self, axes: tuple[int, ...]) -> NDArray[np.uint16]:
         self._validate_sort_axes(axes)
 
         hci = self.host_cell_index
