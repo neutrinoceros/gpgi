@@ -1,61 +1,61 @@
-from typing import NotRequired, TypedDict, TypeVar
+from typing import Generic, NotRequired, TypedDict, TypeVar
 
 import numpy as np
-import numpy.typing as npt
+from numpy.typing import NDArray
 
-Real = TypeVar("Real", np.float32, np.float64)
-RealArray = npt.NDArray[Real]
-HCIArray = npt.NDArray[np.uint16]
+RealT = TypeVar("RealT", np.float32, np.float64)
+RealArray = NDArray[RealT]
+HCIArray = NDArray[np.uint16]
 
 
 Name = str
-FieldMap = dict[str, np.ndarray]
+FieldMap = dict[str, NDArray[RealT]]
 
 
-class CartesianCoordinates(TypedDict):
-    x: np.ndarray
-    y: NotRequired[np.ndarray]
-    z: NotRequired[np.ndarray]
+class CartesianCoordinates(TypedDict, Generic[RealT]):
+    x: NDArray[RealT]
+    y: NotRequired[NDArray[RealT]]
+    z: NotRequired[NDArray[RealT]]
 
 
-class CylindricalCoordinates(TypedDict):
-    radius: np.ndarray
-    azimuth: NotRequired[np.ndarray]
-    z: NotRequired[np.ndarray]
+class CylindricalCoordinates(TypedDict, Generic[RealT]):
+    radius: NDArray[RealT]
+    azimuth: NotRequired[NDArray[RealT]]
+    z: NotRequired[NDArray[RealT]]
 
 
-class PolarCoordinates(TypedDict):
-    radius: np.ndarray
-    z: NotRequired[np.ndarray]
-    azimuth: NotRequired[np.ndarray]
+class PolarCoordinates(TypedDict, Generic[RealT]):
+    radius: NDArray[RealT]
+    z: NotRequired[NDArray[RealT]]
+    azimuth: NotRequired[NDArray[RealT]]
 
 
-class SphericalCoordinates(TypedDict):
-    colatitude: np.ndarray
-    radius: NotRequired[np.ndarray]
-    azimuth: NotRequired[np.ndarray]
+class SphericalCoordinates(TypedDict, Generic[RealT]):
+    colatitude: NDArray[RealT]
+    radius: NotRequired[NDArray[RealT]]
+    azimuth: NotRequired[NDArray[RealT]]
 
 
-class EquatorialCoordinates(TypedDict):
-    radius: np.ndarray
-    latitude: NotRequired[np.ndarray]
-    azimuth: NotRequired[np.ndarray]
+class EquatorialCoordinates(TypedDict, Generic[RealT]):
+    radius: NDArray[RealT]
+    latitude: NotRequired[NDArray[RealT]]
+    azimuth: NotRequired[NDArray[RealT]]
 
 
 CoordMap = (
-    CartesianCoordinates
-    | CylindricalCoordinates
-    | PolarCoordinates
-    | SphericalCoordinates
-    | EquatorialCoordinates
+    CartesianCoordinates[RealT]
+    | CylindricalCoordinates[RealT]
+    | PolarCoordinates[RealT]
+    | SphericalCoordinates[RealT]
+    | EquatorialCoordinates[RealT]
 )
 
 
-class GridDict(TypedDict):
-    cell_edges: CoordMap
-    fields: NotRequired[FieldMap]
+class GridDict(TypedDict, Generic[RealT]):
+    cell_edges: CoordMap[RealT]
+    fields: NotRequired[FieldMap[RealT]]
 
 
-class ParticleSetDict(TypedDict):
-    coordinates: CoordMap
-    fields: NotRequired[FieldMap]
+class ParticleSetDict(TypedDict, Generic[RealT]):
+    coordinates: CoordMap[RealT]
+    fields: NotRequired[FieldMap[RealT]]
