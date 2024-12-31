@@ -59,7 +59,6 @@ jobs:
     - uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
       with:
         python-version: ${{ matrix.python-version }}
-        enable-cache: true
 
     - name: Test
       env:
@@ -107,7 +106,6 @@ jobs:
     - uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
       with:
         python-version: '3.13'
-        enable-cache: true
     - name: Run Image Tests
       run: |
         uv run --frozen --no-editable --group test \
@@ -150,7 +148,6 @@ jobs:
     - uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
       with:
         python-version: '3.13'
-        enable-cache: true
     - name: Run Concurrency Tests
       run: |
         uv run --frozen --no-editable --group concurrency \
@@ -204,7 +201,6 @@ jobs:
     - uses: astral-sh/setup-uv@887a942a15af3a7626099df99e897a18d9e5ab3a # v5.1.0
       with:
         python-version: ${{ matrix.python-version }}
-        enable-cache: true
 
     - name: Typecheck
       run: |
