@@ -236,7 +236,8 @@ jobs:
         pin=${{ matrix.python-version }}
         echo "UV_PYTHON=${pin%-dev}" >> $GITHUB_ENV
         echo "UV_PRERELEASE=allow" >> $GITHUB_ENV
-        echo "UV_EXTRA_INDEX_URL=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple" >> $GITHUB_ENV
+        echo "UV_INDEX=https://pypi.anaconda.org/scientific-python-nightly-wheels/simple" >> $GITHUB_ENV
+        echo "UV_INDEX_STRATEGY=unsafe-best-match" >> $GITHUB_ENV
     - name: Set PYTHON_GIL
       if: ${{ endswith( matrix.python-version , 't' ) }}
       run: |
