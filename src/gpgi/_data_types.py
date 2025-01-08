@@ -216,7 +216,7 @@ class _CoordinateValidatorMixin(ValidatorMixin, CoordinateData, ABC):
         }
         unique_dts = sorted(set(dts.values()))
         if len(unique_dts) > 1:
-            raise TypeError(f"Grid received mixed data types ({unique_dts}):\n{dts}")
+            raise TypeError(f"Received mixed data types ({unique_dts}):\n{dts}")
         else:
             self.dtype = unique_dts.pop()
 
