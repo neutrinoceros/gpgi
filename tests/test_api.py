@@ -461,7 +461,7 @@ def test_float32_limit_invalidation():
     # we want to make sure that this fails *despite* being
     # knowingly tolerant with the dtype of each individual
     # coordinate array as we validate boundaries
-    with pytest.raises(TypeError, match=r"Grid received mixed data types"):
+    with pytest.raises(TypeError, match=r"Received mixed data types"):
         gpgi.load(
             geometry="polar",
             grid={
