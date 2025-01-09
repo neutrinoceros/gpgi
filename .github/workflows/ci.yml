@@ -202,10 +202,14 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Typecheck
+    - run: uv sync --frozen --group typecheck
+    - name: Typecheck (mypy)
       run: |
-        uv run --frozen --no-editable --group typecheck mypy src/gpgi
+        uv run mypy src
 
+    - name: Typecheck (pyright)
+      run: |
+        uv run pyright src
 
   future:
     name: py${{ matrix.python-version }}
