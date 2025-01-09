@@ -2,11 +2,11 @@ r"""Define the core data structures of the library: Grid, ParticleSet, and Datas
 
 from __future__ import annotations
 
-import enum
 import sys
 import warnings
 from contextlib import AbstractContextManager, nullcontext
 from copy import deepcopy
+from enum import Enum, auto
 from functools import cached_property, partial, reduce
 from textwrap import indent
 from threading import Lock
@@ -53,10 +53,10 @@ if TYPE_CHECKING:
 BoundarySpec = tuple[tuple[str, str, str], ...]
 
 
-class DepositionMethod(enum.Enum):
-    NEAREST_GRID_POINT = enum.auto()
-    CLOUD_IN_CELL = enum.auto()
-    TRIANGULAR_SHAPED_CLOUD = enum.auto()
+class DepositionMethod(Enum):
+    NEAREST_GRID_POINT = auto()
+    CLOUD_IN_CELL = auto()
+    TRIANGULAR_SHAPED_CLOUD = auto()
 
 
 _deposition_method_names: dict[str, DepositionMethod] = {
