@@ -86,7 +86,7 @@ _BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
 
 # the following need to be defined in the same module as Grid and ParticleSet
 @final
-class GridFieldMapsValidator:
+class GridCoordinatesValidator:
     @classmethod
     def check(cls, data: Grid) -> None:
         FieldMapsValidatorHelper.check(
@@ -94,6 +94,12 @@ class GridFieldMapsValidator:
             require_sorted=True,
             required_attrs={"ndim": 1},
         )
+
+
+@final
+class GridFieldsValidator:
+    @classmethod
+    def check(cls, data: Grid) -> None:
         FieldMapsValidatorHelper.check(
             data.fields,
             required_attrs={
@@ -146,7 +152,8 @@ class Grid:
     _validators: list[type[Validator[Grid]]] = [
         GeometryValidator,
         BasicCoordinatesValidator,
-        GridFieldMapsValidator,
+        GridCoordinatesValidator,
+        GridFieldsValidator,
         DTypeConsistencyValidator,
     ]
 
@@ -218,7 +225,7 @@ class Grid:
 
 
 @final
-class ParticleSetFieldMapsValidator:
+class ParticleSetCoordinatesValidator:
     @classmethod
     def check(cls, data: ParticleSet) -> None:
         FieldMapsValidatorHelper.check(
@@ -263,7 +270,7 @@ class ParticleSet:
     _validators: list[type[Validator[ParticleSet]]] = [
         GeometryValidator,
         BasicCoordinatesValidator,
-        ParticleSetFieldMapsValidator,
+        ParticleSetCoordinatesValidator,
         DTypeConsistencyValidator,
     ]
 
