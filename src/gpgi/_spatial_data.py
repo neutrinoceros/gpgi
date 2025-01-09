@@ -1,6 +1,6 @@
-import enum
 import math
 from dataclasses import dataclass
+from enum import StrEnum, auto
 from itertools import chain
 from typing import Any, Protocol, TypeVar, assert_never, final
 
@@ -10,12 +10,12 @@ from numpy.typing import NDArray
 from gpgi._typing import FieldMap, Name, Real
 
 
-class Geometry(enum.StrEnum):
-    CARTESIAN = enum.auto()
-    POLAR = enum.auto()
-    CYLINDRICAL = enum.auto()
-    SPHERICAL = enum.auto()
-    EQUATORIAL = enum.auto()
+class Geometry(StrEnum):
+    CARTESIAN = auto()
+    POLAR = auto()
+    CYLINDRICAL = auto()
+    SPHERICAL = auto()
+    EQUATORIAL = auto()
 
 
 _AXES_LIMITS: dict[Name, tuple[float, float]] = {
