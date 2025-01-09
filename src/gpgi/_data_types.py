@@ -303,7 +303,7 @@ class Dataset:
         metadata: dict[str, Any] | None = None,
     ) -> None:
         r"""
-        Compose a Dataset from a Grid, a ParticleSet, or both.
+        Compose a Dataset from a Grid and a ParticleSet.
 
         Parameters
         ----------
@@ -312,7 +312,7 @@ class Dataset:
 
         grid (keyword-only): gpgi.Grid
 
-        particles(keyword-only, optional): gpgi.ParticleSet
+        particles (keyword-only, optional): gpgi.ParticleSet
 
         metadata (keyword-only, optional): dict[str, Any]
             A dictionary representing arbitrary additional data, that will be attached
@@ -416,7 +416,7 @@ class Dataset:
             out=hci,
         )
         for idim in range(hci.shape[1]):
-            # There are at leas two edge cases where we need clipping to correct raw indices:
+            # There are at least two edge cases where we need clipping to correct raw indices:
             # - particles that live exactly on the domain right edge will be indexed out of bound
             # - single precision positions can lead to overshoots by simple effect of floating point arithmetics
             #   (double precision isn't safe either, it's just safer (by a lot))
