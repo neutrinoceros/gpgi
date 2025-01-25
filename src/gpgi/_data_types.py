@@ -47,7 +47,6 @@ else:
 if TYPE_CHECKING:
     from typing import Any, Self, TypeVar
 
-    from numpy import dtype
     from numpy.typing import NDArray
 
     from gpgi._typing import FieldMap, HCIArray, Name, RealArray
@@ -146,7 +145,7 @@ class Grid(Generic[FloatT]):
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
-        self.dtype: dtype[FloatT] = self.coordinates[self.axes[0]].dtype
+        self.dtype: np.dtype[FloatT] = self.coordinates[self.axes[0]].dtype
 
         self._dx: NDArray[FloatT] = np.full(
             (3,), -1, dtype=self.coordinates[self.axes[0]].dtype
@@ -272,7 +271,7 @@ class ParticleSet(Generic[FloatT]):
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
-        self.dtype: dtype[FloatT] = self.coordinates[self.axes[0]].dtype
+        self.dtype: np.dtype[FloatT] = self.coordinates[self.axes[0]].dtype
 
     _validators: list[type[Validator[ParticleSet]]] = [
         GeometryValidator,
