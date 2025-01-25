@@ -11,7 +11,7 @@ from functools import cached_property, partial, reduce
 from textwrap import indent
 from threading import Lock
 from time import monotonic_ns
-from typing import TYPE_CHECKING, Literal, cast, final
+from typing import TYPE_CHECKING, Generic, Literal, cast, final
 
 import numpy as np
 
@@ -36,7 +36,7 @@ from gpgi._spatial_data import (
     GeometryValidator,
     Validator,
 )
-from gpgi._typing import FieldMap, Name
+from gpgi._typing import FieldMap, FloatT, Name
 from gpgi.typing import DepositionMethodT, DepositionMethodWithMetadataT
 
 if sys.version_info >= (3, 13):
@@ -47,9 +47,10 @@ else:
 if TYPE_CHECKING:
     from typing import Any, Self, TypeVar
 
+    from numpy import dtype
     from numpy.typing import NDArray
 
-    from gpgi._typing import FieldMap, HCIArray, Name, RealArray, RealT
+    from gpgi._typing import FieldMap, HCIArray, Name, RealArray
 
     _FloatingT = TypeVar("_FloatingT", bound=np.floating)
 
@@ -115,13 +116,13 @@ class GridFieldsValidator:
 
 
 @final
-class Grid:
+class Grid(Generic[FloatT]):
     def __init__(
         self,
         *,
         geometry: Geometry,
-        cell_edges: FieldMap[RealT],
-        fields: FieldMap[RealT] | None = None,
+        cell_edges: FieldMap[FloatT],
+        fields: FieldMap[FloatT] | None = None,
     ) -> None:
         r"""
         Define a Grid from cell left-edges and data fields.
@@ -137,7 +138,7 @@ class Grid:
         fields (keyword-only, optional): gpgi.typing.FieldMap
         """
         self.geometry = geometry
-        self.coordinates = cell_edges
+        self.coordinates: FieldMap[FloatT] = cell_edges
 
         if fields is None:
             fields = {}
@@ -145,10 +146,11 @@ class Grid:
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
-        self.dtype = self.coordinates[self.axes[0]].dtype
+        self.dtype: dtype[FloatT] = self.coordinates[self.axes[0]].dtype
 
-        self._dx = np.full((3,), -1, dtype=self.coordinates[self.axes[0]].dtype)
-
+        self._dx: NDArray[FloatT] = np.full(
+            (3,), -1, dtype=self.coordinates[self.axes[0]].dtype
+        )
         for i, ax in enumerate(self.axes):
             if self.size == 1 or np.diff(self.coordinates[ax]).std() < 1e-16:
                 # got a constant step in this direction, store it
@@ -177,17 +179,17 @@ class Grid:
         )
 
     @property
-    def cell_edges(self) -> FieldMap[RealT]:
+    def cell_edges(self) -> FieldMap[FloatT]:
         r"""An alias for self.coordinates."""
         return self.coordinates
 
     @cached_property
-    def cell_centers(self) -> FieldMap[RealT]:
+    def cell_centers(self) -> FieldMap[FloatT]:
         r"""The positions of cell centers in each direction."""
         return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}
 
     @cached_property
-    def cell_widths(self) -> FieldMap[RealT]:
+    def cell_widths(self) -> FieldMap[FloatT]:
         r"""The width of cells, expressed as the difference between consecutive left edges."""
         return {ax: np.diff(arr) for ax, arr in self.coordinates.items()}
 
@@ -211,7 +213,7 @@ class Grid:
         return len(self.axes)
 
     @property
-    def cell_volumes(self) -> RealArray[RealT]:
+    def cell_volumes(self) -> RealArray[FloatT]:
         r"""
         The generalized ND-volume of grid cells.
 
@@ -241,13 +243,13 @@ class ParticleSetCoordinatesValidator:
 
 
 @final
-class ParticleSet:
+class ParticleSet(Generic[FloatT]):
     def __init__(
         self,
         *,
         geometry: Geometry,
-        coordinates: FieldMap[RealT],
-        fields: FieldMap[RealT] | None = None,
+        coordinates: FieldMap[FloatT],
+        fields: FieldMap[FloatT] | None = None,
     ) -> None:
         r"""
         Define a ParticleSet from point positions and data fields.
@@ -262,15 +264,15 @@ class ParticleSet:
         fields (keyword-only, optional): gpgi.typing.FieldMap
         """
         self.geometry = geometry
-        self.coordinates = coordinates
+        self.coordinates: FieldMap[FloatT] = coordinates
 
         if fields is None:
             fields = {}
-        self.fields = fields
+        self.fields: FieldMap[FloatT] = fields
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
-        self.dtype = self.coordinates[self.axes[0]].dtype
+        self.dtype: dtype[FloatT] = self.coordinates[self.axes[0]].dtype
 
     _validators: list[type[Validator[ParticleSet]]] = [
         GeometryValidator,

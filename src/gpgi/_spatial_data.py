@@ -7,7 +7,7 @@ from typing import Any, Protocol, TypeVar, assert_never, final
 import numpy as np
 from numpy.typing import NDArray
 
-from gpgi._typing import FieldMap, Name, RealT
+from gpgi._typing import FieldMap, FloatT, Name
 
 
 class Geometry(StrEnum):
@@ -154,7 +154,7 @@ class FieldMapsValidatorHelper:
     @staticmethod
     def _validate_shape_equality(
         name: str,
-        data: NDArray[RealT],
+        data: NDArray[FloatT],
         ref_arr: NamedArray | None,
     ) -> NamedArray:
         if ref_arr is not None and data.shape != ref_arr.data.shape:
@@ -165,7 +165,7 @@ class FieldMapsValidatorHelper:
         return ref_arr or NamedArray(name, data)
 
     @staticmethod
-    def _validate_sorted_state(name: str, data: NDArray[RealT]) -> None:
+    def _validate_sorted_state(name: str, data: NDArray[FloatT]) -> None:
         a = data[0]
         for i, b in enumerate(data[1:], start=1):
             if a > b:
@@ -178,7 +178,7 @@ class FieldMapsValidatorHelper:
     @staticmethod
     def _validate_required_attributes(
         name: str,
-        data: NDArray[RealT],
+        data: NDArray[FloatT],
         required_attrs: dict[str, Any],
     ) -> None:
         for attr, expected in required_attrs.items():
