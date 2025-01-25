@@ -185,7 +185,7 @@ class Grid(Generic[FloatT]):
     @cached_property
     def cell_centers(self) -> FieldMap[FloatT]:
         r"""The positions of cell centers in each direction."""
-        return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}
+        return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}  # type: ignore [misc]
 
     @cached_property
     def cell_widths(self) -> FieldMap[FloatT]:
