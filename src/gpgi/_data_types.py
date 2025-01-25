@@ -49,7 +49,7 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from gpgi._typing import FieldMap, HCIArray, Name, RealArray
+    from gpgi._typing import FieldMap, HCIArray, Name
 
     _FloatingT = TypeVar("_FloatingT", bound=np.floating)
 
@@ -212,7 +212,7 @@ class Grid(Generic[FloatT]):
         return len(self.axes)
 
     @property
-    def cell_volumes(self) -> RealArray[FloatT]:
+    def cell_volumes(self) -> NDArray[FloatT]:
         r"""
         The generalized ND-volume of grid cells.
 
@@ -223,7 +223,7 @@ class Grid(Generic[FloatT]):
         widths = list(self.cell_widths.values())
         if self.geometry is Geometry.CARTESIAN:
             raw = np.prod(np.meshgrid(*widths), axis=0)
-            return cast("RealArray", np.swapaxes(raw, 0, 1))
+            return np.swapaxes(raw, 0, 1)
         else:
             raise NotImplementedError(
                 f"cell_volumes property is not implemented for {self.geometry} geometry"
@@ -386,10 +386,12 @@ class Dataset:
                 f"- from particles: {self.particles.dtype}\n"
             )
 
-    def _get_padded_cell_edges(self) -> tuple[RealArray, RealArray, RealArray]:
+    def _get_padded_cell_edges(
+        self,
+    ) -> tuple[NDArray[FloatT], NDArray[FloatT], NDArray[FloatT]]:
         edges = iter(self.grid.cell_edges.values())
 
-        def pad(a: RealArray) -> RealArray:
+        def pad(a: NDArray[FloatT]) -> NDArray[FloatT]:
             dx = a[1] - a[0]
             return np.concatenate([[a[0] - dx], a, [a[-1] + dx]])
 
@@ -397,7 +399,12 @@ class Dataset:
         cell_edges_x1 = pad(x1)
         DTYPE = cell_edges_x1.dtype
 
-        cell_edges_x2 = cell_edges_x3 = np.empty(0, DTYPE)
+        cell_edges_x2: np.ndarray[tuple[int, ...], np.dtype[FloatT]] = np.empty(
+            0, DTYPE
+        )
+        cell_edges_x3: np.ndarray[tuple[int, ...], np.dtype[FloatT]] = np.empty(
+            0, DTYPE
+        )
         if self.grid.ndim >= 2:
             cell_edges_x2 = pad(next(edges))
         if self.grid.ndim == 3:
@@ -405,7 +412,9 @@ class Dataset:
 
         return cell_edges_x1, cell_edges_x2, cell_edges_x3
 
-    def _get_3D_particle_coordinates(self) -> tuple[RealArray, RealArray, RealArray]:
+    def _get_3D_particle_coordinates(
+        self,
+    ) -> tuple[NDArray[FloatT], NDArray[FloatT], NDArray[FloatT]]:
         particle_coords = iter(self.particles.coordinates.values())
         particles_x1 = next(particle_coords)
         DTYPE = particles_x1.dtype
@@ -784,9 +793,9 @@ class Dataset:
 
     def _apply_boundary_conditions(
         self,
-        array: RealArray,
+        array: NDArray[FloatT],
         boundaries: dict[Name, tuple[Name, Name]],
-        weight_array: RealArray | None,
+        weight_array: NDArray[FloatT] | None,
     ) -> None:
         axes = list(self.grid.axes)
         for ax, bv in boundaries.items():
