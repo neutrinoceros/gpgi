@@ -8,16 +8,16 @@ from gpgi._typing import FieldMap
 if TYPE_CHECKING:
     from typing import Any, Literal
 
-    from gpgi._typing import GridDict, ParticleSetDict
+    from gpgi._typing import FloatT, GridDict, ParticleSetDict
 
 
 def load(
     *,
     geometry: Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"],
-    grid: GridDict,
-    particles: ParticleSetDict | None = None,
+    grid: GridDict[FloatT],
+    particles: ParticleSetDict[FloatT] | None = None,
     metadata: dict[str, Any] | None = None,
-) -> Dataset:
+) -> Dataset[FloatT]:
     r"""
     Load a Dataset.
 

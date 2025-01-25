@@ -1,61 +1,60 @@
-from typing import NotRequired, TypedDict, TypeVar
+from typing import Generic, NotRequired, TypedDict, TypeVar
 
 import numpy as np
-import numpy.typing as npt
+from numpy.typing import NDArray
 
-Real = TypeVar("Real", np.float32, np.float64)
-RealArray = npt.NDArray[Real]
-HCIArray = npt.NDArray[np.uint16]
+FloatT = TypeVar("FloatT", np.float32, np.float64)
+HCIArray = NDArray[np.uint16]
 
 
 Name = str
-FieldMap = dict[str, np.ndarray]
+FieldMap = dict[str, NDArray[FloatT]]
 
 
-class CartesianCoordinates(TypedDict):
-    x: np.ndarray
-    y: NotRequired[np.ndarray]
-    z: NotRequired[np.ndarray]
+class CartesianCoordinates(TypedDict, Generic[FloatT]):
+    x: NDArray[FloatT]
+    y: NotRequired[NDArray[FloatT]]
+    z: NotRequired[NDArray[FloatT]]
 
 
-class CylindricalCoordinates(TypedDict):
-    radius: np.ndarray
-    azimuth: NotRequired[np.ndarray]
-    z: NotRequired[np.ndarray]
+class CylindricalCoordinates(TypedDict, Generic[FloatT]):
+    radius: NDArray[FloatT]
+    azimuth: NotRequired[NDArray[FloatT]]
+    z: NotRequired[NDArray[FloatT]]
 
 
-class PolarCoordinates(TypedDict):
-    radius: np.ndarray
-    z: NotRequired[np.ndarray]
-    azimuth: NotRequired[np.ndarray]
+class PolarCoordinates(TypedDict, Generic[FloatT]):
+    radius: NDArray[FloatT]
+    z: NotRequired[NDArray[FloatT]]
+    azimuth: NotRequired[NDArray[FloatT]]
 
 
-class SphericalCoordinates(TypedDict):
-    colatitude: np.ndarray
-    radius: NotRequired[np.ndarray]
-    azimuth: NotRequired[np.ndarray]
+class SphericalCoordinates(TypedDict, Generic[FloatT]):
+    colatitude: NDArray[FloatT]
+    radius: NotRequired[NDArray[FloatT]]
+    azimuth: NotRequired[NDArray[FloatT]]
 
 
-class EquatorialCoordinates(TypedDict):
-    radius: np.ndarray
-    latitude: NotRequired[np.ndarray]
-    azimuth: NotRequired[np.ndarray]
+class EquatorialCoordinates(TypedDict, Generic[FloatT]):
+    radius: NDArray[FloatT]
+    latitude: NotRequired[NDArray[FloatT]]
+    azimuth: NotRequired[NDArray[FloatT]]
 
 
 CoordMap = (
-    CartesianCoordinates
-    | CylindricalCoordinates
-    | PolarCoordinates
-    | SphericalCoordinates
-    | EquatorialCoordinates
+    CartesianCoordinates[FloatT]
+    | CylindricalCoordinates[FloatT]
+    | PolarCoordinates[FloatT]
+    | SphericalCoordinates[FloatT]
+    | EquatorialCoordinates[FloatT]
 )
 
 
-class GridDict(TypedDict):
-    cell_edges: CoordMap
-    fields: NotRequired[FieldMap]
+class GridDict(TypedDict, Generic[FloatT]):
+    cell_edges: CoordMap[FloatT]
+    fields: NotRequired[FieldMap[FloatT]]
 
 
-class ParticleSetDict(TypedDict):
-    coordinates: CoordMap
-    fields: NotRequired[FieldMap]
+class ParticleSetDict(TypedDict, Generic[FloatT]):
+    coordinates: CoordMap[FloatT]
+    fields: NotRequired[FieldMap[FloatT]]
