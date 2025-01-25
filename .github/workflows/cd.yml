@@ -30,7 +30,7 @@ jobs:
       uses: pypa/cibuildwheel@ee63bf16da6cddfb925f542f2c7b59ad50e93969 # v2.22.0
       with:
         output-dir: dist
-    - uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+    - uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
       with:
         name: wheels-${{ matrix.os }}
         path: dist/*.whl
@@ -45,7 +45,7 @@ jobs:
     - name: Build sdist
       run: uv build --sdist
     - name: Upload sdist
-      uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
+      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
       with:
         name: sdist
         path: dist/*.tar.gz
