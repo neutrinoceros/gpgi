@@ -4,7 +4,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 FloatT = TypeVar("FloatT", np.float32, np.float64)
-RealArray = NDArray[FloatT]
 HCIArray = NDArray[np.uint16]
 
 
