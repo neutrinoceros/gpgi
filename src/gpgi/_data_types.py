@@ -45,13 +45,11 @@ else:
     from _thread import LockType
 
 if TYPE_CHECKING:
-    from typing import Any, Self, TypeVar
+    from typing import Any, Self
 
     from numpy.typing import NDArray
 
     from gpgi._typing import FieldMap, HCIArray, Name
-
-    _FloatingT = TypeVar("_FloatingT", bound=np.floating)
 
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
