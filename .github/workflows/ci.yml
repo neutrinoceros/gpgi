@@ -60,14 +60,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Test
+    # TODO: add --no-editable
+    - run: uv sync --group covcheck
       env:
         GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
-      shell: bash # for windows-compat (using `\` as a line continuation)
-      # TODO: add --no-editable
-      run: |
-        uv run --frozen --group covcheck \
-          coverage run --parallel-mode -m pytest --color=yes -ra
+    - name: Test
+      run: uv run --no-sync coverage run --parallel-mode -m pytest --color=yes -ra
 
     - name: Upload coverage data
       # only using reports from ubuntu because
@@ -90,12 +88,13 @@ jobs:
         # setup-uv doesn't have this exact version of Python
         python-version: 3.11.0
     - uses: astral-sh/setup-uv@4db96194c378173c656ce18a155ffc14a9fc4355 # v5.2.2
-    - name: Test
-      run: |
-        uv run --python-preference=only-system \
+    - run: |
+        uv sync --python-preference=only-system \
           --resolution=lowest-direct \
-          --no-editable --group test \
-          pytest --color=yes -ra
+          --no-editable \
+          --group test
+    - name: Test
+      run: uv run --no-sync pytest --color=yes -ra
 
   image-tests:
     name: Image tests
@@ -106,9 +105,11 @@ jobs:
     - uses: astral-sh/setup-uv@4db96194c378173c656ce18a155ffc14a9fc4355 # v5.2.2
       with:
         python-version: '3.13'
+
+    - run: uv sync --no-editable --group test
     - name: Run Image Tests
       run: |
-        uv run --frozen --no-editable --group test \
+        uv run --no-sync \
           pytest --color=yes --mpl -m mpl_image_compare \
                 --mpl-generate-summary=html \
                 --mpl-results-path=gpgi_pytest_mpl_results \
@@ -117,7 +118,7 @@ jobs:
     - name: Generate new image baseline
       if: failure()
       run: |
-        uv run --frozen --no-editable --group test \
+        uv run --no-sync \
           pytest --color=yes --mpl -m mpl_image_compare \
                 --mpl-generate-path=gpgi_pytest_mpl_new_baseline \
                 --last-failed
@@ -148,9 +149,10 @@ jobs:
     - uses: astral-sh/setup-uv@4db96194c378173c656ce18a155ffc14a9fc4355 # v5.2.2
       with:
         python-version: '3.13'
+    - run: uv sync --no-editable --group concurrency
     - name: Run Concurrency Tests
       run: |
-        uv run --frozen --no-editable --group concurrency \
+        uv run --no-sync \
           pytest --color=yes --count 500 tests/test_concurrent.py
 
   coverage:
@@ -202,14 +204,12 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - run: uv sync --frozen --group typecheck
+    - run: uv sync --group typecheck
     - name: Typecheck (mypy)
-      run: |
-        uv run mypy src
+      run: uv run --no-sync mypy src
 
     - name: Typecheck (pyright)
-      run: |
-        uv run pyright src
+      run: uv run --no-sync pyright src
 
   future:
     name: py${{ matrix.python-version }}
