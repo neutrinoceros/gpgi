@@ -140,6 +140,7 @@ filterwarnings = [
   "error",
   'ignore:Matplotlib is currently using agg, which is a non-GUI backend:UserWarning',
 ]
+addopts = "-ra"
 
 [tool.cibuildwheel]
 build = "cp311-* cp312-* cp313-*"
@@ -147,7 +148,7 @@ build-frontend = "build[uv]"
 build-verbosity = 1
 test-groups = ["test", "concurrency"]
 test-command = [
-    "pytest --color=yes -ra {project}/tests",
+    "pytest --color=yes {project}/tests",
     "pytest --color=yes --count 500 {project}/tests/test_concurrent.py",
 ]
 test-skip = "*-musllinux*"
