@@ -60,8 +60,8 @@ jobs:
 
     # TODO: add --no-editable
     - run: uv sync --group covcheck
-      env:
-        GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
+    - if: ${{ matrix.marker == 'PY_LIB' }}
+      run: uv pip install . --reinstall --no-deps -Cinstall-args="pylib=true"
     - name: Test
       run: uv run --no-sync coverage run --parallel-mode -m pytest --color=yes
 

@@ -47,14 +47,18 @@ print(incdir)
   np_dep = declare_dependency(include_directories: inc_np, compile_args: numpy_compile_flags)
 endif
 
-py.extension_module(
-    '_lib',
-    'src/gpgi/_lib.pyx',
-    subdir: 'gpgi',
-    install: true,
-    dependencies : [np_dep],
-    c_args: numpy_compile_flags,
-)
+if get_option('pylib')
+  py.install_sources('src/gpgi/_lib.py', subdir: 'gpgi')
+else
+  py.extension_module(
+      '_lib',
+      'src/gpgi/_lib.pyx',
+      subdir: 'gpgi',
+      install: true,
+      dependencies : [np_dep],
+      c_args: numpy_compile_flags,
+  )
+endif
 
 # meson doesn't have an equivalent to setuptools.packages.find
 # at the time of writing, so, listing every module explicitly here
