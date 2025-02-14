@@ -61,7 +61,7 @@ jobs:
     # TODO: add --no-editable
     - run: uv sync --group covcheck
     - if: ${{ matrix.marker == 'PY_LIB' }}
-      run: uv pip install . --reinstall --no-deps -Cinstall-args="pylib=true"
+      run: uv pip install . --reinstall --no-deps -Cinstall-args="-Dpylib=true"
     - name: Test
       run: uv run --no-sync coverage run --parallel-mode -m pytest --color=yes
 
