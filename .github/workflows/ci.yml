@@ -65,7 +65,7 @@ jobs:
       env:
         GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
     - name: Test
-      run: uv run --no-sync coverage run --parallel-mode -m pytest --color=yes -ra
+      run: uv run --no-sync coverage run --parallel-mode -m pytest --color=yes
 
     - name: Upload coverage data
       # only using reports from ubuntu because
@@ -94,7 +94,7 @@ jobs:
           --no-editable \
           --group test
     - name: Test
-      run: uv run --no-sync pytest --color=yes -ra
+      run: uv run --no-sync pytest --color=yes
 
   image-tests:
     name: Image tests
@@ -252,12 +252,12 @@ jobs:
 
     - name: Unit Tests
       run: |
-        uv run --no-editable --group test pytest --color=yes -ra
+        uv run --no-editable --group test pytest --color=yes
 
     - name: Concurrency tests
       run: |
         uv run --no-editable --group concurrency \
-          pytest --color=yes -ra --count 500 tests/test_concurrent.py
+          pytest --color=yes --count 500 tests/test_concurrent.py
 
 
   create-issue:
