@@ -1,8 +1,9 @@
 [build-system]
+# keep in sync with dependency-groups
 requires = [
     "setuptools>=61.2",
     "Cython>=3.0",
-    "numpy>=2.0.0",
+    "numpy>=1.25.0",
 ]
 build-backend = "setuptools.build_meta"
 
@@ -22,6 +23,7 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     # keep in sync with NPY_TARGET_VERSION (setup.py)
+    # keep in sync with build-time requirements (dev group)
     "numpy>=1.25, <3",
 ]
 
@@ -54,6 +56,25 @@ typecheck = [
     "mypy>=1.13.0",
     "pyright>=1.1.391",
 ]
+# For convenience, the dev group contains build time requirements because
+# - meson-python supports editable installs or build isolation, but not both
+# - uv special cases this group name and includes it by default via uv sync
+#
+# Combined with no-build-isolation set in [tool.uv],
+# this allows to bootstrap an editable in just two simple steps:
+# uv sync --only-dev && uv sync
+#
+# This could be simplified/reunifed depending on what happens on the following
+# upstream issue
+# https://github.com/astral-sh/uv/issues/7052
+dev = [
+    "setuptools>=61.2",
+    "Cython>=3.0.12",
+    "numpy>=1.25.0, <3", # keep in sync with runtime requirement
+]
+
+[tool.uv]
+no-build-isolation-package = ["gpgi"]
 
 [tool.setuptools]
 license-files = [

@@ -25,6 +25,7 @@ jobs:
     - name: Check build
       run: |
         uvx check-manifest
+        uv sync --only-dev
         uv build
 
   unit-tests:
@@ -61,7 +62,9 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     # TODO: add --no-editable
-    - run: uv sync --group covcheck
+    - run: |
+        uv sync --only-dev
+        uv sync --group covcheck
       env:
         GPGI_PY_LIB: ${{ matrix.marker == 'PY_LIB' }}
     - name: Test
@@ -87,12 +90,14 @@ jobs:
       with:
         # setup-uv doesn't have this exact version of Python
         python-version: 3.11.0
+    - name: Configure uv
+      run: |
+        echo "UV_PYTHON_PREFERENCE=only-system" >> $GITHUB_ENV
+        echo "UV_RESOLUTION=lowest-direct" >> $GITHUB_ENV
     - uses: astral-sh/setup-uv@4db96194c378173c656ce18a155ffc14a9fc4355 # v5.2.2
     - run: |
-        uv sync --python-preference=only-system \
-          --resolution=lowest-direct \
-          --no-editable \
-          --group test
+        uv sync --only-dev
+        uv sync --no-editable --group test
     - name: Test
       run: uv run --no-sync pytest --color=yes
 
@@ -106,7 +111,9 @@ jobs:
       with:
         python-version: '3.13'
 
-    - run: uv sync --no-editable --group test
+    - run: |
+        uv sync --only-dev
+        uv sync --no-editable --group test
     - name: Run Image Tests
       run: |
         uv run --no-sync \
@@ -149,7 +156,9 @@ jobs:
     - uses: astral-sh/setup-uv@4db96194c378173c656ce18a155ffc14a9fc4355 # v5.2.2
       with:
         python-version: '3.13'
-    - run: uv sync --no-editable --group concurrency
+    - run: |
+        uv sync --only-dev
+        uv sync --no-editable --group concurrency
     - name: Run Concurrency Tests
       run: |
         uv run --no-sync \
@@ -204,7 +213,9 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - run: uv sync --group typecheck
+    - run: |
+        uv sync --only-dev
+        uv sync --group typecheck
     - name: Typecheck (mypy)
       run: uv run --no-sync mypy src
 
@@ -245,18 +256,17 @@ jobs:
       run: |
         uv venv
         uv lock --upgrade --prerelease=allow --no-build
-        uv pip install setuptools numpy Cython
-        uv pip install --no-build-isolation --no-deps .
-
-    - run: uv pip list
+        uv sync --only-dev
 
     - name: Unit Tests
       run: |
-        uv run --no-editable --group test pytest --color=yes
+        uv sync --no-editable --group test
+        uv run --no-sync pytest --color=yes
 
     - name: Concurrency tests
       run: |
-        uv run --no-editable --group concurrency \
+        uv sync --no-editable --group concurrency
+        uv run --no-sync \
           pytest --color=yes --count 500 tests/test_concurrent.py
 
 
