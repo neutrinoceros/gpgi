@@ -4,6 +4,9 @@ on:
     tags: v*
   pull_request:
     paths:
+    - pyproject.toml
+    - setup.py
+    - MANIFEST.in
     - .github/workflows/cd.yml
   workflow_dispatch:
 
