@@ -1,0 +1,6 @@
+# exclude files that shouldn't be included in source distributions
+.* export-ignore
+tests/pytest_mpl_baseline/** export-ignore
+_typos.toml export-ignore
+uv.lock export-ignore
+src/gpgi/_lib.py export-ignore
