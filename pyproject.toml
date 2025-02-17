@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Cython",
     "Programming Language :: Python :: 3",
 ]
+# keep in sync with limited_api (meson.build)
 requires-python = ">=3.11"
 dependencies = [
     # keep in sync with build-time requirements (dev group)
@@ -78,6 +79,9 @@ dev = [
     "Cython>=3.0.12",
     "numpy>=1.25.0, <3", # keep in sync with runtime requirement
 ]
+
+[tool.meson-python]
+limited-api = true
 
 [tool.uv]
 no-build-isolation-package = ["gpgi"]
