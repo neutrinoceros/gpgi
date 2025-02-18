@@ -1,0 +1,6 @@
+option(
+    'pylib',
+    type : 'boolean',
+    value : false,
+    description : 'build as a pure Python library',
+)
