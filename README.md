@@ -15,6 +15,7 @@ GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
 <!-- toc -->
 
 - [Installation](#installation)
+  * [Optimized builds](#optimized-builds)
 - [Supported applications](#supported-applications)
   * [Builtin deposition methods](#builtin-deposition-methods)
   * [Supported geometries](#supported-geometries)
@@ -33,9 +34,19 @@ GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
 
 ## Installation
 
+Pre-built binaries are available on PyPI, and can be installed as
 ```shell
-python -m pip install --upgrade pip
 python -m pip install gpgi
+```
+
+### Optimized builds
+
+From gpgi 2.0.1, pre-built binaries are optimized for portability, not performance.
+In some cases, better performance may be attained, at the cost of a longer
+installation time, by compiling `gpgi` from source as follow.
+
+```shell
+python -m pip install gpgi --no-binary gpgi -Csetup-args="-Dpython.allow_limited_api=false"
 ```
 
 ## Supported applications
