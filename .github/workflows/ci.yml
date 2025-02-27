@@ -50,7 +50,6 @@ jobs:
         - os: windows-latest
           python-version: '3.13'
 
-        # test GPGI_PY_LIB
         - marker: PY_LIB
           os: ubuntu-latest
           python-version: '3.13'
