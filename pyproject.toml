@@ -19,6 +19,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Cython",
     "Programming Language :: Python :: 3",
+    "Typing :: Typed",
 ]
 requires-python = ">=3.11"
 dependencies = [
