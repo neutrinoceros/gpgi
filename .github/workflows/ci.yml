@@ -79,7 +79,7 @@ jobs:
       # only using reports from ubuntu because
       # combining reports from multiple platforms is tricky (or impossible ?)
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
       with:
         name: gpgi_coverage_data-${{matrix.os}}-${{matrix.python-version}}-${{matrix.marker}}
         path: .coverage.*
@@ -142,14 +142,14 @@ jobs:
     # (and especially) in case of failure.
     - name: Upload pytest-mpl report
       if: always()
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
       with:
         name: gpgi_pytest_mpl_results
         path: gpgi_pytest_mpl_results/*
 
     - name: Upload pytest-mpl baseline
       if: always()
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
       with:
         name: gpgi_pytest_mpl_new_baseline
         path: gpgi_pytest_mpl_new_baseline/*
@@ -200,7 +200,7 @@ jobs:
         coverage report --fail-under=100 # >> $GITHUB_STEP_SUMMARY
 
     - name: Upload HTML report if check failed.
-      uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
+      uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
       with:
         name: gpgi_coverage_report
         path: htmlcov
