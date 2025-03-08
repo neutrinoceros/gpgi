@@ -73,6 +73,22 @@ def test_load_empty_particles():
         )
 
 
+def test_load_empty_grid_and_empty_particles():
+    with pytest.raises(
+        ExceptionGroup,
+        match=r"^Invalid inputs were received \(2 sub-exceptions\)",
+    ) as excinfo:
+        gpgi.load(geometry="cartesian", grid={}, particles={})
+
+    assert excinfo.group_contains(
+        ValueError, match="grid dictionary missing required key 'cell_edges'"
+    )
+    assert excinfo.group_contains(
+        ValueError, match="particles dictionary missing required key 'coordinates'"
+    )
+    assert len(excinfo.value.exceptions) == 2
+
+
 def test_unsorted_cell_edges():
     with pytest.raises(
         ValueError,

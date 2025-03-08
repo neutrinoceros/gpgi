@@ -42,14 +42,32 @@ def load(
         same name.
     """
     try:
+        # when Python 3.11 is dropped, this try-except can be simplified as
+        # if geometry not in Geometry: raise
         _geometry = Geometry(geometry)
     except ValueError:
+        # this exception is raised directly, not added to a stack,
+        # in order to avoid "possibly unbound" warnings from static analysis
         raise ValueError(
-            f"unknown geometry {geometry!r}, expected any of {tuple(_.value for _ in Geometry)}"
+            f"unknown geometry {geometry!r}, "
+            f"expected any of {tuple(_.value for _ in Geometry)}"
         ) from None
 
+    exceptions: list[Exception] = []
+
     if "cell_edges" not in grid:
-        raise ValueError("grid dictionary missing required key 'cell_edges'")
+        exceptions.append(
+            ValueError("grid dictionary missing required key 'cell_edges'")
+        )
+    if particles is not None and "coordinates" not in particles:
+        exceptions.append(
+            ValueError("particles dictionary missing required key 'coordinates'")
+        )
+    if len(exceptions) == 1:
+        raise exceptions[0]
+    elif exceptions:
+        raise ExceptionGroup("Invalid inputs were received", exceptions)
+
     _grid = Grid(
         geometry=_geometry,
         cell_edges=cast(FieldMap, grid["cell_edges"]),
@@ -58,8 +76,6 @@ def load(
 
     _particles: ParticleSet | None = None
     if particles is not None:
-        if "coordinates" not in particles:
-            raise ValueError("particles dictionary missing required key 'coordinates'")
         _particles = ParticleSet(
             geometry=_geometry,
             coordinates=cast(FieldMap, particles["coordinates"]),
