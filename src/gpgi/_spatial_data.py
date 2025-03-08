@@ -171,7 +171,7 @@ class FieldMapsValidatorHelper:
             if a > b:
                 raise ValueError(
                     f"Field {name!r} is not properly sorted by ascending order. "
-                    f"Got {a} (index {i-1}) > {b} (index {i})"
+                    f"Got {a} (index {i - 1}) > {b} (index {i})"
                 )
             a = b
 

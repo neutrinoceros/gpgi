@@ -522,8 +522,7 @@ def test_warn_unused_weight_field_boundaries(sample_2D_dataset):
     with pytest.warns(
         UserWarning,
         match=(
-            "weight_field_boundaries will not be used "
-            "as no weight_field was specified"
+            "weight_field_boundaries will not be used as no weight_field was specified"
         ),
     ):
         sample_2D_dataset.deposit(
