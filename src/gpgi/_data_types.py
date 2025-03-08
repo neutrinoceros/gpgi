@@ -359,8 +359,8 @@ class Dataset(Generic[FloatT]):
         return (
             f"{self.__class__.__name__}(\n"
             f"    geometry={str(self.geometry)!r},\n"
-            f"    grid={indent(str(self.grid), ' '*4).lstrip()},\n"
-            f"    particles={indent(str(self.particles), ' '*4).lstrip()},\n"
+            f"    grid={indent(str(self.grid), ' ' * 4).lstrip()},\n"
+            f"    particles={indent(str(self.particles), ' ' * 4).lstrip()},\n"
             f"    metadata={self.metadata},\n"
             ")"
         )
@@ -449,7 +449,7 @@ class Dataset(Generic[FloatT]):
         tstop = monotonic_ns()
         if verbose:
             print(
-                f"Indexed {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
+                f"Indexed {self.particles.count:.4g} particles in {(tstop - tstart) / 1e9:.2f} s"
             )
         return hci
 
@@ -737,7 +737,7 @@ class Dataset(Generic[FloatT]):
         tstop = monotonic_ns()
         if verbose:
             print(
-                f"Deposited {self.particles.count:.4g} particles in {(tstop-tstart)/1e9:.2f} s"
+                f"Deposited {self.particles.count:.4g} particles in {(tstop - tstart) / 1e9:.2f} s"
             )
 
         if weight_field is not None:
