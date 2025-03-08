@@ -43,7 +43,7 @@ Changelog = "https://github.com/neutrinoceros/gpgi/blob/main/CHANGELOG.md"
 test = [
     "matplotlib>=3.6.0",
     "pytest-mpl>=0.16.1",
-    "pytest>=7.0.0",
+    "pytest>=8.0.0",
 ]
 covcheck = [
     {include-group = "test"},
@@ -156,6 +156,7 @@ follow_imports = "silent"
 filterwarnings = [
   "error",
   'ignore:Matplotlib is currently using agg, which is a non-GUI backend:UserWarning',
+  'ignore:in 3.12 __contains__ will no longer raise TypeError:DeprecationWarning',
 ]
 addopts = "-ra"
 

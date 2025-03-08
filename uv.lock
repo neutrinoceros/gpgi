@@ -233,14 +233,14 @@ requires-dist = [{ name = "numpy", specifier = ">=1.25,<3" }]
 [package.metadata.requires-dev]
 concurrency = [
     { name = "matplotlib", specifier = ">=3.6.0" },
-    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-mpl", specifier = ">=0.16.1" },
     { name = "pytest-repeat", specifier = ">=0.9.3" },
 ]
 covcheck = [
     { name = "coverage", specifier = ">=7.6.1" },
     { name = "matplotlib", specifier = ">=3.6.0" },
-    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-mpl", specifier = ">=0.16.1" },
 ]
 dev = [
@@ -251,7 +251,7 @@ dev = [
 ]
 test = [
     { name = "matplotlib", specifier = ">=3.6.0" },
-    { name = "pytest", specifier = ">=7.0.0" },
+    { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-mpl", specifier = ">=0.16.1" },
 ]
 typecheck = [
