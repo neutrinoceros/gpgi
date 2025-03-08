@@ -78,7 +78,7 @@ def test_unsorted_cell_edges():
         ValueError,
         match=re.escape(
             "Field 'x' is not properly sorted by ascending order. "
-            r"Got 1.0 (index 0) > 0.0 (index 1)"
+            r"Got 1\.0 \(index 0\) > 0\.0 \(index 1\)"
         ),
     ):
         gpgi.load(
@@ -301,7 +301,9 @@ def test_load_invalid_particles_coordinates(
 def test_inconsistent_shape_particle_data():
     with pytest.raises(
         ValueError,
-        match=re.escape(r"Fields 'y' and 'x' have mismatching shapes (3,) and (2,)"),
+        match=re.escape(
+            r"Fields 'y' and 'x' have mismatching shapes \(3,\) and \(2,\)"
+        ),
     ):
         gpgi.load(
             geometry="cartesian",
@@ -393,7 +395,7 @@ def test_invalid_geometry():
         ValueError,
         match=re.escape(
             "unknown geometry 'unknown', expected any of "
-            r"('cartesian', 'polar', 'cylindrical', 'spherical', 'equatorial')"
+            r"\('cartesian', 'polar', 'cylindrical', 'spherical', 'equatorial'\)"
         ),
     ):
         gpgi.load(geometry="unknown", grid={"cell_edges": {"ax": np.array([0.0, 1.0])}})
