@@ -3,12 +3,11 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, cast
 
 from gpgi._data_types import Dataset, Geometry, Grid, ParticleSet
-from gpgi._typing import FieldMap
 
 if TYPE_CHECKING:
     from typing import Any, Literal
 
-    from gpgi._typing import FloatT, GridDict, ParticleSetDict
+    from gpgi._typing import FieldMap, FloatT, GridDict, ParticleSetDict
 
 
 def load(
@@ -70,7 +69,7 @@ def load(
 
     _grid = Grid(
         geometry=_geometry,
-        cell_edges=cast(FieldMap, grid["cell_edges"]),
+        cell_edges=cast("FieldMap", grid["cell_edges"]),
         fields=grid.get("fields"),
     )
 
@@ -78,7 +77,7 @@ def load(
     if particles is not None:
         _particles = ParticleSet(
             geometry=_geometry,
-            coordinates=cast(FieldMap, particles["coordinates"]),
+            coordinates=cast("FieldMap", particles["coordinates"]),
             fields=particles.get("fields"),
         )
 

@@ -37,7 +37,6 @@ from gpgi._spatial_data import (
     Validator,
 )
 from gpgi._typing import FieldMap, FloatT, Name
-from gpgi.typing import DepositionMethodT, DepositionMethodWithMetadataT
 
 if sys.version_info >= (3, 13):
     LockType = Lock
@@ -49,7 +48,8 @@ if TYPE_CHECKING:
 
     from numpy.typing import NDArray
 
-    from gpgi._typing import FieldMap, HCIArray, Name
+    from gpgi._typing import HCIArray
+    from gpgi.typing import DepositionMethodT, DepositionMethodWithMetadataT
 
 
 BoundarySpec = tuple[tuple[str, str, str], ...]
@@ -644,10 +644,10 @@ class Dataset(Generic[FloatT]):
             sig = signature(method)
             func: DepositionMethodT
             if "metadata" in sig.parameters:
-                method = cast(DepositionMethodWithMetadataT, method)
+                method = cast("DepositionMethodWithMetadataT", method)
                 func = partial(method, metadata=self.metadata)
             else:
-                method = cast(DepositionMethodT, method)
+                method = cast("DepositionMethodT", method)
                 func = method
         else:
             if method not in _deposition_method_names:
@@ -808,7 +808,7 @@ class Dataset(Generic[FloatT]):
             iax = axes.index(ax)
             bcs = tuple(self.boundary_recipes[key] for key in bv)
             for side, bc in zip(("left", "right"), bcs, strict=True):
-                side = cast(Literal["left", "right"], side)
+                side = cast("Literal['left', 'right']", side)
                 active_index: int = 1 if side == "left" else -2
                 same_side_active_layer_idx = [slice(None)] * self.grid.ndim
                 same_side_active_layer_idx[iax] = active_index  # type:ignore [call-overload]
