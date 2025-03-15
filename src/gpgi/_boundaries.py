@@ -152,7 +152,7 @@ def wall_boundary(
     side: Literal["left", "right"],
     metadata: dict[str, Any],
 ) -> NDArray[FloatT]:
-    return cast(NDArray[FloatT], same_side_active_layer + same_side_ghost_layer)
+    return cast("NDArray[FloatT]", same_side_active_layer + same_side_ghost_layer)
 
 
 def antisymmetric_boundary(
@@ -167,7 +167,7 @@ def antisymmetric_boundary(
     side: Literal["left", "right"],
     metadata: dict[str, Any],
 ) -> NDArray[FloatT]:
-    return cast(NDArray[FloatT], same_side_active_layer - same_side_ghost_layer)
+    return cast("NDArray[FloatT]", same_side_active_layer - same_side_ghost_layer)
 
 
 def periodic_boundary(
@@ -182,7 +182,7 @@ def periodic_boundary(
     side: Literal["left", "right"],
     metadata: dict[str, Any],
 ) -> NDArray[FloatT]:
-    return cast(NDArray[FloatT], same_side_active_layer + opposite_side_ghost_layer)
+    return cast("NDArray[FloatT]", same_side_active_layer + opposite_side_ghost_layer)
 
 
 _base_registry: dict[str, BoundaryRecipeT] = {

@@ -91,6 +91,7 @@ source = [
 omit = [
     "src/gpgi/_backports.py",
     "src/gpgi/_typing.py",
+    "src/gpgi/typing.py",
 ]
 
 [tool.coverage.report]
