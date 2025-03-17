@@ -69,15 +69,15 @@ def load(
 
     _grid = Grid(
         geometry=_geometry,
-        cell_edges=cast("FieldMap", grid["cell_edges"]),
+        cell_edges=cast("FieldMap[FloatT]", grid["cell_edges"]),
         fields=grid.get("fields"),
     )
 
-    _particles: ParticleSet | None = None
+    _particles: ParticleSet[FloatT] | None = None
     if particles is not None:
         _particles = ParticleSet(
             geometry=_geometry,
-            coordinates=cast("FieldMap", particles["coordinates"]),
+            coordinates=cast("FieldMap[FloatT]", particles["coordinates"]),
             fields=particles.get("fields"),
         )
 

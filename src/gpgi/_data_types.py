@@ -90,7 +90,7 @@ _BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
 @final
 class GridCoordinatesValidator:
     @classmethod
-    def check(cls, data: Grid) -> None:
+    def check(cls, data: Grid[FloatT]) -> None:
         FieldMapsValidatorHelper.check(
             data.coordinates,
             require_sorted=True,
@@ -101,7 +101,7 @@ class GridCoordinatesValidator:
 @final
 class GridFieldsValidator:
     @classmethod
-    def check(cls, data: Grid) -> None:
+    def check(cls, data: Grid[FloatT]) -> None:
         FieldMapsValidatorHelper.check(
             data.fields,
             required_attrs={
@@ -139,7 +139,7 @@ class Grid(Generic[FloatT]):
 
         if fields is None:
             fields = {}
-        self.fields: FieldMap = fields
+        self.fields: FieldMap[FloatT] = fields
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
@@ -153,7 +153,7 @@ class Grid(Generic[FloatT]):
                 # got a constant step in this direction, store it
                 self._dx[i] = self.coordinates[ax][1] - self.coordinates[ax][0]
 
-    _validators: list[type[Validator[Grid]]] = [
+    _validators: list[type[Validator[Grid[FloatT]]]] = [
         GeometryValidator,
         BasicCoordinatesValidator,
         GridCoordinatesValidator,
@@ -231,7 +231,7 @@ class Grid(Generic[FloatT]):
 @final
 class ParticleSetCoordinatesValidator:
     @classmethod
-    def check(cls, data: ParticleSet) -> None:
+    def check(cls, data: ParticleSet[FloatT]) -> None:
         FieldMapsValidatorHelper.check(
             data.coordinates,
             require_shape_equality=True,
@@ -271,7 +271,7 @@ class ParticleSet(Generic[FloatT]):
         self._validate()
         self.dtype: np.dtype[FloatT] = self.coordinates[self.axes[0]].dtype
 
-    _validators: list[type[Validator[ParticleSet]]] = [
+    _validators: list[type[Validator[ParticleSet[FloatT]]]] = [
         GeometryValidator,
         BasicCoordinatesValidator,
         ParticleSetCoordinatesValidator,
