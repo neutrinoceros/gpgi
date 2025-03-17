@@ -13,4 +13,4 @@ __all__ = [
     "ParticleSet",
 ]
 
-_IS_PY_LIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [union-attr]
+_IS_PY_LIB = find_spec("gpgi._lib").origin.endswith(".py")  # type: ignore [union-attr] # pyright: ignore [reportOptionalMemberAccess]
