@@ -135,7 +135,7 @@ class FieldMapsValidatorHelper:
     @classmethod
     def check(
         cls,
-        *fmaps: FieldMap | None,
+        *fmaps: FieldMap[FloatT] | None,
         require_shape_equality: bool = False,
         require_sorted: bool = False,
         required_attrs: dict[str, Any] | None = None,
