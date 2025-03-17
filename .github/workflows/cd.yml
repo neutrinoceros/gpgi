@@ -32,7 +32,7 @@ jobs:
         enable-cache: true
         prune-cache: false
     - name: Build wheels for CPython
-      uses: pypa/cibuildwheel@ee63bf16da6cddfb925f542f2c7b59ad50e93969 # v2.22.0
+      uses: pypa/cibuildwheel@42728e866bbc80d544a70825bd9990b9a26f1a50 # v2.23.1
       with:
         output-dir: dist
     - uses: actions/upload-artifact@4cec3d8aa04e39d1a68397de0c4cd6fb9dce8ec1 # v4.6.1
