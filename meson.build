@@ -58,6 +58,7 @@ else
       install: true,
       dependencies : [np_dep],
       c_args: numpy_compile_flags,
+      limited_api: '3.11', # keep in sync with requires-python (pyproject.toml)
   )
 endif
 
