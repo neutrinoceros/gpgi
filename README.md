@@ -182,14 +182,14 @@ domain, this means some of their contribution is lost. This behavior
 corresponds to the default `'open'` boundary condition, but `gpgi` has builtin
 support for more conservative boundary conditions.
 
-Boundary conditions can selected per field, per axis and per side. Builtin
+Boundary conditions can be selected per field, per axis and per side. Builtin
 recipes all perform linear combinations of ghost layers (same-side and opposite
 side) and active domain layers (same-side and opposite side), and replace the
 same-side active layer with the result.
 
 User-selected boundary conditions take the form of an optional argument to
-`Dataset.deposit`, as dictionary with keys being axes names, and values being
-2-tuples of boundary conditions names (for left and right side respectively).
+`Dataset.deposit`, as a dictionary with keys being axes names, and values being
+2-tuples of boundary condition names (left and right side respectively).
 For instance, here's how one would require periodic boundary conditions on all axes:
 
 ```python
