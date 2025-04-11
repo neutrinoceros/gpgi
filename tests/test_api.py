@@ -154,31 +154,34 @@ def test_missing_grid():
 @pytest.mark.parametrize(
     "geometry, cell_edges, coords, axis, side, limit",
     [
-        (
+        pytest.param(
             "polar",
             {"radius": np.array([0.0, 1.0])},
             {"radius": np.arange(-1.0, 1.0)},
             "radius",
             "min",
             0.0,
+            id="polar_min_radius",
         ),
-        (
+        pytest.param(
             "cylindrical",
             {"radius": np.array([0.0, 1.0])},
             {"radius": np.arange(-1.0, 1.0)},
             "radius",
             "min",
             0.0,
+            id="cylindrical_min_radius",
         ),
-        (
+        pytest.param(
             "spherical",
             {"radius": np.array([0.0, 1.0])},
             {"radius": np.arange(-1.0, 1.0)},
             "radius",
             "min",
             0.0,
+            id="spherical_min_radius",
         ),
-        (
+        pytest.param(
             "cylindrical",
             {
                 "radius": np.array([0.0, 100.0]),
@@ -188,13 +191,14 @@ def test_missing_grid():
             {
                 "radius": np.arange(10.0),
                 "z": np.arange(10.0),
-                "azimuth": np.arange(-10.0, 10.0),
+                "azimuth": np.arange(-10.0, 0.0),
             },
             "azimuth",
             "min",
             0.0,
+            id="cylindrical_min_azimuth",
         ),
-        (
+        pytest.param(
             "cylindrical",
             {
                 "radius": np.array([0.0, 100.0]),
@@ -209,24 +213,27 @@ def test_missing_grid():
             "azimuth",
             "max",
             2 * np.pi,
+            id="cylindrical_max_azimuth",
         ),
-        (
+        pytest.param(
             "spherical",
             {"radius": np.array([0.0, 100.0]), "colatitude": np.array([0.0, np.pi])},
-            {"radius": np.arange(10.0), "colatitude": np.arange(-10.0, 10.0)},
+            {"radius": np.arange(10.0), "colatitude": np.arange(-10.0, 0.0)},
             "colatitude",
             "min",
             0.0,
+            id="spherical_min_colatitude",
         ),
-        (
+        pytest.param(
             "spherical",
             {"radius": np.array([0.0, 100.0]), "colatitude": np.array([0.0, np.pi])},
             {"radius": np.arange(10.0), "colatitude": np.arange(10.0)},
             "colatitude",
             "max",
             np.pi,
+            id="spherical_max_colatitude",
         ),
-        (
+        pytest.param(
             "spherical",
             {
                 "radius": np.array([0.0, 100.0]),
@@ -235,14 +242,15 @@ def test_missing_grid():
             },
             {
                 "radius": np.arange(10.0),
-                "colatitude": np.arange(2.0),
-                "azimuth": np.arange(-10.0, 10.0),
+                "colatitude": np.linspace(0.0, np.pi, 10),
+                "azimuth": np.arange(-10.0, 0.0),
             },
             "azimuth",
             "min",
             0.0,
+            id="spherical_min_azimuth",
         ),
-        (
+        pytest.param(
             "spherical",
             {
                 "radius": np.array([0.0, 100.0]),
@@ -251,14 +259,15 @@ def test_missing_grid():
             },
             {
                 "radius": np.arange(10.0),
-                "colatitude": np.arange(2.0),
+                "colatitude": np.linspace(0.0, np.pi, 10),
                 "azimuth": np.arange(10.0),
             },
             "azimuth",
             "max",
             2 * np.pi,
+            id="spherical_max_azimuth",
         ),
-        (
+        pytest.param(
             "equatorial",
             {
                 "radius": np.array([0.0, 100.0]),
@@ -267,14 +276,15 @@ def test_missing_grid():
             },
             {
                 "radius": np.arange(10.0),
-                "azimuth": np.arange(6.0),
-                "latitude": np.arange(-10.0, +10.0),
+                "azimuth": np.linspace(0.0, 2 * np.pi, 10),
+                "latitude": np.arange(-10.0, 0.0),
             },
             "latitude",
             "min",
             -np.pi / 2,
+            id="equatorial_min_latitude",
         ),
-        (
+        pytest.param(
             "equatorial",
             {
                 "radius": np.array([0.0, 100.0]),
@@ -284,11 +294,12 @@ def test_missing_grid():
             {
                 "radius": np.arange(10.0),
                 "azimuth": np.arange(10.0),
-                "latitude": np.arange(2.0),
+                "latitude": np.linspace(-np.pi / 2, np.pi / 2, 10),
             },
             "azimuth",
             "max",
             2 * np.pi,
+            id="equatorial_max_azimuth",
         ),
     ],
 )
@@ -311,6 +322,48 @@ def test_load_invalid_particles_coordinates(
             geometry=geometry,
             grid={"cell_edges": cell_edges},
             particles={"coordinates": coords},
+        )
+
+
+def test_multiple_invalid_particle_coordinates():
+    cell_edges = {
+        "radius": np.array([0.0, 100.0]),
+        "colatitude": np.array([0.0, np.pi]),
+        "azimuth": np.array([0, 2 * np.pi]),
+    }
+    coords = {
+        "radius": np.arange(10.0),
+        "colatitude": np.linspace(-0.1, np.pi + 0.1, 10),
+        "azimuth": np.linspace(-0.1, 2 * np.pi + 0.1, 10),
+    }
+    dt = coords[list(coords.keys())[0]].dtype.type
+
+    with pytest.raises(
+        ExceptionGroup,
+        match="input particle data is invalid",
+    ) as excinfo:
+        gpgi.load(
+            geometry="spherical",
+            grid={"cell_edges": cell_edges},
+            particles={"coordinates": coords},
+        )
+    assert len(excinfo.value.exceptions) == 4
+    for axis, side, limit in [
+        ("colatitude", "min", 0.0),
+        ("colatitude", "max", np.pi),
+        ("azimuth", "min", 0.0),
+        ("azimuth", "max", 2 * np.pi),
+    ]:
+        if side == "min":
+            c = dt(coords[axis].min())
+        elif side == "max":
+            c = dt(coords[axis].max())
+        assert excinfo.group_contains(
+            ValueError,
+            match=(
+                f"Invalid coordinate data for axis {axis!r} {c} "
+                rf"\({side}imal value allowed is {limit}\)"
+            ),
         )
 
 
@@ -380,6 +433,10 @@ def test_validate_empty_fields():
     assert ds.grid.fields == {}
 
 
+def position(i):
+    return ["first", "second", "third"][i]
+
+
 @pytest.mark.parametrize(
     "geometry, axes, pos",
     [
@@ -387,20 +444,42 @@ def test_validate_empty_fields():
         ("cartesian", ("x", "y", "colatitude"), 2),
         ("cartesian", ("z",), 0),
         ("cartesian", ("y",), 0),
-        ("spherical", ("x", "y", "z"), 0),
-        ("spherical", ("x", "y"), 0),
         ("spherical", ("x",), 0),
-        ("spherical", ("radius", "azimuth", "z"), 1),
     ],
 )
-def test_invalid_axes(geometry, axes, pos):
+def test_single_invalid_axis(geometry, axes, pos):
     with pytest.raises(
         ValueError,
-        match=rf"Got invalid axis name '\w+' on position {pos}, with geometry {geometry!r}",
+        match=rf"Invalid {position(pos)} axis name '\w+', with geometry {geometry!r}",
     ):
         gpgi.load(
             geometry=geometry,
-            grid={"cell_edges": {_: [0, 1] for _ in axes}},
+            grid={"cell_edges": {_: np.array([0.0, 1.0]) for _ in axes}},
+        )
+
+
+@pytest.mark.parametrize(
+    "geometry, axes, positions",
+    [
+        ("spherical", ("x", "y"), [0, 1]),
+        ("spherical", ("x", "y", "z"), [0, 1, 2]),
+        ("spherical", ("radius", "azimuth", "z"), [1, 2]),
+    ],
+)
+def test_multiple_invalid_axes(geometry, axes, positions):
+    with pytest.raises(
+        ExceptionGroup,
+        match="input grid data is invalid",
+    ) as excinfo:
+        gpgi.load(
+            geometry=geometry,
+            grid={"cell_edges": {_: np.array([0.0, 1.0]) for _ in axes}},
+        )
+    assert len(excinfo.value.exceptions) == len(positions)
+    for pos in positions:
+        assert excinfo.group_contains(
+            ValueError,
+            match=rf"Invalid {position(pos)} axis name '\w+', with geometry {geometry!r}",
         )
 
 
