@@ -90,8 +90,8 @@ _BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
 @final
 class GridCoordinatesValidator:
     @classmethod
-    def check(cls, data: Grid[FloatT]) -> None:
-        FieldMapsValidatorHelper.check(
+    def collect_exceptions(cls, data: Grid[FloatT]) -> list[Exception]:
+        return FieldMapsValidatorHelper.collect_exceptions(
             data.coordinates,
             require_sorted=True,
             required_attrs={"ndim": 1},
@@ -101,8 +101,8 @@ class GridCoordinatesValidator:
 @final
 class GridFieldsValidator:
     @classmethod
-    def check(cls, data: Grid[FloatT]) -> None:
-        FieldMapsValidatorHelper.check(
+    def collect_exceptions(cls, data: Grid[FloatT]) -> list[Exception]:
+        return FieldMapsValidatorHelper.collect_exceptions(
             data.fields,
             required_attrs={
                 "size": data.size,
@@ -162,8 +162,13 @@ class Grid(Generic[FloatT]):
     ]
 
     def _validate(self) -> None:
+        exceptions: list[Exception] = []
         for validator in self.__class__._validators:
-            validator.check(self)
+            exceptions.extend(validator.collect_exceptions(self))
+        if len(exceptions) == 1:
+            raise exceptions[0]
+        elif exceptions:
+            raise ExceptionGroup("input grid data is invalid", exceptions)
 
     def __repr__(self) -> str:
         """Implement repr(Grid(...))."""
@@ -231,8 +236,8 @@ class Grid(Generic[FloatT]):
 @final
 class ParticleSetCoordinatesValidator:
     @classmethod
-    def check(cls, data: ParticleSet[FloatT]) -> None:
-        FieldMapsValidatorHelper.check(
+    def collect_exceptions(cls, data: ParticleSet[FloatT]) -> list[Exception]:
+        return FieldMapsValidatorHelper.collect_exceptions(
             data.coordinates,
             require_shape_equality=True,
             required_attrs={"ndim": 1},
@@ -279,8 +284,13 @@ class ParticleSet(Generic[FloatT]):
     ]
 
     def _validate(self) -> None:
+        exceptions: list[Exception] = []
         for validator in self.__class__._validators:
-            validator.check(self)
+            exceptions.extend(validator.collect_exceptions(self))
+        if len(exceptions) == 1:
+            raise exceptions[0]
+        elif exceptions:
+            raise ExceptionGroup("input particle data is invalid", exceptions)
 
     def __repr__(self) -> str:
         """Implement repr(ParticleSet(...))."""

@@ -41,13 +41,14 @@ T_contra = TypeVar("T_contra", bound=SpatialData, contravariant=True)
 
 class Validator(Protocol[T_contra]):
     @classmethod
-    def check(cls, data: T_contra) -> None: ...
+    def collect_exceptions(cls, data: T_contra) -> list[Exception]: ...
 
 
 @final
 class GeometryValidator:
     @classmethod
-    def check(cls, data: SpatialData) -> None:
+    def collect_exceptions(cls, data: SpatialData) -> list[Exception]:
+        retv: list[Exception] = []
         match data.geometry:
             case Geometry.CARTESIAN:
                 axes3D = ("x", "y", "z")
@@ -62,28 +63,38 @@ class GeometryValidator:
             case _ as unreachable:  # pragma: no cover
                 assert_never(unreachable)
 
+        def position(i: int) -> str:
+            return ["first", "second", "third"][i]
+
         for i, (expected, actual) in enumerate(zip(axes3D, data.axes, strict=False)):
             if actual != expected:
-                raise ValueError(
-                    f"Got invalid axis name {actual!r} on position {i}, "
-                    f"with geometry {data.geometry.name.lower()!r}\n"
-                    f"Expected axes ordered as {axes3D[: len(data.axes)]}"
+                retv.append(
+                    ValueError(
+                        f"Invalid {position(i)} axis name {actual!r}, "
+                        f"with geometry {data.geometry.name.lower()!r}. "
+                        f"Got {actual!r}, expected {expected!r}"
+                    )
                 )
+        return retv
 
 
 @final
 class BasicCoordinatesValidator:
     @classmethod
-    def check(cls, data: SpatialData) -> None:
+    def collect_exceptions(cls, data: SpatialData) -> list[Exception]:
+        retv: list[Exception] = []
         for axis in data.axes:
             coord = data.coordinates[axis]
             if len(coord) == 0:
                 continue
 
             if coord.dtype.kind != "f":
-                raise ValueError(
-                    f"Invalid data type {coord.dtype} (expected a float dtype)"
+                retv.append(
+                    ValueError(
+                        f"Invalid data type {coord.dtype} (expected a float dtype)"
+                    )
                 )
+                continue
             dt = coord.dtype.type
 
             xmin, xmax = (dt(_) for _ in _AXES_LIMITS[axis])
@@ -93,8 +104,10 @@ class BasicCoordinatesValidator:
                 else:
                     assert xmin == -float("inf")
                     hint = "value must be finite"
-                raise ValueError(
-                    f"Invalid coordinate data for axis {axis!r} {cmin} ({hint})"
+                retv.append(
+                    ValueError(
+                        f"Invalid coordinate data for axis {axis!r} {cmin} ({hint})"
+                    )
                 )
             if (cmax := dt(np.max(coord))) > xmax or not math.isfinite(cmax):
                 if math.isfinite(xmax):
@@ -102,15 +115,19 @@ class BasicCoordinatesValidator:
                 else:
                     assert xmax == float("inf")
                     hint = "value must be finite"
-                raise ValueError(
-                    f"Invalid coordinate data for axis {axis!r} {cmax} ({hint})"
+                retv.append(
+                    ValueError(
+                        f"Invalid coordinate data for axis {axis!r} {cmax} ({hint})"
+                    )
                 )
+        return retv
 
 
 @final
 class DTypeConsistencyValidator:
     @classmethod
-    def check(cls, data: SpatialData) -> None:
+    def collect_exceptions(cls, data: SpatialData) -> list[Exception]:
+        retv: list[Exception] = []
         dts = {
             name: arr.dtype
             for name, arr in chain(
@@ -120,7 +137,8 @@ class DTypeConsistencyValidator:
         }
         unique_dts = sorted(set(dts.values()))
         if len(unique_dts) > 1:
-            raise TypeError(f"Received mixed data types ({unique_dts}):\n{dts}")
+            retv.append(TypeError(f"Received mixed data types ({unique_dts}):\n{dts}"))
+        return retv
 
 
 @final
@@ -133,26 +151,36 @@ class NamedArray:
 @final
 class FieldMapsValidatorHelper:
     @classmethod
-    def check(
+    def collect_exceptions(
         cls,
         *fmaps: FieldMap[FloatT] | None,
         require_shape_equality: bool = False,
         require_sorted: bool = False,
         required_attrs: dict[str, Any] | None = None,
-    ) -> None:
+    ) -> list[Exception]:
         ref_arr: NamedArray | None = None
+        retv: list[Exception] = []
         for name, data in chain.from_iterable(
             fm.items() for fm in fmaps if fm is not None
         ):
             if require_shape_equality:
-                ref_arr = cls._validate_shape_equality(name, data, ref_arr)
+                try:
+                    ref_arr = cls._check_shape_equality(name, data, ref_arr)
+                except ValueError as exc:
+                    retv.append(exc)
+                    continue
             if require_sorted:
-                cls._validate_sorted_state(name, data)
+                if (result := cls._check_sorted_state(name, data)) is not None:
+                    retv.append(result)
             if required_attrs:
-                cls._validate_required_attributes(name, data, required_attrs)
+                if (
+                    result := cls._check_required_attributes(name, data, required_attrs)
+                ) is not None:
+                    retv.append(result)
+        return retv
 
     @staticmethod
-    def _validate_shape_equality(
+    def _check_shape_equality(
         name: str,
         data: NDArray[FloatT],
         ref_arr: NamedArray | None,
@@ -165,25 +193,28 @@ class FieldMapsValidatorHelper:
         return ref_arr or NamedArray(name, data)
 
     @staticmethod
-    def _validate_sorted_state(name: str, data: NDArray[FloatT]) -> None:
+    def _check_sorted_state(name: str, data: NDArray[FloatT]) -> ValueError | None:
         a = data[0]
         for i, b in enumerate(data[1:], start=1):
             if a > b:
-                raise ValueError(
+                return ValueError(
                     f"Field {name!r} is not properly sorted by ascending order. "
                     f"Got {a} (index {i - 1}) > {b} (index {i})"
                 )
             a = b
 
+        return None
+
     @staticmethod
-    def _validate_required_attributes(
+    def _check_required_attributes(
         name: str,
         data: NDArray[FloatT],
         required_attrs: dict[str, Any],
-    ) -> None:
+    ) -> ValueError | None:
         for attr, expected in required_attrs.items():
             if (actual := getattr(data, attr)) != expected:
-                raise ValueError(
+                return ValueError(
                     f"Field {name!r} has incorrect {attr} {actual} "
                     f"(expected {expected})"
                 )
+        return None
