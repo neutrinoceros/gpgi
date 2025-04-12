@@ -40,7 +40,7 @@ def random_dataset():
 
 
 class TestSetupHostCellIndex:
-    def collect_exceptions(self, results):
+    def check(self, results):
         # Check results: verify that all threads see the same array
         assert len(set(results)) == 1
         # check that we indeed collected ids, not None
@@ -74,7 +74,7 @@ class TestSetupHostCellIndex:
         for worker in workers:
             worker.join()
 
-        self.collect_exceptions(results)
+        self.check(results)
 
     def test_concurrent_pool(self):
         # Defines a thread barrier that will be spawned before parallel execution
@@ -95,12 +95,12 @@ class TestSetupHostCellIndex:
             futures = [executor.submit(closure) for _ in range(N_THREADS)]
 
         results = [f.result() for f in futures]
-        self.collect_exceptions(results)
+        self.check(results)
 
 
 @pytest.mark.parametrize("lock", ["per-instance", None, threading.Lock()])
 class TestDeposit:
-    def collect_exceptions(self, results):
+    def check(self, results):
         ref = results[0]
         for res in results[1:]:
             npt.assert_array_equal(res, ref)
@@ -133,7 +133,7 @@ class TestDeposit:
         for worker in workers:
             worker.join()
 
-        self.collect_exceptions(results)
+        self.check(results)
 
     def test_concurrent_pool(self, lock):
         # Defines a thread barrier that will be spawned before parallel execution
@@ -152,11 +152,11 @@ class TestDeposit:
             futures = [executor.submit(closure) for _ in range(N_THREADS)]
 
         results = [f.result() for f in futures]
-        self.collect_exceptions(results)
+        self.check(results)
 
 
 class TestBoundaryRegistry:
-    def collect_exceptions(self, results):
+    def check(self, results):
         # only one thread can succeed registration, all others should raise.
         expected_msg = (
             "Another function is already registered with key='test'. "
@@ -212,7 +212,7 @@ class TestBoundaryRegistry:
         for worker in workers:
             worker.join()
 
-        self.collect_exceptions(results)
+        self.check(results)
 
     def test_concurrent_pool(self):
         # Defines a thread barrier that will be spawned before parallel execution
@@ -248,4 +248,4 @@ class TestBoundaryRegistry:
         assert "test" in registry
         exceptions = [f.exception() for f in futures]
         results = [exc.args[0] for exc in exceptions if exc is not None]
-        self.collect_exceptions(results)
+        self.check(results)
