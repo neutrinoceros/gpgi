@@ -28,6 +28,7 @@ GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
   * [Count Sorting](#count-sorting)
 - [Deposition algorithm](#deposition-algorithm)
 - [Thread safety](#thread-safety)
+  * [Free-threaded CPython compatibility](#free-threaded-cpython-compatibility)
 
 <!-- tocstop -->
 
@@ -388,8 +389,7 @@ V(x) = (U/W)(x)
 
 Starting in gpgi 2.0.0, thread safety is guaranteed in `Dataset.host_cell_index`
 computation and `Dataset.deposit`, and both operations release the
-GIL (Global Interpreter Lock) around their respective hotloops. Thread safety is
-also tested against the experimental free-threaded build of Python 3.13.
+GIL (Global Interpreter Lock) around their respective hotloops.
 
 Note that, by default, `Dataset.deposit` still uses a lock per `Dataset`
 instance, which in the most general case is preferable since concurrently
@@ -403,3 +403,11 @@ so this strategy can be overridden using the `lock` parameter:
 `Dataset.boundary_recipes.register` is also thread-safe: registering a shared
 function multiple times is supported, but an error is raised in case one
 attempts registering a different function under an existing key.
+
+Semi-private, low level deposition functions included in `gpgi._lib`,
+are *not* thread safe, as they explicitly mutate their `out` argument.
+
+### Free-threaded CPython compatibility
+
+As of gpgi 2.0.0, thread safety is tested against the experimental free-threaded
+build of CPython, however, pre-compiled binaries are not provided yet.
