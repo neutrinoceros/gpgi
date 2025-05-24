@@ -19,6 +19,7 @@ classifiers = [
     "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
     "Programming Language :: Cython",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Free Threading :: 3 - Stable",
     "Typing :: Typed",
 ]
 # keep in sync with limited_api (meson.build)
