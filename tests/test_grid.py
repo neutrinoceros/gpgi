@@ -49,3 +49,19 @@ def test_cell_volumes_shape():
         },
     )
     assert ds.grid.cell_volumes.shape == ds.grid.shape
+
+
+def test_cell_centers():
+    ds = gpgi.load(
+        geometry="cartesian",
+        grid={
+            "cell_edges": {
+                "x": np.linspace(0, 1, 3),
+                "y": np.linspace(0, 1, 4),
+                "z": np.linspace(0, 1, 5),
+            }
+        },
+    )
+    for key in "xyz":
+        assert ds.grid.cell_centers[key].min() > ds.grid.cell_edges[key].min()
+        assert ds.grid.cell_centers[key].max() < ds.grid.cell_edges[key].max()
