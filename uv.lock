@@ -210,16 +210,12 @@ dependencies = [
 
 [package.dev-dependencies]
 concurrency = [
-    { name = "matplotlib" },
     { name = "pytest" },
-    { name = "pytest-mpl" },
     { name = "pytest-repeat" },
 ]
 covcheck = [
     { name = "coverage" },
-    { name = "matplotlib" },
     { name = "pytest" },
-    { name = "pytest-mpl" },
 ]
 dev = [
     { name = "cython" },
@@ -228,6 +224,9 @@ dev = [
     { name = "numpy" },
 ]
 test = [
+    { name = "pytest" },
+]
+test-image = [
     { name = "matplotlib" },
     { name = "pytest" },
     { name = "pytest-mpl" },
@@ -242,16 +241,12 @@ requires-dist = [{ name = "numpy", specifier = ">=1.25,<3" }]
 
 [package.metadata.requires-dev]
 concurrency = [
-    { name = "matplotlib", specifier = ">=3.6.0" },
     { name = "pytest", specifier = ">=8.0.0" },
-    { name = "pytest-mpl", specifier = ">=0.16.1" },
     { name = "pytest-repeat", specifier = ">=0.9.3" },
 ]
 covcheck = [
     { name = "coverage", specifier = ">=7.6.1" },
-    { name = "matplotlib", specifier = ">=3.6.0" },
     { name = "pytest", specifier = ">=8.0.0" },
-    { name = "pytest-mpl", specifier = ">=0.16.1" },
 ]
 dev = [
     { name = "cython", specifier = ">=3.0.12" },
@@ -259,7 +254,8 @@ dev = [
     { name = "ninja", specifier = ">=1.11.1.3" },
     { name = "numpy", specifier = ">=1.25.0,<3" },
 ]
-test = [
+test = [{ name = "pytest", specifier = ">=8.0.0" }]
+test-image = [
     { name = "matplotlib", specifier = ">=3.6.0" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-mpl", specifier = ">=0.16.1" },

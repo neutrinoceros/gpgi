@@ -43,9 +43,12 @@ Changelog = "https://github.com/neutrinoceros/gpgi/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 test = [
+    "pytest>=8.0.0",
+]
+test-image = [
+    {include-group = "test"},
     "matplotlib>=3.6.0",
     "pytest-mpl>=0.16.1",
-    "pytest>=8.0.0",
 ]
 covcheck = [
     {include-group = "test"},
