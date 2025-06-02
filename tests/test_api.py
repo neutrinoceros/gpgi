@@ -2,6 +2,7 @@ import re
 
 import numpy as np
 import pytest
+from pytest import RaisesExc, RaisesGroup
 
 import gpgi
 
@@ -74,19 +75,18 @@ def test_load_empty_particles():
 
 
 def test_load_empty_grid_and_empty_particles():
-    with pytest.raises(
-        ExceptionGroup,
-        match=r"^Invalid inputs were received \(2 sub-exceptions\)",
-    ) as excinfo:
+    with RaisesGroup(
+        RaisesExc(
+            ValueError,
+            match="grid dictionary missing required key 'cell_edges'",
+        ),
+        RaisesExc(
+            ValueError,
+            match="particles dictionary missing required key 'coordinates'",
+        ),
+        match=r"^Invalid inputs were received$",
+    ):
         gpgi.load(geometry="cartesian", grid={}, particles={})
-
-    assert excinfo.group_contains(
-        ValueError, match="grid dictionary missing required key 'cell_edges'"
-    )
-    assert excinfo.group_contains(
-        ValueError, match="particles dictionary missing required key 'coordinates'"
-    )
-    assert len(excinfo.value.exceptions) == 2
 
 
 def test_unsorted_cell_edges():
@@ -338,32 +338,27 @@ def test_multiple_invalid_particle_coordinates():
     }
     dt = coords[list(coords.keys())[0]].dtype.type
 
-    with pytest.raises(
-        ExceptionGroup,
-        match="input particle data is invalid",
-    ) as excinfo:
+    expected_exceptions = [
+        RaisesExc(
+            ValueError,
+            match=(
+                f"Invalid coordinate data for axis {axis!r} {dt(getattr(coords[axis], side)())} "
+                rf"\({side}imal value allowed is {limit}\)"
+            ),
+        )
+        for axis, side, limit in [
+            ("colatitude", "min", 0.0),
+            ("colatitude", "max", np.pi),
+            ("azimuth", "min", 0.0),
+            ("azimuth", "max", 2 * np.pi),
+        ]
+    ]
+
+    with RaisesGroup(*expected_exceptions, match="input particle data is invalid"):
         gpgi.load(
             geometry="spherical",
             grid={"cell_edges": cell_edges},
             particles={"coordinates": coords},
-        )
-    assert len(excinfo.value.exceptions) == 4
-    for axis, side, limit in [
-        ("colatitude", "min", 0.0),
-        ("colatitude", "max", np.pi),
-        ("azimuth", "min", 0.0),
-        ("azimuth", "max", 2 * np.pi),
-    ]:
-        if side == "min":
-            c = dt(coords[axis].min())
-        elif side == "max":
-            c = dt(coords[axis].max())
-        assert excinfo.group_contains(
-            ValueError,
-            match=(
-                f"Invalid coordinate data for axis {axis!r} {c} "
-                rf"\({side}imal value allowed is {limit}\)"
-            ),
         )
 
 
@@ -467,19 +462,19 @@ def test_single_invalid_axis(geometry, axes, pos):
     ],
 )
 def test_multiple_invalid_axes(geometry, axes, positions):
-    with pytest.raises(
-        ExceptionGroup,
+    with RaisesGroup(
+        *[
+            RaisesExc(
+                ValueError,
+                match=rf"Invalid {position(pos)} axis name '\w+', with geometry {geometry!r}",
+            )
+            for pos in positions
+        ],
         match="input grid data is invalid",
-    ) as excinfo:
+    ):
         gpgi.load(
             geometry=geometry,
             grid={"cell_edges": {_: np.array([0.0, 1.0]) for _ in axes}},
-        )
-    assert len(excinfo.value.exceptions) == len(positions)
-    for pos in positions:
-        assert excinfo.group_contains(
-            ValueError,
-            match=rf"Invalid {position(pos)} axis name '\w+', with geometry {geometry!r}",
         )
 
 
