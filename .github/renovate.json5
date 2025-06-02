@@ -19,4 +19,5 @@
       "scripts/*.py",
     ],
   },
+  ignoreDeps: ["python"],
 }
