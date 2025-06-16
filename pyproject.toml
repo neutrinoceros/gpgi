@@ -179,13 +179,13 @@ test-command = [
 ]
 
 [tool.cibuildwheel.linux]
-archs = "x86_64"
+archs = "auto"
 
 [tool.cibuildwheel.macos]
-archs = "auto64"
+archs = "auto"
 
 [tool.cibuildwheel.windows]
-archs = "AMD64"
+archs = "auto"
 
 [[tool.cibuildwheel.overrides]]
 # Install numpy from nightly wheels as not yet on PyPI.
