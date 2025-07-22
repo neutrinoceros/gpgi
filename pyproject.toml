@@ -185,7 +185,7 @@ archs = "x86_64"
 archs = "auto64"
 
 [tool.cibuildwheel.windows]
-archs = "AMD64"
+archs = "auto"
 
 [[tool.cibuildwheel.overrides]]
 # Install numpy from nightly wheels as not yet on PyPI.
