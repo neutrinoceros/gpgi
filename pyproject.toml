@@ -169,7 +169,7 @@ addopts = "-ra"
 
 [tool.cibuildwheel]
 enable = ["cpython-prerelease"]
-build-frontend = "build[uv]; args: -Csetup-args='-Dpython.allow_limited_api=true'"
+build-frontend = "build; args: -Csetup-args='-Dpython.allow_limited_api=true'"
 build-verbosity = 1
 test-groups = ["test", "concurrency"]
 test-sources = ["tests", "pyproject.toml"]
