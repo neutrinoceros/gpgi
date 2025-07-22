@@ -20,7 +20,7 @@ jobs:
         os:
         - ubuntu-latest
         - windows-latest # AMD64 and x86
-        - window-11-arm # ARM64
+        - windows-11-arm # ARM64
         - macos-13 # x86_64
         - macos-latest # arm64
       fail-fast: false
