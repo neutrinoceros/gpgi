@@ -194,9 +194,10 @@ test-command = [
     "python -m pytest --color=yes --count 500 tests/test_concurrent.py",
 ]
 
-[tool.cibuildwheel.windows]
+[[tool.cibuildwheel.overrides]]
 # adapted from numpy
-config-settings = {setup-args = ["--vsenv"], build-dir="build"}
+select = "*win_arm64*"
+config-settings = { build-dir = "build" , setup-args = ["--vsenv"] }
 
 [tool.codespell]
 ignore-words-list = ["ND"]

@@ -48,6 +48,10 @@ jobs:
           archs: AMD64
           select: '*'
           id: windows_AMD64
+        - os: windows-latest
+          archs: x86
+          select: '*'
+          id: windows_x86
         - os: windows-11-arm
           archs: ARM64
           select: '*'
@@ -58,6 +62,11 @@ jobs:
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         persist-credentials: false
+    - name: Setup MSVC (windows 32-bit)
+      if: ${{ startsWith(runner.os, 'windows') && matrix.archs == 'x86' }}
+      uses: bus1/cabuild/action/msdevshell@e22aba57d6e74891d059d66501b6b5aed8123c4d  # v1
+      with:
+        architecture: x86
     - name: Build wheels for CPython
       uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a # v3.4.0
       env:
