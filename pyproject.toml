@@ -179,7 +179,7 @@ test-command = [
 ]
 
 [tool.cibuildwheel.linux]
-archs = "x86_64"
+archs = "auto"
 
 [tool.cibuildwheel.macos]
 archs = "auto64"
