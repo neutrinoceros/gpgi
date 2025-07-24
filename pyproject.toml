@@ -14,12 +14,23 @@ description = "A Generic Particle+Grid Interface"
 authors = [
     { name = "C.M.T. Robert" },
 ]
+license = "GPL-3.0-only"
+license-files = ["LICENCE"]
 classifiers = [
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Development Status :: 5 - Production/Stable",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Operating System :: Microsoft :: Windows",
     "Programming Language :: Cython",
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: Python :: Free Threading :: 3 - Stable",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Visualization",
     "Typing :: Typed",
 ]
 # keep in sync with limited_api (meson.build)
@@ -33,9 +44,6 @@ dependencies = [
 [project.readme]
 file = "README.md"
 content-type = "text/markdown"
-
-[project.license]
-text = "GPL-3.0"
 
 [project.urls]
 Homepage = "https://github.com/neutrinoceros/gpgi"
