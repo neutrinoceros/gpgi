@@ -7,6 +7,8 @@
     'dependencies',
   ],
   schedule: [
+    // before 6 am on the first day of the month
+    // note that the first slot (minutes) must be '*'
     '* 0-5 1 * *',
   ],
   lockFileMaintenance: {
