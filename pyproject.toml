@@ -168,7 +168,7 @@ filterwarnings = [
 addopts = "-ra"
 
 [tool.cibuildwheel]
-enable = ["cpython-prerelease"]
+skip = ["cp314t-*"]
 build-frontend = "build[uv]; args: -Csetup-args='-Dpython.allow_limited_api=true'"
 build-verbosity = 1
 test-groups = ["test", "concurrency"]
