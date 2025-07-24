@@ -1,23 +1,25 @@
 {
-  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
   extends: [
-    "config:recommended"
+    'config:recommended',
   ],
   labels: [
-      "dependencies",
+    'dependencies',
   ],
   schedule: [
     // before 6 am on the first day of the month
     // note that the first slot (minutes) must be '*'
-    "* 0-5 1 * *",
+    '* 0-5 1 * *',
   ],
   lockFileMaintenance: {
     enabled: true,
   },
   pep723: {
-    fileMatch: [
-      "scripts/*.py",
+    managerFilePatterns: [
+      '/scripts/*.py/',
     ],
   },
-  ignoreDeps: ["python"],
+  ignoreDeps: [
+    'python',
+  ],
 }
