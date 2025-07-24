@@ -9,6 +9,21 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 [Full Changelog](https://github.com/neutrinoceros/gpgi/compare/v2.0.0...v2.1.0)
 
+### Added
+
+- ENH: `Grid` and `ParticleSet` now report *all* invalid inputs instead of just the first one they find [#354](https://github.com/neutrinoceros/gpgi/pull/354) ([neutrinoceros](https://github.com/neutrinoceros))
+- ENH: report as many exceptions as possible from `gpgi.load` instead of just the first one encountered [#339](https://github.com/neutrinoceros/gpgi/pull/339) ([neutrinoceros](https://github.com/neutrinoceros))
+
+### Fixed
+
+- DOC: complete thread-safety documentation [#365](https://github.com/neutrinoceros/gpgi/pull/365) ([neutrinoceros](https://github.com/neutrinoceros))
+- DOC: update badges in README [#330](https://github.com/neutrinoceros/gpgi/pull/330) ([neutrinoceros](https://github.com/neutrinoceros))
+- DOC: fixup Dataset's docstring [#310](https://github.com/neutrinoceros/gpgi/pull/310) ([neutrinoceros](https://github.com/neutrinoceros))
+- BUG: fix an error message that could incorrectly refer to the specific class, possibly not involved in the error itself [#309](https://github.com/neutrinoceros/gpgi/pull/309) ([neutrinoceros](https://github.com/neutrinoceros))
+
+### Other
+
+- REL: prepare release 2.1.0 [#388](https://github.com/neutrinoceros/gpgi/pull/388) ([neutrinoceros](https://github.com/neutrinoceros))
 - WHL: add wheels for Linux ARM64 [#385](https://github.com/neutrinoceros/gpgi/pull/385) ([neutrinoceros](https://github.com/neutrinoceros))
 - [pre-commit.ci] pre-commit autoupdate [#381](https://github.com/neutrinoceros/gpgi/pull/381) ([pre-commit-ci](https://github.com/pre-commit-ci))
 - TST: simplify bleeding-edge CI [#380](https://github.com/neutrinoceros/gpgi/pull/380) ([neutrinoceros](https://github.com/neutrinoceros))
@@ -18,19 +33,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 - TST: fix incorrect uv settings in cp314t tests [#368](https://github.com/neutrinoceros/gpgi/pull/368) ([neutrinoceros](https://github.com/neutrinoceros))
 - MNT: upgrade pre-commit hooks [#367](https://github.com/neutrinoceros/gpgi/pull/367) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: start testing against CPython 3.14 [#366](https://github.com/neutrinoceros/gpgi/pull/366) ([neutrinoceros](https://github.com/neutrinoceros))
-- DOC: complete thread-safety documentation [#365](https://github.com/neutrinoceros/gpgi/pull/365) ([neutrinoceros](https://github.com/neutrinoceros))
 - WHL: upgrade cibuildwheel to 3.0.0 [#363](https://github.com/neutrinoceros/gpgi/pull/363) ([neutrinoceros](https://github.com/neutrinoceros))
 - MNT: lockfile maintenance [#362](https://github.com/neutrinoceros/gpgi/pull/362) ([neutrinoceros](https://github.com/neutrinoceros))
 - MNT: switch back to stable versions of Cython [#361](https://github.com/neutrinoceros/gpgi/pull/361) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: revert involuntary internal var renaming [#355](https://github.com/neutrinoceros/gpgi/pull/355) ([neutrinoceros](https://github.com/neutrinoceros))
-- ENH: `Grid` and `ParticleSet` now report *all* invalid inputs instead of just the first one they find [#354](https://github.com/neutrinoceros/gpgi/pull/354) ([neutrinoceros](https://github.com/neutrinoceros))
 - [pre-commit.ci] pre-commit autoupdate [#353](https://github.com/neutrinoceros/gpgi/pull/353) ([pre-commit-ci](https://github.com/pre-commit-ci))
 - TYP: fix missing type arguments for generic types [#343](https://github.com/neutrinoceros/gpgi/pull/343) ([neutrinoceros](https://github.com/neutrinoceros))
 - TYP: auto-fix TC006 violations [#342](https://github.com/neutrinoceros/gpgi/pull/342) ([neutrinoceros](https://github.com/neutrinoceros))
-- ENH: report as many exceptions as possible from `gpgi.load` instead of just the first one encountered [#339](https://github.com/neutrinoceros/gpgi/pull/339) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: disable uv cache pruning in most CI [#332](https://github.com/neutrinoceros/gpgi/pull/332) ([neutrinoceros](https://github.com/neutrinoceros))
 - BLD: enable building abi3 wheels (take 2, meson flavor) [#331](https://github.com/neutrinoceros/gpgi/pull/331) ([neutrinoceros](https://github.com/neutrinoceros))
-- DOC: update badges in README [#330](https://github.com/neutrinoceros/gpgi/pull/330) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: trigger wheel builds on modifications to all build-related files [#329](https://github.com/neutrinoceros/gpgi/pull/329) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: report coverage for all files, including 100% covered ones [#327](https://github.com/neutrinoceros/gpgi/pull/327) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: adopt -ra pytest flags [#326](https://github.com/neutrinoceros/gpgi/pull/326) ([neutrinoceros](https://github.com/neutrinoceros))
@@ -45,8 +56,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 - RFC: rename private classes [#313](https://github.com/neutrinoceros/gpgi/pull/313) ([neutrinoceros](https://github.com/neutrinoceros))
 - RFC: avoid importing enum as a namespace [#312](https://github.com/neutrinoceros/gpgi/pull/312) ([neutrinoceros](https://github.com/neutrinoceros))
 - TYP: also typecheck against pyright [#311](https://github.com/neutrinoceros/gpgi/pull/311) ([neutrinoceros](https://github.com/neutrinoceros))
-- DOC: fixup Dataset's docstring [#310](https://github.com/neutrinoceros/gpgi/pull/310) ([neutrinoceros](https://github.com/neutrinoceros))
-- BUG: fix an error message that could incorrectly refer to the specific class, possibly not involved in the error itself [#309](https://github.com/neutrinoceros/gpgi/pull/309) ([neutrinoceros](https://github.com/neutrinoceros))
 - RFC: goodbye inheritance, hello composition [#308](https://github.com/neutrinoceros/gpgi/pull/308) ([neutrinoceros](https://github.com/neutrinoceros))
 - TST: update uv configuration in bleeding-edge CI [#307](https://github.com/neutrinoceros/gpgi/pull/307) ([neutrinoceros](https://github.com/neutrinoceros))
 - MNT: fix incorrect pre-commit hook tag [#306](https://github.com/neutrinoceros/gpgi/pull/306) ([neutrinoceros](https://github.com/neutrinoceros))
@@ -68,6 +77,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 - MNT: migrate requirement files to PEP 735 dependency groups [#279](https://github.com/neutrinoceros/gpgi/pull/279) ([neutrinoceros](https://github.com/neutrinoceros))
 - REL: prepare release 2.0.0 [#277](https://github.com/neutrinoceros/gpgi/pull/277) ([neutrinoceros](https://github.com/neutrinoceros))
 - BLD: migrate to the mesonpy build backend [#269](https://github.com/neutrinoceros/gpgi/pull/269) ([neutrinoceros](https://github.com/neutrinoceros))
+- REL: prepare release 2.1.0 [#388](https://github.com/neutrinoceros/gpgi/pull/388) ([neutrinoceros](https://github.com/neutrinoceros))
 
 ## [v2.0.0](https://github.com/neutrinoceros/gpgi/tree/v2.0.0) - 2024-10-09
 
