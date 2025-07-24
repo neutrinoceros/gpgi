@@ -194,8 +194,3 @@ archs = "auto64"
 
 [tool.cibuildwheel.windows]
 archs = "AMD64"
-
-[[tool.cibuildwheel.overrides]]
-# Install numpy from nightly wheels as not yet on PyPI.
-select = "cp314*"
-before-test = "uv pip install --pre --extra-index-url https://pypi.anaconda.org/scientific-python-nightly-wheels/simple numpy"
