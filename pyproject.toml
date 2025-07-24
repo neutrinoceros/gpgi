@@ -9,7 +9,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "gpgi"
-version = "2.0.0"
+version = "2.1.0"
 description = "A Generic Particle+Grid Interface"
 authors = [
     { name = "C.M.T. Robert" },
