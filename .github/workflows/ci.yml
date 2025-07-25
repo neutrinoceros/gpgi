@@ -41,18 +41,19 @@ jobs:
         - '3.11'
         - '3.12'
         - '3.13'
+        - '3.14'
         marker: [''] # needed to avoid collision with PY_LIB job
 
         include:
         - os: macos-latest
-          python-version: '3.13'
+          python-version: '3.14'
 
         - os: windows-latest
-          python-version: '3.13'
+          python-version: '3.14'
 
         - marker: PY_LIB
           os: ubuntu-latest
-          python-version: '3.13'
+          python-version: '3.14'
 
     runs-on: ${{ matrix.os }}
     steps:
