@@ -185,12 +185,3 @@ test-command = [
     "python -m pytest --color=yes tests",
     "python -m pytest --color=yes --count 500 tests/test_concurrent.py",
 ]
-
-[tool.cibuildwheel.linux]
-archs = "auto"
-
-[tool.cibuildwheel.macos]
-archs = "auto64"
-
-[tool.cibuildwheel.windows]
-archs = "AMD64"
