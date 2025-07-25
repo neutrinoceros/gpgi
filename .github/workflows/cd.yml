@@ -12,18 +12,41 @@ on:
 
 jobs:
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build ${{ matrix.archs }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
-      matrix:
-        os:
-        - ubuntu-latest
-        - ubuntu-24.04-arm
-        - windows-latest
-        - macos-13 # x86_64
-        - macos-latest # arm64
       fail-fast: false
+      matrix:
+        include:
+        - os: ubuntu-latest
+          archs: x86_64
+          select: '*manylinux*'
+          id: manylinux_x86_64
+        - os: ubuntu-latest
+          archs: x86_64
+          select: '*musllinux*'
+          id: musllinux_x86_64
+        - os: ubuntu-24.04-arm
+          archs: aarch64
+          select: '*manylinux*'
+          id: manylinux_aarch64
+        - os: ubuntu-24.04-arm
+          archs: aarch64
+          select: '*musllinux*'
+          id: musllinux_aarch64
+        - os: macos-latest
+          archs: x86_64
+          select: '*'
+          id: macos_x86_64
+        - os: macos-latest
+          archs: arm64
+          select: '*'
+          id: macos_arm64
+        - os: windows-latest
+          archs: AMD64
+          select: '*'
+          id: windows_AMD64
 
     steps:
     - name: Checkout repo
@@ -34,11 +57,14 @@ jobs:
         prune-cache: false
     - name: Build wheels for CPython
       uses: pypa/cibuildwheel@e6de07ed3921b51089aae6981989889cf1eddd0c # v3.1.1
+      env:
+        CIBW_ARCHS: ${{ matrix.archs }}
+        CIBW_BUILD: ${{ matrix.select }}
       with:
         output-dir: dist
     - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
       with:
-        name: wheels-${{ matrix.os }}
+        name: wheels-${{ matrix.os }}-${{ matrix.id }}
         path: dist/*.whl
 
   build_sdist:
