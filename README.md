@@ -35,7 +35,6 @@ GPGI stands for **G**eneric **P**article + **G**rid data **I**nterface
 ## Installation
 
 ```shell
-python -m pip install --upgrade pip
 python -m pip install gpgi
 ```
 
