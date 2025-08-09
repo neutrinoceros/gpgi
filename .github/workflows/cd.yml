@@ -12,7 +12,7 @@ on:
 
 jobs:
   build_wheels:
-    name: Build ${{ matrix.archs }} wheels on ${{ matrix.os }}
+    name: Build ${{matrix.select}}-${{ matrix.archs }} wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 10
     strategy:
