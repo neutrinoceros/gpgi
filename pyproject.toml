@@ -60,7 +60,7 @@ test-image = [
 ]
 covcheck = [
     {include-group = "test"},
-    "coverage>=7.6.1",
+    "coverage>=7.10.0",
 ]
 concurrency = [
     {include-group = "test"},
@@ -116,18 +116,13 @@ omit = [
 [tool.coverage.report]
 show_missing = true
 skip_covered = false
-exclude_lines = [
-    # a more strict default pragma
-    "\\# pragma: no cover\\b",
 
-    # allow defensive code
+# use exclude_also to *extend* the default exclude_lines,
+# and allow purely defensive code patterns
+exclude_also = [
     "^\\s*raise NotImplementedError\\b",
-
-    # typing-related code
-    "^if TYPE_CHECKING:",
-    ": \\.\\.\\.(\\s*#.*)?$",
-    "^ +\\.\\.\\.$",
-    "-> ['\"]?NoReturn['\"]?:",
+    "^\\s*raise RuntimeError\\b",
+    "^\\s*case _ as unreachable:",
 ]
 
 [tool.ruff.lint]

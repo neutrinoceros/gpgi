@@ -60,7 +60,7 @@ class GeometryValidator:
                 axes3D = ("radius", "colatitude", "azimuth")
             case Geometry.EQUATORIAL:
                 axes3D = ("radius", "azimuth", "latitude")
-            case _ as unreachable:  # pragma: no cover
+            case _ as unreachable:
                 assert_never(unreachable)
 
         def position(i: int) -> str:

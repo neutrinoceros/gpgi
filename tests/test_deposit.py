@@ -160,7 +160,7 @@ def test_1D_deposit(method, grid_type):
     elif grid_type == "geometric":
         xedges = np.geomspace(1, 2, 6)
     else:
-        raise RuntimeError  # pragma: no cover
+        raise RuntimeError
 
     npart = 16
     prng = np.random.RandomState(0)
@@ -384,8 +384,7 @@ def test_register_invalid_boundary_recipe():
         },
     )
 
-    def _my_recipe(a, b, c, d, e, f):
-        return a  # pragma: no cover
+    def _my_recipe(a, b, c, d, e, f): ...
 
     with pytest.raises(
         ValueError,
@@ -546,10 +545,10 @@ def test_partial_boundary():
         metadata,
         *,
         mode,  # supplementary argument that is destined to be frozen with functools.partial
-    ):
-        # the return value doesn't matter, this test checks that
-        # recipe validation doesn't fail
-        return same_side_active_layer  # pragma: no cover
+    ): ...
+
+    # the return value doesn't matter, this test checks that
+    # recipe validation doesn't fail
 
     myrecipe = partial(_base_recipe, mode="test")
 

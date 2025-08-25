@@ -298,7 +298,7 @@ concurrency = [
     { name = "pytest-repeat", specifier = ">=0.9.3" },
 ]
 covcheck = [
-    { name = "coverage", specifier = ">=7.6.1" },
+    { name = "coverage", specifier = ">=7.10.0" },
     { name = "pytest", specifier = ">=8.4.0" },
 ]
 dev = [
