@@ -780,8 +780,8 @@ class Dataset(Generic[FloatT]):
             return padded_ret_array[1:-1, 1:-1]
         elif self.grid.ndim == 3:
             return padded_ret_array[1:-1, 1:-1, 1:-1]
-        else:  # pragma: no cover
-            raise RuntimeError("Caching error. Please report this.")
+        else:
+            raise RuntimeError
 
     def _sanitize_boundaries(self, boundaries: dict[Name, tuple[Name, Name]]) -> None:
         for ax in self.grid.axes:
