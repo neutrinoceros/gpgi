@@ -48,6 +48,10 @@ jobs:
           archs: AMD64
           select: '*'
           id: windows_AMD64
+        - os: windows-latest
+          archs: x86
+          select: '*'
+          id: windows_x86
         - os: windows-11-arm
           archs: ARM64
           select: '*'
