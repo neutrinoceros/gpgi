@@ -9,6 +9,7 @@ on:
     - .github/workflows/cd.yml
   workflow_dispatch:
 
+permissions: {}
 
 jobs:
   build_wheels:
