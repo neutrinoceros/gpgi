@@ -452,7 +452,7 @@ class Dataset(Generic[FloatT]):
         for idim in range(hci.shape[1]):
             # There are at least two edge cases where we need clipping to correct raw indices:
             # - particles that live exactly on the domain right edge will be indexed out of bound
-            # - single precision positions can lead to overshoots by simple effect of floating point arithmetics
+            # - single precision positions can lead to overshoots by simple effect of floating point arithmetic
             #   (double precision isn't safe either, it's just safer (by a lot))
             hci[:, idim].clip(1, self.grid.shape[idim], out=hci[:, idim])
 

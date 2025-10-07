@@ -184,3 +184,6 @@ test-command = [
 [tool.cibuildwheel.windows]
 # adapted from numpy
 config-settings = {setup-args = ["--vsenv"], build-dir="build"}
+
+[tool.codespell]
+ignore-words-list = ["ND"]
