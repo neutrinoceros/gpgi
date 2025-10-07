@@ -18,10 +18,12 @@ repos:
   hooks:
   - id: zizmor
 
-- repo: https://github.com/crate-ci/typos
-  rev: v1.32.0
+- repo: https://github.com/codespell-project/codespell
+  rev: v2.4.1
   hooks:
-  - id: typos
+  - id: codespell
+    additional_dependencies:
+    - tomli
 
 - repo: https://github.com/astral-sh/uv-pre-commit
   rev: 0.7.19
