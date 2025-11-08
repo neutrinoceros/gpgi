@@ -1,7 +1,7 @@
 [build-system]
 # keep in sync with dependency-groups
 requires = [
-    "meson-python>=0.17.1",
+    "meson-python>=0.18.0",
     "Cython>=3.0.12",
     "numpy>=1.25.0",
 ]
@@ -87,7 +87,7 @@ typecheck = [
 # when building a package in isolation, which is why it's not listed
 # under build-system requires.
 dev = [
-    "meson-python>=0.17.1",
+    "meson-python>=0.18.0",
     "ninja>=1.11.1.3",
     "Cython>=3.0.12",
     "numpy>=1.25.0, <3", # keep in sync with runtime requirement
@@ -102,6 +102,20 @@ args.setup = ['-Dpython.allow_limited_api=false']
 
 [tool.uv]
 no-build-isolation-package = ["gpgi"]
+no-build-package = [
+    "numpy",
+
+    # all of the following are from pytest-mpl (directly or not)
+    "jinja2",
+    "matplotlib",
+    "kiwisolver",
+    "contourpy",
+    "markupsafe",
+]
+
+constraint-dependencies = [
+    "meson>=1.5",
+]
 
 [tool.coverage.run]
 source = [
@@ -169,7 +183,6 @@ addopts = ["-ra"]
 filterwarnings = [
   "error",
   'ignore:Matplotlib is currently using agg, which is a non-GUI backend:UserWarning',
-  'ignore:in 3.12 __contains__ will no longer raise TypeError:DeprecationWarning',
 ]
 
 [tool.cibuildwheel]

@@ -107,7 +107,7 @@ jobs:
     - name: Configure uv
       run: |
         echo "UV_PYTHON_PREFERENCE=only-system" >> $GITHUB_ENV
-        echo "UV_RESOLUTION=lowest-direct" >> $GITHUB_ENV
+        echo "UV_RESOLUTION=lowest" >> $GITHUB_ENV
     - uses: astral-sh/setup-uv@85856786d1ce8acfbcc2f13a5f3fbd6b938f9f41 # v7.1.2
       with:
         enable-cache: true
@@ -116,7 +116,7 @@ jobs:
         uv sync --only-dev
         uv sync --no-editable --group test
     - name: Test
-      run: uv run --no-sync pytest --color=yes
+      run: uv run --no-sync pytest --color=yes -Wdefault
 
   image-tests:
     name: Image tests
