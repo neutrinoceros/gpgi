@@ -51,7 +51,7 @@ Changelog = "https://github.com/neutrinoceros/gpgi/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 test = [
-    "pytest>=8.4.0",
+    "pytest>=9.0.0",
 ]
 test-image = [
     {include-group = "test"},
@@ -162,13 +162,15 @@ disallow_untyped_defs = true
 disallow_incomplete_defs = true
 follow_imports = "silent"
 
-[tool.pytest.ini_options]
+[tool.pytest]
+minversion = "9.0"
+strict = true
+addopts = ["-ra"]
 filterwarnings = [
   "error",
   'ignore:Matplotlib is currently using agg, which is a non-GUI backend:UserWarning',
   'ignore:in 3.12 __contains__ will no longer raise TypeError:DeprecationWarning',
 ]
-addopts = "-ra"
 
 [tool.cibuildwheel]
 skip = ["cp314t-*"]
