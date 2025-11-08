@@ -36,7 +36,7 @@ jobs:
           archs: aarch64
           select: '*musllinux*'
           id: musllinux_aarch64
-        - os: macos-latest
+        - os: macos-15-intel
           archs: x86_64
           select: '*'
           id: macos_x86_64
