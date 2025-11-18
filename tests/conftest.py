@@ -1,8 +1,8 @@
-import sys
-from importlib.metadata import version
+import textwrap
 from importlib.util import find_spec
 
 import pytest
+from runtime_introspect import runtime_feature_set
 
 import gpgi
 
@@ -27,12 +27,12 @@ def pytest_runtest_setup(item):
         pytest.skip("missing requirement: pytest_mpl")
 
 
-def pytest_report_header(config, start_path):
-    is_gil_enabled = sys.version_info < (3, 13) or sys._is_gil_enabled()
-
+def pytest_report_header(config, start_path) -> list[str]:
+    fs = runtime_feature_set()
+    diagnostics = fs.diagnostics(features=["free-threading", "JIT"])
     return [
-        f"{is_gil_enabled = }",
-        f"NumPy: {version('numpy')}",
+        "Runtime optional features state (snapshot):",
+        textwrap.indent("\n".join(diagnostics), "  "),
         f"{gpgi._IS_PY_LIB = }",
         f"gpgi._lib loads from {find_spec('gpgi._lib').origin}",
     ]

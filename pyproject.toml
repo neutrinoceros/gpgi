@@ -52,6 +52,7 @@ Changelog = "https://github.com/neutrinoceros/gpgi/blob/main/CHANGELOG.md"
 [dependency-groups]
 test = [
     "pytest>=9.0.0",
+    "runtime-introspect>=0.3.0",
 ]
 test-image = [
     {include-group = "test"},

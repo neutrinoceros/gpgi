@@ -291,10 +291,12 @@ dependencies = [
 concurrency = [
     { name = "pytest" },
     { name = "pytest-repeat" },
+    { name = "runtime-introspect" },
 ]
 covcheck = [
     { name = "coverage" },
     { name = "pytest" },
+    { name = "runtime-introspect" },
 ]
 dev = [
     { name = "cython" },
@@ -304,11 +306,13 @@ dev = [
 ]
 test = [
     { name = "pytest" },
+    { name = "runtime-introspect" },
 ]
 test-image = [
     { name = "matplotlib" },
     { name = "pytest" },
     { name = "pytest-mpl" },
+    { name = "runtime-introspect" },
 ]
 typecheck = [
     { name = "mypy" },
@@ -322,10 +326,12 @@ requires-dist = [{ name = "numpy", specifier = ">=1.25,<3" }]
 concurrency = [
     { name = "pytest", specifier = ">=9.0.0" },
     { name = "pytest-repeat", specifier = ">=0.9.3" },
+    { name = "runtime-introspect", specifier = ">=0.3.0" },
 ]
 covcheck = [
     { name = "coverage", specifier = ">=7.10.0" },
     { name = "pytest", specifier = ">=9.0.0" },
+    { name = "runtime-introspect", specifier = ">=0.3.0" },
 ]
 dev = [
     { name = "cython", specifier = ">=3.0.12" },
@@ -333,11 +339,15 @@ dev = [
     { name = "ninja", specifier = ">=1.11.1.3" },
     { name = "numpy", specifier = ">=1.25.0,<3" },
 ]
-test = [{ name = "pytest", specifier = ">=9.0.0" }]
+test = [
+    { name = "pytest", specifier = ">=9.0.0" },
+    { name = "runtime-introspect", specifier = ">=0.3.0" },
+]
 test-image = [
     { name = "matplotlib", specifier = ">=3.6.0" },
     { name = "pytest", specifier = ">=9.0.0" },
     { name = "pytest-mpl", specifier = ">=0.16.1" },
+    { name = "runtime-introspect", specifier = ">=0.3.0" },
 ]
 typecheck = [
     { name = "mypy", specifier = ">=1.13.0" },
@@ -990,6 +1000,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/66/c0/0c8b6ad9f17a802ee498c46e004a0eb49bc148f2fd230864601a86dcf6db/python-dateutil-2.9.0.post0.tar.gz", hash = "sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3", size = 342432, upload-time = "2024-03-01T18:36:20.211Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl", hash = "sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427", size = 229892, upload-time = "2024-03-01T18:36:18.57Z" },
+]
+
+[[package]]
+name = "runtime-introspect"
+version = "0.3.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/b4/658b75ed32005cd687ea0d868cebf57b595f817d4f67494441c053da9002/runtime_introspect-0.3.0.tar.gz", hash = "sha256:86f8a222f9622a7f8476f1c8e8ea198f3ae25a1ee15aab6685cbdb99059561c5", size = 24759, upload-time = "2025-11-04T18:33:15.664Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/f2/cac39d9077a0f4e11d12a7303c99a094b22b0ca5f8a426ac2a9f65aeaa9b/runtime_introspect-0.3.0-py3-none-any.whl", hash = "sha256:e38f53aab3a450499d09c9603689f2a2ca1827c1fc0fd6d136e4360353cbea63", size = 21004, upload-time = "2025-11-04T18:33:14.652Z" },
 ]
 
 [[package]]
