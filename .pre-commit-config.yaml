@@ -14,7 +14,7 @@ repos:
   - id: check-toml
 
 - repo: https://github.com/zizmorcore/zizmor-pre-commit
-  rev: v1.14.2
+  rev: v1.19.0
   hooks:
   - id: zizmor
 
@@ -26,7 +26,7 @@ repos:
     - tomli
 
 - repo: https://github.com/astral-sh/uv-pre-commit
-  rev: 0.8.24
+  rev: 0.9.21
   hooks:
   - id: uv-lock
 
@@ -37,14 +37,14 @@ repos:
     files: README.md
 
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.13.3
+  rev: v0.14.10
   hooks:
   - id: ruff-format
   - id: ruff-check
     args: [--fix, --show-fixes]
 
 - repo: https://github.com/MarcoGorelli/cython-lint
-  rev: v0.17.0
+  rev: v0.18.1
   hooks:
   - id: cython-lint
 
