@@ -112,6 +112,11 @@ class GridFieldsValidator:
         )
 
 
+def is_uniformly_spaced(arr: np.ndarray[tuple[int], np.dtype[FloatT]]) -> bool:
+    dbase = np.diff(arr)
+    return bool(dbase.std() / dbase.max() / dbase.size < 5 * np.finfo(arr.dtype).eps)
+
+
 @final
 class Grid(Generic[FloatT]):
     def __init__(
@@ -149,7 +154,7 @@ class Grid(Generic[FloatT]):
             (3,), -1, dtype=self.coordinates[self.axes[0]].dtype
         )
         for i, ax in enumerate(self.axes):
-            if self.size == 1 or np.diff(self.coordinates[ax]).std() < 1e-16:
+            if self.size == 1 or is_uniformly_spaced(self.coordinates[ax]):
                 # got a constant step in this direction, store it
                 self._dx[i] = self.coordinates[ax][1] - self.coordinates[ax][0]
 
