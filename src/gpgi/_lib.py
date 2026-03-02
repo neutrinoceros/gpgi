@@ -46,7 +46,7 @@ def _index_particles(
             out[ipart, 1] = int((x - cell_edges_x2[0]) // dx[1])
         else:
             iL = 1
-            iR = cell_edges_x2.shape[00] - 2
+            iR = cell_edges_x2.shape[0] - 2
             idx = (iL + iR) // 2
             while idx != iL:
                 if cell_edges_x2[idx] > x:
