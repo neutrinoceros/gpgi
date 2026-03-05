@@ -189,7 +189,7 @@ filterwarnings = [
 
 [tool.cibuildwheel]
 skip = ["cp314t-*"]
-build-frontend = "build[uv]; args: -Csetup-args='-Dpython.allow_limited_api=true'"
+build-frontend = "uv; args: -Csetup-args='-Dpython.allow_limited_api=true' --no-config"
 build-verbosity = 1
 test-groups = ["test", "concurrency"]
 test-sources = ["tests", "pyproject.toml"]
