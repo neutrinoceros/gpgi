@@ -7,7 +7,7 @@ from typing import Any, Protocol, TypeVar, assert_never, final
 import numpy as np
 from numpy.typing import NDArray
 
-from gpgi._typing import FieldMap, FloatT, Name
+from gpgi._typing import D, F, FieldMap, Name
 
 
 class Geometry(StrEnum):
@@ -153,7 +153,7 @@ class FieldMapsValidatorHelper:
     @classmethod
     def collect_exceptions(
         cls,
-        *fmaps: FieldMap[FloatT] | None,
+        *fmaps: FieldMap[D, F] | None,
         require_shape_equality: bool = False,
         require_sorted: bool = False,
         required_attrs: dict[str, Any] | None = None,
@@ -182,7 +182,7 @@ class FieldMapsValidatorHelper:
     @staticmethod
     def _check_shape_equality(
         name: str,
-        data: NDArray[FloatT],
+        data: NDArray[F],
         ref_arr: NamedArray | None,
     ) -> NamedArray:
         if ref_arr is not None and data.shape != ref_arr.data.shape:
@@ -193,7 +193,7 @@ class FieldMapsValidatorHelper:
         return ref_arr or NamedArray(name, data)
 
     @staticmethod
-    def _check_sorted_state(name: str, data: NDArray[FloatT]) -> ValueError | None:
+    def _check_sorted_state(name: str, data: NDArray[F]) -> ValueError | None:
         a = data[0]
         for i, b in enumerate(data[1:], start=1):
             if a > b:
@@ -208,7 +208,7 @@ class FieldMapsValidatorHelper:
     @staticmethod
     def _check_required_attributes(
         name: str,
-        data: NDArray[FloatT],
+        data: NDArray[F],
         required_attrs: dict[str, Any],
     ) -> ValueError | None:
         for attr, expected in required_attrs.items():

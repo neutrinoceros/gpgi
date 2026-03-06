@@ -8,9 +8,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 from gpgi._typing import FieldMap
 
 if TYPE_CHECKING:
-    from numpy.typing import NDArray
-
-    from gpgi._typing import FloatT, HCIArray
+    from gpgi._typing import D0, D1, D, F, FArray, HCIArray
 
 
 __all__ = [
@@ -23,32 +21,32 @@ __all__ = [
 class DepositionMethodT(Protocol):
     def __call__(  # noqa D102
         self,
-        cell_edges_x1: NDArray[FloatT],
-        cell_edges_x2: NDArray[FloatT],
-        cell_edges_x3: NDArray[FloatT],
-        particles_x1: NDArray[FloatT],
-        particles_x2: NDArray[FloatT],
-        particles_x3: NDArray[FloatT],
-        field: NDArray[FloatT],
-        weight_field: NDArray[FloatT],
+        cell_edges_x1: FArray[D1, F],
+        cell_edges_x2: FArray[D1, F],
+        cell_edges_x3: FArray[D1, F],
+        particles_x1: FArray[D1, F],
+        particles_x2: FArray[D1, F],
+        particles_x3: FArray[D1, F],
+        field: FArray[D, F],
+        weight_field: FArray[D, F] | FArray[D0, F],
         hci: HCIArray,
-        out: NDArray[FloatT],
+        out: FArray[D, F],
     ) -> None: ...
 
 
 class DepositionMethodWithMetadataT(Protocol):
     def __call__(  # noqa D102
         self,
-        cell_edges_x1: NDArray[FloatT],
-        cell_edges_x2: NDArray[FloatT],
-        cell_edges_x3: NDArray[FloatT],
-        particles_x1: NDArray[FloatT],
-        particles_x2: NDArray[FloatT],
-        particles_x3: NDArray[FloatT],
-        field: NDArray[FloatT],
-        weight_field: NDArray[FloatT],
+        cell_edges_x1: FArray[D1, F],
+        cell_edges_x2: FArray[D1, F],
+        cell_edges_x3: FArray[D1, F],
+        particles_x1: FArray[D1, F],
+        particles_x2: FArray[D1, F],
+        particles_x3: FArray[D1, F],
+        field: FArray[D, F],
+        weight_field: FArray[D, F] | FArray[D0, F],
         hci: HCIArray,
-        out: NDArray[FloatT],
+        out: FArray[D, F],
         *,
         metadata: dict[str, Any],
     ) -> None: ...
