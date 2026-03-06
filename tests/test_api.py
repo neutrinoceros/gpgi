@@ -404,8 +404,8 @@ def test_inconsistent_grid_data(data, invalid_attr, expected):
             geometry="cartesian",
             grid={
                 "cell_edges": {
-                    "x": np.array([0.0, 0.0]),
-                    "y": np.array([0.0, 0.0, 0.0]),
+                    "x": np.array([0.0, 1.0]),
+                    "y": np.array([0.0, 2.0, 4.0]),
                 },
                 "fields": {
                     "density": data,
@@ -419,8 +419,8 @@ def test_validate_empty_fields():
         geometry="cartesian",
         grid={
             "cell_edges": {
-                "x": np.array([0.0, 0.0]),
-                "y": np.array([0.0, 0.0, 0.0]),
+                "x": np.array([0.0, 1.0]),
+                "y": np.array([0.0, 2.0, 4.0]),
             },
             "fields": {},
         },
