@@ -2,6 +2,7 @@ import re
 from contextlib import nullcontext
 from copy import deepcopy
 from functools import partial
+from importlib.util import find_spec
 from threading import Lock
 
 import numpy as np
@@ -10,6 +11,8 @@ import pytest
 
 import gpgi
 from gpgi._lib import _deposit_ngp_2D
+
+HAVE_PYTEST_MPL = find_spec("pytest_mpl") is not None
 
 
 @pytest.fixture()
@@ -120,10 +123,12 @@ def test_callable_method_with_metadata(sample_2D_dataset):
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.mpl_image_compare
 def test_2D_deposit(sample_2D_dataset, method):
-    from matplotlib.figure import Figure
-
     ds = sample_2D_dataset
     particle_density = ds.deposit("mass", method=method)
+
+    if not HAVE_PYTEST_MPL:
+        pytest.skip(reason="pytest-mpl is not available")
+    from matplotlib.figure import Figure
 
     fig = Figure()
     ax = fig.add_subplot()
@@ -153,8 +158,6 @@ def test_2D_deposit(sample_2D_dataset, method):
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
 def test_1D_deposit(method, grid_type):
-    from matplotlib.figure import Figure
-
     if grid_type == "linear":
         xedges = np.linspace(1, 2, 6)
     elif grid_type == "geometric":
@@ -177,6 +180,10 @@ def test_1D_deposit(method, grid_type):
     mass = ds.deposit("mass", method=method)
     if method == "ngp":
         assert mass.sum() == ds.particles.count
+
+    if not HAVE_PYTEST_MPL:
+        pytest.skip(reason="pytest-mpl is not available")
+    from matplotlib.figure import Figure
 
     fig = Figure()
     ax = fig.add_subplot()
@@ -243,8 +250,6 @@ def test_3D_deposit(method, dtype):
 
 @pytest.mark.mpl_image_compare
 def test_readme_example():
-    from matplotlib.figure import Figure
-
     nx = ny = 64
     nparticles = 600_000
 
@@ -270,6 +275,10 @@ def test_readme_example():
     )
 
     particle_mass = ds.deposit("mass", method="nearest_grid_point")
+
+    if not HAVE_PYTEST_MPL:
+        pytest.skip(reason="pytest-mpl is not available")
+    from matplotlib.figure import Figure
 
     fig = Figure()
     ax = fig.add_subplot()
