@@ -198,21 +198,33 @@ def test_1D_deposit(method, grid_type):
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.parametrize("dtype", ["float32", "float64"])
-def test_3D_deposit(method, dtype):
+@pytest.mark.parametrize("grid_type", ["linear", "geometric"])
+def test_3D_deposit(method, grid_type, dtype):
+    domain_span = 2.0
+    if grid_type == "linear":
+        domain_left = -1
+        edges = np.linspace(domain_left, domain_left + domain_span, 10, dtype=dtype)
+    elif grid_type == "geometric":
+        domain_left = 0.1
+        edges = np.geomspace(domain_left, domain_left + domain_span, 10, dtype=dtype)
+    else:
+        raise RuntimeError
     npart = 60
     prng = np.random.RandomState(0)
     data_2D = {
         "geometry": "cartesian",
         "grid": {
             "cell_edges": {
-                "x": np.linspace(-1, 1, 10, dtype=dtype),
-                "y": np.linspace(-1, 1, 10, dtype=dtype),
+                "x": edges,
+                "y": edges,
             },
         },
         "particles": {
             "coordinates": {
-                "x": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
-                "y": 2 * (prng.random_sample(npart).astype(dtype) - 0.5),
+                "x": domain_left
+                + domain_span * prng.random_sample(npart).astype(dtype),
+                "y": domain_left
+                + domain_span * prng.random_sample(npart).astype(dtype),
             },
             "fields": {
                 "mass": np.ones(npart, dtype),
@@ -223,9 +235,9 @@ def test_3D_deposit(method, dtype):
     assert ds2D.grid.ndim == 2
 
     data_3D = deepcopy(data_2D)
-    data_3D["grid"]["cell_edges"]["z"] = np.linspace(-1, 1, 10, dtype=dtype)
-    data_3D["particles"]["coordinates"]["z"] = 2 * (
-        prng.random_sample(npart).astype(dtype) - 0.5
+    data_3D["grid"]["cell_edges"]["z"] = edges
+    data_3D["particles"]["coordinates"]["z"] = (
+        domain_left + domain_span * prng.random_sample(npart).astype(dtype)
     )
     ds3D = gpgi.load(**data_3D)
     assert ds3D.grid.ndim == 3
