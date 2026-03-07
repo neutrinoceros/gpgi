@@ -1,4 +1,4 @@
-__all__ = ["D", "D0", "D1", "D2", "D3", "DH", "F", "FArray"]
+__all__ = ["D", "D_contra", "D0", "D1", "D2", "D3", "DH", "F", "F_contra", "FArray"]
 from typing import Generic, NotRequired, TypedDict, TypeVar
 
 import numpy as np
@@ -9,8 +9,10 @@ D1 = tuple[int]
 D2 = tuple[int, int]
 D3 = tuple[int, int, int]
 D = TypeVar("D", D0, D1, D2, D3)
+D_contra = TypeVar("D_contra", D0, D1, D2, D3, contravariant=True)
 DH = TypeVar("DH", D0, D1, D2)  # dim hyperplanes
 F = TypeVar("F", f32, f64)
+F_contra = TypeVar("F_contra", f32, f64, contravariant=True)
 DT = TypeVar("DT", bound=np.dtype)
 
 Array = np.ndarray[D, DT]

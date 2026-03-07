@@ -739,7 +739,7 @@ class Dataset(Generic[D, F]):
             func(  # type: ignore[type-var]
                 *self._get_padded_cell_edges(),
                 *self._get_3D_particle_coordinates(),
-                field,
+                field,  # type: ignore
                 wfield,
                 self._hci,
                 padded_ret_array,  # type: ignore
