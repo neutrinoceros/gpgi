@@ -167,6 +167,9 @@ convention = "numpy"
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["D"]
 
+[tool.ty.rules]
+unused-type-ignore-comment = "ignore"
+
 [tool.mypy]
 python_version = "3.11"
 show_error_codes = true

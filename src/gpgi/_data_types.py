@@ -36,7 +36,7 @@ from gpgi._spatial_data import (
     GeometryValidator,
     Validator,
 )
-from gpgi._typing import FieldMap, FloatT, Name
+from gpgi._typing import D1, D, F, FArray, FieldMap, Name
 
 if sys.version_info >= (3, 13):
     LockType = Lock
@@ -90,7 +90,7 @@ _BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
 @final
 class GridCoordinatesValidator:
     @classmethod
-    def collect_exceptions(cls, data: Grid[FloatT]) -> list[Exception]:
+    def collect_exceptions(cls, data: Grid[D, F]) -> list[Exception]:
         return FieldMapsValidatorHelper.collect_exceptions(
             data.coordinates,
             require_sorted=True,
@@ -101,7 +101,7 @@ class GridCoordinatesValidator:
 @final
 class GridFieldsValidator:
     @classmethod
-    def collect_exceptions(cls, data: Grid[FloatT]) -> list[Exception]:
+    def collect_exceptions(cls, data: Grid[D, F]) -> list[Exception]:
         return FieldMapsValidatorHelper.collect_exceptions(
             data.fields,
             required_attrs={
@@ -112,19 +112,19 @@ class GridFieldsValidator:
         )
 
 
-def is_uniformly_spaced(arr: np.ndarray[tuple[int], np.dtype[FloatT]]) -> bool:
+def is_uniformly_spaced(arr: FArray[D1, F]) -> bool:
     dbase = np.diff(arr)
     return bool(dbase.std() / dbase.max() / dbase.size < 5 * np.finfo(arr.dtype).eps)
 
 
 @final
-class Grid(Generic[FloatT]):
+class Grid(Generic[D, F]):
     def __init__(
         self,
         *,
         geometry: Geometry,
-        cell_edges: FieldMap[FloatT],
-        fields: FieldMap[FloatT] | None = None,
+        cell_edges: FieldMap[D1, F],
+        fields: FieldMap[D, F] | None = None,
     ) -> None:
         r"""
         Define a Grid from cell left-edges and data fields.
@@ -140,17 +140,17 @@ class Grid(Generic[FloatT]):
         fields (keyword-only, optional): gpgi.typing.FieldMap
         """
         self.geometry = geometry
-        self.coordinates: FieldMap[FloatT] = cell_edges
+        self.coordinates: FieldMap[D1, F] = cell_edges
 
         if fields is None:
             fields = {}
-        self.fields: FieldMap[FloatT] = fields
+        self.fields: FieldMap[D, F] = fields
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
-        self.dtype: np.dtype[FloatT] = self.coordinates[self.axes[0]].dtype
+        self.dtype: np.dtype[F] = self.coordinates[self.axes[0]].dtype
 
-        self._dx: NDArray[FloatT] = np.full(
+        self._dx: FArray[D1, F] = np.full(
             (3,), -1, dtype=self.coordinates[self.axes[0]].dtype
         )
         for i, ax in enumerate(self.axes):
@@ -158,7 +158,7 @@ class Grid(Generic[FloatT]):
                 # got a constant step in this direction, store it
                 self._dx[i] = self.coordinates[ax][1] - self.coordinates[ax][0]
 
-    _validators: list[type[Validator[Grid[FloatT]]]] = [
+    _validators: list[type[Validator[Grid[D, F]]]] = [
         GeometryValidator,
         BasicCoordinatesValidator,
         GridCoordinatesValidator,
@@ -186,17 +186,17 @@ class Grid(Generic[FloatT]):
         )
 
     @property
-    def cell_edges(self) -> FieldMap[FloatT]:
+    def cell_edges(self) -> FieldMap[D1, F]:
         r"""An alias for self.coordinates."""
         return self.coordinates
 
     @cached_property
-    def cell_centers(self) -> FieldMap[FloatT]:
+    def cell_centers(self) -> FieldMap[D1, F]:
         r"""The positions of cell centers in each direction."""
         return {ax: 0.5 * (arr[1:] + arr[:-1]) for ax, arr in self.coordinates.items()}  # type: ignore [misc]
 
     @cached_property
-    def cell_widths(self) -> FieldMap[FloatT]:
+    def cell_widths(self) -> FieldMap[D1, F]:
         r"""The width of cells, expressed as the difference between consecutive left edges."""
         return {ax: np.diff(arr) for ax, arr in self.coordinates.items()}
 
@@ -220,7 +220,7 @@ class Grid(Generic[FloatT]):
         return len(self.axes)
 
     @property
-    def cell_volumes(self) -> NDArray[FloatT]:
+    def cell_volumes(self) -> FArray[D, F]:
         r"""
         The generalized ND-volume of grid cells.
 
@@ -241,7 +241,7 @@ class Grid(Generic[FloatT]):
 @final
 class ParticleSetCoordinatesValidator:
     @classmethod
-    def collect_exceptions(cls, data: ParticleSet[FloatT]) -> list[Exception]:
+    def collect_exceptions(cls, data: ParticleSet[D, F]) -> list[Exception]:
         return FieldMapsValidatorHelper.collect_exceptions(
             data.coordinates,
             require_shape_equality=True,
@@ -250,13 +250,13 @@ class ParticleSetCoordinatesValidator:
 
 
 @final
-class ParticleSet(Generic[FloatT]):
+class ParticleSet(Generic[D, F]):
     def __init__(
         self,
         *,
         geometry: Geometry,
-        coordinates: FieldMap[FloatT],
-        fields: FieldMap[FloatT] | None = None,
+        coordinates: FieldMap[D1, F],
+        fields: FieldMap[D, F] | None = None,
     ) -> None:
         r"""
         Define a ParticleSet from point positions and data fields.
@@ -271,17 +271,17 @@ class ParticleSet(Generic[FloatT]):
         fields (keyword-only, optional): gpgi.typing.FieldMap
         """
         self.geometry = geometry
-        self.coordinates: FieldMap[FloatT] = coordinates
+        self.coordinates: FieldMap[D1, F] = coordinates
 
         if fields is None:
             fields = {}
-        self.fields: FieldMap[FloatT] = fields
+        self.fields: FieldMap[D, F] = fields
 
         self.axes = tuple(self.coordinates.keys())
         self._validate()
-        self.dtype: np.dtype[FloatT] = self.coordinates[self.axes[0]].dtype
+        self.dtype: np.dtype[F] = self.coordinates[self.axes[0]].dtype
 
-    _validators: list[type[Validator[ParticleSet[FloatT]]]] = [
+    _validators: list[type[Validator[ParticleSet[D, F]]]] = [
         GeometryValidator,
         BasicCoordinatesValidator,
         ParticleSetCoordinatesValidator,
@@ -319,13 +319,13 @@ class ParticleSet(Generic[FloatT]):
 
 
 @final
-class Dataset(Generic[FloatT]):
+class Dataset(Generic[D, F]):
     def __init__(
         self,
         *,
         geometry: Geometry = Geometry.CARTESIAN,
-        grid: Grid[FloatT],
-        particles: ParticleSet[FloatT] | None = None,
+        grid: Grid[D, F],
+        particles: ParticleSet[D, F] | None = None,
         metadata: dict[str, Any] | None = None,
     ) -> None:
         r"""
@@ -356,8 +356,8 @@ class Dataset(Generic[FloatT]):
                 coordinates={ax: np.array([], dtype=grid.dtype) for ax in grid.axes},
             )
 
-        self.grid: Grid[FloatT] = grid
-        self.particles: ParticleSet[FloatT] = particles
+        self.grid: Grid[D, F] = grid
+        self.particles: ParticleSet[D, F] = particles
 
         self.boundary_recipes = BoundaryRegistry()
         self.axes = self.grid.axes
@@ -401,10 +401,10 @@ class Dataset(Generic[FloatT]):
 
     def _get_padded_cell_edges(
         self,
-    ) -> tuple[NDArray[FloatT], NDArray[FloatT], NDArray[FloatT]]:
+    ) -> tuple[NDArray[F], NDArray[F], NDArray[F]]:
         edges = iter(self.grid.cell_edges.values())
 
-        def pad(a: NDArray[FloatT]) -> NDArray[FloatT]:
+        def pad(a: NDArray[F]) -> NDArray[F]:
             dx = a[1] - a[0]
             return np.concatenate([[a[0] - dx], a, [a[-1] + dx]])
 
@@ -412,12 +412,8 @@ class Dataset(Generic[FloatT]):
         cell_edges_x1 = pad(x1)
         DTYPE = cell_edges_x1.dtype
 
-        cell_edges_x2: np.ndarray[tuple[int, ...], np.dtype[FloatT]] = np.empty(
-            0, DTYPE
-        )
-        cell_edges_x3: np.ndarray[tuple[int, ...], np.dtype[FloatT]] = np.empty(
-            0, DTYPE
-        )
+        cell_edges_x2: np.ndarray[tuple[int, ...], np.dtype[F]] = np.empty(0, DTYPE)
+        cell_edges_x3: np.ndarray[tuple[int, ...], np.dtype[F]] = np.empty(0, DTYPE)
         if self.grid.ndim >= 2:
             cell_edges_x2 = pad(next(edges))
         if self.grid.ndim == 3:
@@ -427,7 +423,7 @@ class Dataset(Generic[FloatT]):
 
     def _get_3D_particle_coordinates(
         self,
-    ) -> tuple[NDArray[FloatT], NDArray[FloatT], NDArray[FloatT]]:
+    ) -> tuple[FArray[D1, F], FArray[D1, F], FArray[D1, F]]:
         particle_coords = iter(self.particles.coordinates.values())
         particles_x1 = next(particle_coords)
         DTYPE = particles_x1.dtype
@@ -552,7 +548,7 @@ class Dataset(Generic[FloatT]):
         return type(self)(
             geometry=self.geometry,
             grid=self.grid,
-            particles=ParticleSet(
+            particles=ParticleSet(  # pyright: ignore
                 geometry=self.geometry,
                 coordinates={
                     name: arr[sort_key]
@@ -586,7 +582,7 @@ class Dataset(Generic[FloatT]):
         weight_field: Name | None = None,
         weight_field_boundaries: dict[Name, tuple[Name, Name]] | None = None,
         lock: Literal["per-instance"] | None | LockType = "per-instance",
-    ) -> NDArray[FloatT]:
+    ) -> FArray[D, F]:
         r"""
         Perform particle deposition and return the result as a grid field.
 
@@ -720,7 +716,7 @@ class Dataset(Generic[FloatT]):
         padded_ret_array = np.zeros(self.grid._padded_shape, dtype=field.dtype)
         if weight_field is not None:
             wfield = np.array(self.particles.fields[weight_field])
-            wfield_dep = np.zeros(self.grid._padded_shape, dtype=field.dtype)
+            wfield_dep = np.zeros_like(padded_ret_array)
         else:
             wfield = np.array((), dtype=field.dtype)
             wfield_dep = np.array((1,), dtype=field.dtype)
@@ -737,16 +733,16 @@ class Dataset(Generic[FloatT]):
                     wfield,
                     np.array((), dtype=field.dtype),
                     self._hci,
-                    wfield_dep,
+                    wfield_dep,  # type: ignore[arg-type]
                 )
 
-            func(
+            func(  # type: ignore[type-var]
                 *self._get_padded_cell_edges(),
                 *self._get_3D_particle_coordinates(),
                 field,
                 wfield,
                 self._hci,
-                padded_ret_array,
+                padded_ret_array,  # type: ignore
             )
 
         tstop = monotonic_ns()
@@ -778,13 +774,13 @@ class Dataset(Generic[FloatT]):
             padded_ret_array /= wfield_dep
 
         if return_ghost_padded_array:
-            return padded_ret_array
+            return cast("FArray[D, F]", padded_ret_array)
         elif self.grid.ndim == 1:
-            return padded_ret_array[1:-1]
+            return padded_ret_array[1:-1]  # type: ignore
         elif self.grid.ndim == 2:
-            return padded_ret_array[1:-1, 1:-1]
+            return padded_ret_array[1:-1, 1:-1]  # type: ignore
         elif self.grid.ndim == 3:
-            return padded_ret_array[1:-1, 1:-1, 1:-1]
+            return padded_ret_array[1:-1, 1:-1, 1:-1]  # type: ignore
         else:
             raise RuntimeError
 
@@ -810,9 +806,9 @@ class Dataset(Generic[FloatT]):
 
     def _apply_boundary_conditions(
         self,
-        array: NDArray[FloatT],
+        array: NDArray[F],
         boundaries: dict[Name, tuple[Name, Name]],
-        weight_array: NDArray[FloatT] | None,
+        weight_array: NDArray[F] | None,
     ) -> None:
         axes = list(self.grid.axes)
         for ax, bv in boundaries.items():

@@ -7,16 +7,16 @@ from gpgi._data_types import Dataset, Geometry, Grid, ParticleSet
 if TYPE_CHECKING:
     from typing import Any, Literal
 
-    from gpgi._typing import FieldMap, FloatT, GridDict, ParticleSetDict
+    from gpgi._typing import D1, D, F, FieldMap, GridDict, ParticleSetDict
 
 
 def load(
     *,
     geometry: Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"],
-    grid: GridDict[FloatT],
-    particles: ParticleSetDict[FloatT] | None = None,
+    grid: GridDict[D, F],
+    particles: ParticleSetDict[D, F] | None = None,
     metadata: dict[str, Any] | None = None,
-) -> Dataset[FloatT]:
+) -> Dataset[D, F]:
     r"""
     Load a Dataset.
 
@@ -69,15 +69,15 @@ def load(
 
     _grid = Grid(
         geometry=_geometry,
-        cell_edges=cast("FieldMap[FloatT]", grid["cell_edges"]),
+        cell_edges=cast("FieldMap[D1, F]", grid["cell_edges"]),
         fields=grid.get("fields"),
     )
 
-    _particles: ParticleSet[FloatT] | None = None
+    _particles: ParticleSet[D, F] | None = None
     if particles is not None:
         _particles = ParticleSet(
             geometry=_geometry,
-            coordinates=cast("FieldMap[FloatT]", particles["coordinates"]),
+            coordinates=cast("FieldMap[D1, F]", particles["coordinates"]),
             fields=particles.get("fields"),
         )
 

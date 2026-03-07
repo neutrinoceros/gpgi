@@ -1,25 +1,23 @@
 from collections.abc import Callable
 from threading import Lock
-from typing import Any, Literal, cast
+from typing import Any, Literal
 
-from numpy.typing import NDArray
-
-from gpgi._typing import FloatT
+from gpgi._typing import DH, F, FArray
 
 BoundaryRecipeT = Callable[
     [
-        NDArray[FloatT],
-        NDArray[FloatT],
-        NDArray[FloatT],
-        NDArray[FloatT],
-        NDArray[FloatT],
-        NDArray[FloatT],
-        NDArray[FloatT],
-        NDArray[FloatT],
+        FArray[DH, F],
+        FArray[DH, F],
+        FArray[DH, F],
+        FArray[DH, F],
+        FArray[DH, F],
+        FArray[DH, F],
+        FArray[DH, F],
+        FArray[DH, F],
         Literal["left", "right"],
         dict[str, Any],
     ],
-    NDArray[FloatT],
+    FArray[DH, F],
 ]
 
 
@@ -125,64 +123,64 @@ class BoundaryRegistry:
 
 # basic recipes
 def open_boundary(
-    same_side_active_layer: NDArray[FloatT],
-    same_side_ghost_layer: NDArray[FloatT],
-    opposite_side_active_layer: NDArray[FloatT],
-    opposite_side_ghost_layer: NDArray[FloatT],
-    weight_same_side_active_layer: NDArray[FloatT],
-    weight_same_side_ghost_layer: NDArray[FloatT],
-    weight_opposite_side_active_layer: NDArray[FloatT],
-    weight_opposite_side_ghost_layer: NDArray[FloatT],
+    same_side_active_layer: FArray[DH, F],
+    same_side_ghost_layer: FArray[DH, F],
+    opposite_side_active_layer: FArray[DH, F],
+    opposite_side_ghost_layer: FArray[DH, F],
+    weight_same_side_active_layer: FArray[DH, F],
+    weight_same_side_ghost_layer: FArray[DH, F],
+    weight_opposite_side_active_layer: FArray[DH, F],
+    weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
     metadata: dict[str, Any],
-) -> NDArray[FloatT]:
+) -> FArray[DH, F]:
     # return the active layer unchanged
     return same_side_active_layer
 
 
 def wall_boundary(
-    same_side_active_layer: NDArray[FloatT],
-    same_side_ghost_layer: NDArray[FloatT],
-    opposite_side_active_layer: NDArray[FloatT],
-    opposite_side_ghost_layer: NDArray[FloatT],
-    weight_same_side_active_layer: NDArray[FloatT],
-    weight_same_side_ghost_layer: NDArray[FloatT],
-    weight_opposite_side_active_layer: NDArray[FloatT],
-    weight_opposite_side_ghost_layer: NDArray[FloatT],
+    same_side_active_layer: FArray[DH, F],
+    same_side_ghost_layer: FArray[DH, F],
+    opposite_side_active_layer: FArray[DH, F],
+    opposite_side_ghost_layer: FArray[DH, F],
+    weight_same_side_active_layer: FArray[DH, F],
+    weight_same_side_ghost_layer: FArray[DH, F],
+    weight_opposite_side_active_layer: FArray[DH, F],
+    weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
     metadata: dict[str, Any],
-) -> NDArray[FloatT]:
-    return cast("NDArray[FloatT]", same_side_active_layer + same_side_ghost_layer)
+) -> FArray[DH, F]:
+    return same_side_active_layer + same_side_ghost_layer  # pyright: ignore[reportReturnType]
 
 
 def antisymmetric_boundary(
-    same_side_active_layer: NDArray[FloatT],
-    same_side_ghost_layer: NDArray[FloatT],
-    opposite_side_active_layer: NDArray[FloatT],
-    opposite_side_ghost_layer: NDArray[FloatT],
-    weight_same_side_active_layer: NDArray[FloatT],
-    weight_same_side_ghost_layer: NDArray[FloatT],
-    weight_opposite_side_active_layer: NDArray[FloatT],
-    weight_opposite_side_ghost_layer: NDArray[FloatT],
+    same_side_active_layer: FArray[DH, F],
+    same_side_ghost_layer: FArray[DH, F],
+    opposite_side_active_layer: FArray[DH, F],
+    opposite_side_ghost_layer: FArray[DH, F],
+    weight_same_side_active_layer: FArray[DH, F],
+    weight_same_side_ghost_layer: FArray[DH, F],
+    weight_opposite_side_active_layer: FArray[DH, F],
+    weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
     metadata: dict[str, Any],
-) -> NDArray[FloatT]:
-    return cast("NDArray[FloatT]", same_side_active_layer - same_side_ghost_layer)
+) -> FArray[DH, F]:
+    return same_side_active_layer - same_side_ghost_layer  # pyright: ignore[reportReturnType]
 
 
 def periodic_boundary(
-    same_side_active_layer: NDArray[FloatT],
-    same_side_ghost_layer: NDArray[FloatT],
-    opposite_side_active_layer: NDArray[FloatT],
-    opposite_side_ghost_layer: NDArray[FloatT],
-    weight_same_side_active_layer: NDArray[FloatT],
-    weight_same_side_ghost_layer: NDArray[FloatT],
-    weight_opposite_side_active_layer: NDArray[FloatT],
-    weight_opposite_side_ghost_layer: NDArray[FloatT],
+    same_side_active_layer: FArray[DH, F],
+    same_side_ghost_layer: FArray[DH, F],
+    opposite_side_active_layer: FArray[DH, F],
+    opposite_side_ghost_layer: FArray[DH, F],
+    weight_same_side_active_layer: FArray[DH, F],
+    weight_same_side_ghost_layer: FArray[DH, F],
+    weight_opposite_side_active_layer: FArray[DH, F],
+    weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
     metadata: dict[str, Any],
-) -> NDArray[FloatT]:
-    return cast("NDArray[FloatT]", same_side_active_layer + opposite_side_ghost_layer)
+) -> FArray[DH, F]:
+    return same_side_active_layer + opposite_side_ghost_layer  # pyright: ignore[reportReturnType]
 
 
 _base_registry: dict[str, BoundaryRecipeT] = {
