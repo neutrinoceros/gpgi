@@ -404,7 +404,7 @@ class Dataset(Generic[D, F]):
     ) -> tuple[NDArray[F], NDArray[F], NDArray[F]]:
         edges = iter(self.grid.cell_edges.values())
 
-        def pad(a: NDArray[F]) -> NDArray[F]:
+        def pad(a: FArray[D1, F]) -> FArray[D1, F]:
             dx = a[1] - a[0]
             return np.concatenate([[a[0] - dx], a, [a[-1] + dx]])
 
