@@ -2,12 +2,11 @@ import math
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from itertools import chain
-from typing import Any, Protocol, TypeVar, assert_never, final
+from typing import Any, Generic, Protocol, TypeVar, assert_never, final
 
 import numpy as np
-from numpy.typing import NDArray
 
-from gpgi._typing import D, F, FieldMap, Name
+from gpgi._typing import D, F, FArray, FieldMap, Name
 
 
 class Geometry(StrEnum):
@@ -143,9 +142,9 @@ class DTypeConsistencyValidator:
 
 @final
 @dataclass(frozen=True, slots=True)
-class NamedArray:
+class NamedArray(Generic[D, F]):
     name: Name
-    data: NDArray
+    data: FArray[D, F]
 
 
 @final
@@ -158,7 +157,7 @@ class FieldMapsValidatorHelper:
         require_sorted: bool = False,
         required_attrs: dict[str, Any] | None = None,
     ) -> list[Exception]:
-        ref_arr: NamedArray | None = None
+        ref_arr: NamedArray[Any, F] | None = None
         retv: list[Exception] = []
         for name, data in chain.from_iterable(
             fm.items() for fm in fmaps if fm is not None
@@ -182,9 +181,9 @@ class FieldMapsValidatorHelper:
     @staticmethod
     def _check_shape_equality(
         name: str,
-        data: NDArray[F],
-        ref_arr: NamedArray | None,
-    ) -> NamedArray:
+        data: FArray[D, F],
+        ref_arr: NamedArray[D, F] | None,
+    ) -> NamedArray[D, F]:
         if ref_arr is not None and data.shape != ref_arr.data.shape:
             raise ValueError(
                 f"Fields {name!r} and {ref_arr.name!r} "
@@ -193,7 +192,7 @@ class FieldMapsValidatorHelper:
         return ref_arr or NamedArray(name, data)
 
     @staticmethod
-    def _check_sorted_state(name: str, data: NDArray[F]) -> ValueError | None:
+    def _check_sorted_state(name: str, data: FArray[D, F]) -> ValueError | None:
         a = data[0]
         for i, b in enumerate(data[1:], start=1):
             if a > b:
@@ -208,7 +207,7 @@ class FieldMapsValidatorHelper:
     @staticmethod
     def _check_required_attributes(
         name: str,
-        data: NDArray[F],
+        data: FArray[D, F],
         required_attrs: dict[str, Any],
     ) -> ValueError | None:
         for attr, expected in required_attrs.items():
