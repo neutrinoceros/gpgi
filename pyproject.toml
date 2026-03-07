@@ -199,8 +199,9 @@ test-command = [
 ]
 
 [tool.cibuildwheel.windows]
-# adapted from numpy
-config-settings = {setup-args = ["--vsenv"], build-dir="build"}
+# adapted from numpy and matplotlib
+# https://github.com/matplotlib/matplotlib/blob/9957c394bd01deb7a9bd9cb27804f447a52dc522/.github/workflows/cibuildwheel.yml#L113-L116
+config-settings = {setup-args = ["--vsenv", "-Db_vscrt=mt", "-Dcpp_link_args=['ucrt.lib','vcruntime.lib','/nodefaultlib:libucrt.lib','/nodefaultlib:libvcruntime.lib']"], build-dir="build"}
 
 [tool.codespell]
 ignore-words-list = ["ND"]
