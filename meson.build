@@ -11,42 +11,8 @@ numpy_compile_flags = [
   '-DNPY_NO_DEPRECATED_API=NPY_1_25_API_VERSION',
 ]
 
-# copied from PyWavelets
-# https://github.com/PyWavelets/pywt/blob/becef5486174c77727ea2a60e6392744b2cc1d4a/pywt/_extensions/meson.build#L13
-# When building against numpy 1.x is dropped, this can be simplified: the else branch
-# becomes unreachable, so `required: false` can be omitted.
-
-_numpy_dep = dependency('numpy', required: false)
-if _numpy_dep.found()
-  np_dep = declare_dependency(dependencies: _numpy_dep, compile_args: numpy_compile_flags)
-else
-  # For cross-compilation it is often not possible to run the Python interpreter
-  # in order to retrieve numpy's include directory. It can be specified in the
-  # cross file instead:
-  #   [properties]
-  #   numpy-include-dir = /abspath/to/host-pythons/site-packages/numpy/core/include
-  #
-  # This uses the path as is, and avoids running the interpreter.
-  incdir_numpy = meson.get_external_property('numpy-include-dir', 'not-given')
-  if incdir_numpy == 'not-given'
-    incdir_numpy = run_command(py,
-      [
-        '-c',
-        '''import os
-import numpy as np
-try:
-  incdir = os.path.relpath(np.get_include())
-except Exception:
-  incdir = np.get_include()
-print(incdir)
-    '''
-      ],
-      check: true
-    ).stdout().strip()
-  endif
-  inc_np = include_directories(incdir_numpy)
-  np_dep = declare_dependency(include_directories: inc_np, compile_args: numpy_compile_flags)
-endif
+_numpy_dep = dependency('numpy')
+np_dep = declare_dependency(dependencies: _numpy_dep, compile_args: numpy_compile_flags)
 
 if get_option('pylib')
   py.install_sources('src/gpgi/_lib.py', subdir: 'gpgi')
