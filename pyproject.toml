@@ -33,7 +33,6 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
     "Typing :: Typed",
 ]
-# keep in sync with limited_api (meson.build)
 requires-python = ">=3.11"
 dependencies = [
     # keep in sync with build-time requirements (dev group)
