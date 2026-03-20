@@ -337,7 +337,7 @@ dev = [
     { name = "cython", specifier = ">=3.0.12" },
     { name = "meson-python", specifier = ">=0.18.0" },
     { name = "ninja", specifier = ">=1.11.1.3" },
-    { name = "numpy", specifier = ">=1.25.0,<3" },
+    { name = "numpy", specifier = ">=2.0.0,<3" },
 ]
 test = [
     { name = "pytest", specifier = ">=9.0.0" },

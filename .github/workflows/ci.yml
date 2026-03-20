@@ -112,9 +112,10 @@ jobs:
       with:
         enable-cache: true
         prune-cache: false
+    # prefer uv pip to uv sync here so we can still get numpy 1 at runtime
     - run: |
-        uv sync --only-dev
-        uv sync --no-editable --group test
+        uv venv
+        uv pip install . --group test --no-config
     - name: Test
       run: uv run --no-sync pytest --color=yes -Wdefault
 
