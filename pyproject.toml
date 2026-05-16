@@ -190,7 +190,10 @@ filterwarnings = [
 
 [tool.cibuildwheel]
 enable = ["cpython-prerelease"]
-skip = ["cp3{14,15}t-*"]
+skip = [
+    "cp3{14,15}t-*",
+    "cp315-win_arm64", # numpy doesn't build trivially. Remove this line when numpy has compatible wheels.
+]
 build-frontend = "uv; args: -Csetup-args='-Dpython.allow_limited_api=true' --no-config"
 build-verbosity = 1
 test-groups = ["test", "concurrency"]
