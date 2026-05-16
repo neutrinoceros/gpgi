@@ -360,7 +360,7 @@ test = [
 test-image = [
     { name = "matplotlib", specifier = ">=3.6.0" },
     { name = "pytest", specifier = ">=9.0.0" },
-    { name = "pytest-mpl", specifier = ">=0.16.1" },
+    { name = "pytest-mpl", specifier = ">=0.19.0" },
     { name = "runtime-introspect", specifier = ">=0.3.0" },
 ]
 typecheck = [

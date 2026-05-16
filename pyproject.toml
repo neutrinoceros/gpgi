@@ -55,7 +55,7 @@ test = [
 test-image = [
     {include-group = "test"},
     "matplotlib>=3.6.0",
-    "pytest-mpl>=0.16.1",
+    "pytest-mpl>=0.19.0",
 ]
 covcheck = [
     {include-group = "test"},
@@ -103,14 +103,6 @@ args.setup = ['-Dpython.allow_limited_api=false']
 no-build-isolation-package = ["gpgi"]
 no-build-package = [
     "numpy",
-
-    # all of the following are from pytest-mpl (directly or not)
-    # these constraints should (mostly) become obsolete with  https://github.com/matplotlib/pytest-mpl/pull/252
-    "jinja2",
-    "matplotlib",
-    "kiwisolver",
-    "contourpy",
-    "markupsafe",
 ]
 
 constraint-dependencies = [
