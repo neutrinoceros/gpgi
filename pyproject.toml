@@ -192,7 +192,12 @@ filterwarnings = [
 enable = ["cpython-prerelease"]
 skip = [
     "cp3{14,15}t-*",
-    "cp315-win_arm64", # numpy doesn't build trivially. Remove this line when numpy has compatible wheels.
+    # Skip targets where numpy:
+    # - has no compatible wheels yet
+    # - doesn't build both trivially and in ordinate time
+    "cp315-macosx_x86_64",
+    "cp315-win_amd64",
+    "cp315-win_arm64",
 ]
 build-frontend = "uv; args: -Csetup-args='-Dpython.allow_limited_api=true' --no-config"
 build-verbosity = 1
