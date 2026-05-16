@@ -189,7 +189,16 @@ filterwarnings = [
 ]
 
 [tool.cibuildwheel]
-skip = ["cp314t-*"]
+enable = ["cpython-prerelease"]
+skip = [
+    "cp3{14,15}t-*",
+    # Skip targets where numpy:
+    # - has no compatible wheels yet
+    # - doesn't build both trivially and in ordinate time
+    "cp315-macosx_x86_64",
+    "cp315-win_amd64",
+    "cp315-win_arm64",
+]
 build-frontend = "uv; args: -Csetup-args='-Dpython.allow_limited_api=true' --no-config"
 build-verbosity = 1
 test-groups = ["test", "concurrency"]
@@ -198,6 +207,7 @@ test-command = [
     "python -m pytest --color=yes tests",
     "python -m pytest --color=yes --count 500 tests/test_concurrent.py",
 ]
+environment = {"UV_NO_CONFIG"="1"}
 
 [tool.cibuildwheel.windows]
 # adapted from numpy
