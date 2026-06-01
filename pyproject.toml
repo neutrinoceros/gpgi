@@ -182,6 +182,9 @@ filterwarnings = [
 
 [tool.cibuildwheel]
 skip = ["cp314t-*"]
+# shared config-settings are specified within build-frontends (args)
+# because it is not practical to extend them otherwise (it is not supported by cibw'
+# override mechanism).
 build-frontend = "uv; args: -Csetup-args='-Dpython.allow_limited_api=true' --no-config"
 build-verbosity = 1
 test-groups = ["test", "concurrency"]
