@@ -5,14 +5,16 @@ py = import('python').find_installation(pure: false)
 cy = meson.get_compiler('cython')
 cython = find_program(cy.cmd_array()[0])
 
-numpy_compile_flags = [
+npy_c_args = [
   # keep in sync with pyproject.toml
   '-DNPY_TARGET_VERSION=NPY_1_25_API_VERSION',
   '-DNPY_NO_DEPRECATED_API=NPY_1_25_API_VERSION',
 ]
 
-_numpy_dep = dependency('numpy')
-np_dep = declare_dependency(dependencies: _numpy_dep, compile_args: numpy_compile_flags)
+npy_dep = declare_dependency(
+  dependencies: dependency('numpy'),
+  compile_args: npy_c_args,
+)
 
 if get_option('pylib')
   py.install_sources('src/gpgi/_lib.py', subdir: 'gpgi')
@@ -22,8 +24,8 @@ else
       'src/gpgi/_lib.pyx',
       subdir: 'gpgi',
       install: true,
-      dependencies : [np_dep],
-      c_args: numpy_compile_flags,
+      dependencies : npy_dep,
+      c_args: npy_c_args,
       limited_api: py.language_version(),
   )
 endif
