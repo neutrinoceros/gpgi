@@ -1,4 +1,10 @@
-project('gpgi', 'c', 'cython', meson_version: '>=1.5.0')
+project(
+  'gpgi',
+  'c',
+  'cython',
+  # https://mesonbuild.com/meson-python/reference/meson-compatibility.html#cmdoption-arg-1.6.0
+  meson_version: '>=1.6.0',
+)
 
 # detect missing dependencies early
 py = import('python').find_installation(pure: false)
