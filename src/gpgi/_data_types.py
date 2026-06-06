@@ -44,6 +44,7 @@ else:
     from _thread import LockType
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from typing import Any, Self
 
     from numpy.typing import NDArray
@@ -784,9 +785,10 @@ class Dataset(Generic[D, F]):
         else:
             raise RuntimeError
 
-    def _sanitize_boundaries(self, boundaries: dict[Name, tuple[Name, Name]]) -> None:
-        for ax in self.grid.axes:
-            boundaries.setdefault(ax, ("open", "open"))
+    def _sanitize_boundaries(
+        self,
+        boundaries: Mapping[Name, tuple[Name, Name]],
+    ) -> None:
         for axk in boundaries:
             if axk not in self.grid.axes:
                 raise ValueError(

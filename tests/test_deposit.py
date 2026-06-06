@@ -381,6 +381,24 @@ def test_builtin_boundary_recipe(keyL, keyR, sample_2D_dataset):
     npt.assert_array_equal(res1[1:-1, 1:-1], res2[1:-1, 1:-1])
 
 
+def test_externally_managed_boundaries(subtests, sample_2D_dataset):
+    # regression test for input mutations
+    ds = sample_2D_dataset
+    b = {}
+    wfb = {}
+    ds.deposit(
+        "mass",
+        method="ngp",
+        boundaries=b,
+        weight_field="mass",
+        weight_field_boundaries=wfb,
+    )
+    with subtests.test("boundaries"):
+        assert b == {}
+    with subtests.test("weight_field_boundaries"):
+        assert wfb == {}
+
+
 def test_register_invalid_boundary_recipe():
     nx = ny = 64
     nparticles = 100
