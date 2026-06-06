@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from threading import Lock
 from typing import Any, Literal
 
@@ -15,7 +15,7 @@ BoundaryRecipeT = Callable[
         FArray[DH, F],
         FArray[DH, F],
         Literal["left", "right"],
-        dict[str, Any],
+        Mapping[str, Any],
     ],
     FArray[DH, F],
 ]
@@ -132,7 +132,7 @@ def open_boundary(
     weight_opposite_side_active_layer: FArray[DH, F],
     weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
-    metadata: dict[str, Any],
+    metadata: Mapping[str, Any],
 ) -> FArray[DH, F]:
     # return the active layer unchanged
     return same_side_active_layer
@@ -148,7 +148,7 @@ def wall_boundary(
     weight_opposite_side_active_layer: FArray[DH, F],
     weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
-    metadata: dict[str, Any],
+    metadata: Mapping[str, Any],
 ) -> FArray[DH, F]:
     return same_side_active_layer + same_side_ghost_layer  # pyright: ignore[reportReturnType]
 
@@ -163,7 +163,7 @@ def antisymmetric_boundary(
     weight_opposite_side_active_layer: FArray[DH, F],
     weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
-    metadata: dict[str, Any],
+    metadata: Mapping[str, Any],
 ) -> FArray[DH, F]:
     return same_side_active_layer - same_side_ghost_layer  # pyright: ignore[reportReturnType]
 
@@ -178,12 +178,12 @@ def periodic_boundary(
     weight_opposite_side_active_layer: FArray[DH, F],
     weight_opposite_side_ghost_layer: FArray[DH, F],
     side: Literal["left", "right"],
-    metadata: dict[str, Any],
+    metadata: Mapping[str, Any],
 ) -> FArray[DH, F]:
     return same_side_active_layer + opposite_side_ghost_layer  # pyright: ignore[reportReturnType]
 
 
-_base_registry: dict[str, BoundaryRecipeT] = {
+_base_registry: Mapping[str, BoundaryRecipeT] = {
     "open": open_boundary,
     "wall": wall_boundary,
     "antisymmetric ": antisymmetric_boundary,

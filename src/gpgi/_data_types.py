@@ -62,13 +62,13 @@ class DepositionMethod(Enum):
     TRIANGULAR_SHAPED_CLOUD = auto()
 
 
-_deposition_method_names: dict[str, DepositionMethod] = {
+_deposition_method_names: Mapping[str, DepositionMethod] = {
     **{m.name.lower(): m for m in DepositionMethod},
     **{"".join([w[0] for w in m.name.split("_")]).lower(): m for m in DepositionMethod},
 }
 
 
-_BUILTIN_METHODS: dict[DepositionMethod, list[DepositionMethodT]] = {
+_BUILTIN_METHODS: Mapping[DepositionMethod, list[DepositionMethodT]] = {
     DepositionMethod.NEAREST_GRID_POINT: [
         _deposit_ngp_1D,
         _deposit_ngp_2D,
@@ -327,7 +327,7 @@ class Dataset(Generic[D, F]):
         geometry: Geometry = Geometry.CARTESIAN,
         grid: Grid[D, F],
         particles: ParticleSet[D, F] | None = None,
-        metadata: dict[str, Any] | None = None,
+        metadata: Mapping[str, Any] | None = None,
     ) -> None:
         r"""
         Compose a Dataset from a Grid and a ParticleSet.
@@ -341,7 +341,7 @@ class Dataset(Generic[D, F]):
 
         particles (keyword-only, optional): gpgi.ParticleSet
 
-        metadata (keyword-only, optional): dict[str, Any]
+        metadata (keyword-only, optional): Mapping[str, Any]
             A dictionary representing arbitrary additional data, that will be attached
             to the returned Dataset as an attribute (namely, ds.metadata). This special
             attribute is accessible from boundary condition methods as the argument of
@@ -577,11 +577,11 @@ class Dataset(Generic[D, F]):
         ]
         | DepositionMethodT
         | DepositionMethodWithMetadataT,
-        boundaries: dict[Name, tuple[Name, Name]] | None = None,
+        boundaries: Mapping[Name, tuple[Name, Name]] | None = None,
         verbose: bool = False,
         return_ghost_padded_array: bool = False,
         weight_field: Name | None = None,
-        weight_field_boundaries: dict[Name, tuple[Name, Name]] | None = None,
+        weight_field_boundaries: Mapping[Name, tuple[Name, Name]] | None = None,
         lock: Literal["per-instance"] | None | LockType = "per-instance",
     ) -> FArray[D, F]:
         r"""
@@ -621,7 +621,7 @@ class Dataset(Generic[D, F]):
 
             .. versionadded: 0.7.0
 
-        boundaries and weight_field_boundaries (keyword only, optional): dict
+        boundaries and weight_field_boundaries (keyword only, optional): Mapping
             Maps from axis names (str) to boundary recipe keys (str, str)
             representing left/right boundaries. By default all axes will use
             'open' boundaries on both sides. Specifying boundaries for all axes
@@ -809,7 +809,7 @@ class Dataset(Generic[D, F]):
     def _apply_boundary_conditions(
         self,
         array: NDArray[F],
-        boundaries: dict[Name, tuple[Name, Name]],
+        boundaries: Mapping[Name, tuple[Name, Name]],
         weight_array: NDArray[F] | None,
     ) -> None:
         axes = list(self.grid.axes)

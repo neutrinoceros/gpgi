@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, cast
 from gpgi._data_types import Dataset, Geometry, Grid, ParticleSet
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
     from typing import Any, Literal
 
     from gpgi._typing import D1, D, F, FieldMap, GridDict, ParticleSetDict
@@ -15,7 +16,7 @@ def load(
     geometry: Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"],
     grid: GridDict[D, F],
     particles: ParticleSetDict[D, F] | None = None,
-    metadata: dict[str, Any] | None = None,
+    metadata: Mapping[str, Any] | None = None,
 ) -> Dataset[D, F]:
     r"""
     Load a Dataset.
@@ -25,16 +26,16 @@ def load(
     geometry: Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"]
         This flag is used for validation of axis names, order and domain limits.
 
-    grid: dict[str, FieldMap]
+    grid: Mapping[str, FieldMap]
         A dictionary representing the grid coordinates as 1D arrays of cell left edges,
         and on-grid fields as ND arrays (fields are assumed to be defined on cell
         centers)
 
-    particles: dict[str, FieldMap] (optional)
+    particles: Mapping[str, FieldMap] (optional)
         A dictionary representing particle coordinates and associated fields as 1D
         arrays
 
-    metadata: dict[str, Any] (optional)
+    metadata: Mapping[str, Any] (optional)
         A dictionary representing arbitrary additional data, that will be attached to
         the returned Dataset as an attribute (namely, ds.metadata). This special
         attribute is accessible from boundary condition methods as the argument of the
