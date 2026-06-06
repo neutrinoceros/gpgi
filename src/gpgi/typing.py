@@ -11,6 +11,8 @@ from gpgi._typing import (
 )
 
 if TYPE_CHECKING:
+    from collections.abc import Mapping
+
     from gpgi._typing import D0, D1, FArray, HCIArray
 
 
@@ -51,5 +53,5 @@ class DepositionMethodWithMetadataT(Generic[D_contra, F_contra], Protocol):
         hci: HCIArray,
         out: FArray[D_contra, F_contra],
         *,
-        metadata: dict[str, Any],
+        metadata: Mapping[str, Any],
     ) -> None: ...

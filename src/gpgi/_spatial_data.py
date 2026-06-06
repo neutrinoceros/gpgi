@@ -1,4 +1,5 @@
 import math
+from collections.abc import Mapping
 from dataclasses import dataclass
 from enum import StrEnum, auto
 from itertools import chain
@@ -17,7 +18,7 @@ class Geometry(StrEnum):
     EQUATORIAL = auto()
 
 
-_AXES_LIMITS: dict[Name, tuple[float, float]] = {
+_AXES_LIMITS: Mapping[Name, tuple[float, float]] = {
     "x": (-float("inf"), float("inf")),
     "y": (-float("inf"), float("inf")),
     "z": (-float("inf"), float("inf")),
@@ -155,7 +156,7 @@ class FieldMapsValidatorHelper:
         *fmaps: FieldMap[D, F] | None,
         require_shape_equality: bool = False,
         require_sorted: bool = False,
-        required_attrs: dict[str, Any] | None = None,
+        required_attrs: Mapping[str, Any] | None = None,
     ) -> list[Exception]:
         ref_arr: NamedArray[Any, F] | None = None
         retv: list[Exception] = []
@@ -208,7 +209,7 @@ class FieldMapsValidatorHelper:
     def _check_required_attributes(
         name: str,
         data: FArray[D, F],
-        required_attrs: dict[str, Any],
+        required_attrs: Mapping[str, Any],
     ) -> ValueError | None:
         for attr, expected in required_attrs.items():
             if (actual := getattr(data, attr)) != expected:
