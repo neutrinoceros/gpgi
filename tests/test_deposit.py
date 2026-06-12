@@ -519,7 +519,9 @@ def unary_mass_dataset() -> Dataset[D3, f64]:
 
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
-def test_unary_mass_dataset(method: DepositionMethodShort, unary_mass_dataset) -> None:
+def test_unary_mass_dataset(
+    method: DepositionMethodShort, unary_mass_dataset: Dataset[D3, f64]
+) -> None:
     # check that total mass is conserved with open boundaries
     # when including ghost zones
     ds = unary_mass_dataset
@@ -545,7 +547,7 @@ def test_unary_mass_dataset(method: DepositionMethodShort, unary_mass_dataset) -
 )
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 def test_closed_boundaries(
-    method: DepositionMethodShort, boundaries, unary_mass_dataset
+    method: DepositionMethodShort, boundaries, unary_mass_dataset: Dataset[D3, f64]
 ) -> None:
     ds = unary_mass_dataset
     arr = ds.deposit("mass", method=method, boundaries=boundaries)
