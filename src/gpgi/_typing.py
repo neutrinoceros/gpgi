@@ -1,8 +1,14 @@
 __all__ = ["D", "D_contra", "D0", "D1", "D2", "D3", "DH", "F", "F_contra", "FArray"]
-from typing import Generic, NotRequired, TypedDict, TypeVar
+import sys
+from typing import Generic, Literal, NotRequired, TypeAlias, TypedDict, TypeVar
 
 import numpy as np
 from numpy import float32 as f32, float64 as f64
+
+if sys.version_info >= (3, 13):
+    from threading import Lock as LockType
+else:
+    from _thread import LockType
 
 D0 = tuple[()]
 D1 = tuple[int]
@@ -71,3 +77,9 @@ class GridDict(TypedDict, Generic[D, F]):
 class ParticleSetDict(TypedDict, Generic[D, F]):
     coordinates: CoordMap[F]
     fields: NotRequired[FieldMap[D, F]]
+
+
+DepositionMethodShort = Literal["ngp", "cic", "tsc"]
+LockArg: TypeAlias = Literal["per-instance"] | None | LockType
+BuiltinBoundary = Literal["open", "periodic"]
+GeometrySpec = Literal["cartesian", "polar", "cylindrical", "spherical", "equatorial"]

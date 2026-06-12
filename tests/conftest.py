@@ -1,6 +1,8 @@
 import textwrap
 from importlib.util import find_spec
+from pathlib import Path
 
+import pytest
 from runtime_introspect import runtime_feature_set
 
 import gpgi
@@ -8,7 +10,7 @@ import gpgi
 HAVE_PYTEST_MPL = find_spec("pytest_mpl") is not None
 
 
-def pytest_configure(config):
+def pytest_configure(config) -> None:
     if HAVE_PYTEST_MPL:
         import matplotlib as mpl
 
@@ -20,7 +22,7 @@ def pytest_configure(config):
         )
 
 
-def pytest_report_header(config, start_path) -> list[str]:
+def pytest_report_header(config: pytest.Config, start_path: Path) -> list[str]:
     fs = runtime_feature_set()
     diagnostics = fs.diagnostics(features=["free-threading", "JIT"])
     return [

@@ -3,6 +3,7 @@
 
 
 import threading
+from collections.abc import Sequence
 from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
@@ -10,7 +11,9 @@ import numpy.testing as npt
 import pytest
 
 import gpgi
+from gpgi import Dataset
 from gpgi._boundaries import BoundaryRegistry
+from gpgi._typing import D2, LockArg, f64
 
 prng = np.random.default_rng()
 
@@ -18,7 +21,7 @@ prng = np.random.default_rng()
 N_THREADS = 10
 
 
-def random_dataset():
+def random_dataset() -> Dataset[D2, f64]:
     return gpgi.load(
         geometry="cartesian",
         grid={
@@ -40,13 +43,13 @@ def random_dataset():
 
 
 class TestSetupHostCellIndex:
-    def check(self, results):
+    def check(self, results: Sequence[int]) -> None:
         # Check results: verify that all threads see the same array
         assert len(set(results)) == 1
         # check that we indeed collected ids, not None
         assert isinstance(results[0], int)
 
-    def test_concurrent_threading(self):
+    def test_concurrent_threading(self) -> None:
         # Defines a thread barrier that will be spawned before parallel execution
         # this increases the probability of concurrent access clashes.
         barrier = threading.Barrier(N_THREADS)
@@ -54,9 +57,9 @@ class TestSetupHostCellIndex:
         # This object will be shared by all the threads.
         ds = random_dataset()
 
-        results = []
+        results: list[int] = []
 
-        def closure():
+        def closure() -> None:
             # Ensure that all threads reach this point before concurrent execution.
             barrier.wait()
             hci = ds._setup_host_cell_index()
@@ -76,7 +79,7 @@ class TestSetupHostCellIndex:
 
         self.check(results)
 
-    def test_concurrent_pool(self):
+    def test_concurrent_pool(self) -> None:
         # Defines a thread barrier that will be spawned before parallel execution
         # this increases the probability of concurrent access clashes.
         barrier = threading.Barrier(N_THREADS)
@@ -100,13 +103,13 @@ class TestSetupHostCellIndex:
 
 @pytest.mark.parametrize("lock", ["per-instance", None, threading.Lock()])
 class TestDeposit:
-    def check(self, results):
+    def check(self, results: Sequence[np.ndarray[D2, np.dtype[f64]]]) -> None:
         ref = results[0]
         for res in results[1:]:
             npt.assert_array_equal(res, ref)
         assert len({id(res) for res in results}) == len(results)
 
-    def test_concurrent_threading(self, lock):
+    def test_concurrent_threading(self, lock: LockArg) -> None:
         # Defines a thread barrier that will be spawned before parallel execution
         # this increases the probability of concurrent access clashes.
         barrier = threading.Barrier(N_THREADS)
@@ -114,9 +117,9 @@ class TestDeposit:
         # This object will be shared by all the threads.
         ds = random_dataset()
 
-        results = []
+        results: list[np.ndarray[D2, np.dtype[f64]]] = []
 
-        def closure():
+        def closure() -> None:
             # Ensure that all threads reach this point before concurrent execution.
             barrier.wait()
             dep = ds.deposit("mass", method="nearest_grid_point", lock=lock)
@@ -135,7 +138,7 @@ class TestDeposit:
 
         self.check(results)
 
-    def test_concurrent_pool(self, lock):
+    def test_concurrent_pool(self, lock: LockArg) -> None:
         # Defines a thread barrier that will be spawned before parallel execution
         # this increases the probability of concurrent access clashes.
         barrier = threading.Barrier(N_THREADS)
@@ -156,7 +159,7 @@ class TestDeposit:
 
 
 class TestBoundaryRegistry:
-    def check(self, results):
+    def check(self, results: Sequence[str]) -> None:
         # only one thread can succeed registration, all others should raise.
         expected_msg = (
             "Another function is already registered with key='test'. "
@@ -166,7 +169,7 @@ class TestBoundaryRegistry:
         assert len(results) == N_THREADS - 1
         assert results.count(expected_msg) == N_THREADS - 1
 
-    def test_concurrent_threading(self):
+    def test_concurrent_threading(self) -> None:
         # Defines a thread barrier that will be spawned before parallel execution
         # this increases the probability of concurrent access clashes.
         barrier = threading.Barrier(N_THREADS)
@@ -174,7 +177,7 @@ class TestBoundaryRegistry:
         # This object will be shared by all the threads.
         registry = BoundaryRegistry()
 
-        results = []
+        results: list[str] = []
 
         def closure():
             def test_recipe(
@@ -214,7 +217,7 @@ class TestBoundaryRegistry:
 
         self.check(results)
 
-    def test_concurrent_pool(self):
+    def test_concurrent_pool(self) -> None:
         # Defines a thread barrier that will be spawned before parallel execution
         # this increases the probability of concurrent access clashes.
         barrier = threading.Barrier(N_THREADS)

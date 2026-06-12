@@ -1,12 +1,23 @@
 import re
+from typing import Literal, overload
 
 import numpy as np
 import pytest
 
 import gpgi
+from gpgi import Dataset
+from gpgi._typing import D1, D2, D3, f64
 
 
-def get_random_dataset(dimensionality: int):
+@overload
+def get_random_dataset(dimensionality: Literal[1]) -> Dataset[D1, f64]: ...
+@overload
+def get_random_dataset(dimensionality: Literal[2]) -> Dataset[D2, f64]: ...
+@overload
+def get_random_dataset(dimensionality: Literal[3]) -> Dataset[D3, f64]: ...
+
+
+def get_random_dataset(dimensionality: Literal[1, 2, 3]) -> Dataset:
     NPARTICLES = 10_000
     NX = 16
     prng = np.random.RandomState(0)
@@ -30,7 +41,7 @@ def get_random_dataset(dimensionality: int):
 
 
 @pytest.mark.parametrize("dim", [1, 2, 3])
-def test_sort(dim):
+def test_sort(dim: Literal[1, 2, 3]) -> None:
     ds = get_random_dataset(dim)
     assert not ds.is_sorted()
     sds = ds.sorted()
@@ -51,7 +62,7 @@ def test_sort(dim):
         ((1, 2, 3), "Expected all axes to be <3, got (1, 2, 3)"),
     ],
 )
-def test_key_errors(axes, expected_message):
+def test_key_errors(axes: D2 | D3, expected_message: str) -> None:
     ds = get_random_dataset(3)
     with pytest.raises(ValueError, match=re.escape(expected_message)):
         ds.sorted(axes=axes)
