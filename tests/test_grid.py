@@ -5,7 +5,7 @@ import pytest
 import gpgi
 
 
-def test_cell_volumes_cartesian():
+def test_cell_volumes_cartesian() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -20,7 +20,7 @@ def test_cell_volumes_cartesian():
     npt.assert_allclose(ds.grid.cell_volumes, expected, rtol=1e-15)
 
 
-def test_cell_volumes_curvilinear():
+def test_cell_volumes_curvilinear() -> None:
     ds = gpgi.load(
         geometry="cylindrical",
         grid={
@@ -37,7 +37,7 @@ def test_cell_volumes_curvilinear():
         ds.grid.cell_volumes  # noqa: B018
 
 
-def test_cell_volumes_shape():
+def test_cell_volumes_shape() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -51,7 +51,7 @@ def test_cell_volumes_shape():
     assert ds.grid.cell_volumes.shape == ds.grid.shape
 
 
-def test_cell_centers():
+def test_cell_centers() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={

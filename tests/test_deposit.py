@@ -4,19 +4,31 @@ from copy import deepcopy
 from functools import partial
 from importlib.util import find_spec
 from threading import Lock
+from typing import Literal
 
 import numpy as np
 import numpy.testing as npt
 import pytest
+from numpy.typing import DTypeLike
 
 import gpgi
+from gpgi import Dataset
+from gpgi._data_types import BoundarySpec
 from gpgi._lib import _deposit_ngp_2D
+from gpgi._typing import (
+    D2,
+    D3,
+    BuiltinBoundary,
+    DepositionMethodShort,
+    LockArg,
+    f64,
+)
 
 HAVE_PYTEST_MPL = find_spec("pytest_mpl") is not None
 
 
 @pytest.fixture()
-def sample_2D_dataset():
+def sample_2D_dataset() -> Dataset[D2, f64]:
     nparticles = 100
     nx, ny = grid_shape = 16, 16
     prng = np.random.RandomState(0)
@@ -47,7 +59,7 @@ def sample_2D_dataset():
 
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
-def test_single_cell_grid(method):
+def test_single_cell_grid(method: DepositionMethodShort) -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -64,7 +76,7 @@ def test_single_cell_grid(method):
     assert np.sum(out) == ds.particles.count
 
 
-def test_missing_particles():
+def test_missing_particles() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -77,7 +89,7 @@ def test_missing_particles():
         ds.deposit("mass", method="ngp")
 
 
-def test_missing_fields():
+def test_missing_fields() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -89,23 +101,23 @@ def test_missing_fields():
         ds.deposit("mass", method="ngp")
 
 
-def test_unknown_field(sample_2D_dataset):
+def test_unknown_field(sample_2D_dataset: Dataset[D2, f64]) -> None:
     with pytest.raises(ValueError, match="Unknown particle field 'density'"):
         sample_2D_dataset.deposit("density", method="ngp")
 
 
-def test_unknown_method(sample_2D_dataset):
+def test_unknown_method(sample_2D_dataset: Dataset[D2, f64]) -> None:
     with pytest.raises(
         ValueError, match="Unknown deposition method 'test', expected any of (.*)"
     ):
         sample_2D_dataset.deposit("density", method="test")
 
 
-def test_callable_method(sample_2D_dataset):
+def test_callable_method(sample_2D_dataset: Dataset[D2, f64]) -> None:
     sample_2D_dataset.deposit("mass", method=_deposit_ngp_2D)
 
 
-def test_callable_method_with_metadata(sample_2D_dataset):
+def test_callable_method_with_metadata(sample_2D_dataset: Dataset[D2, f64]) -> None:
     _is_used = False
     _md_is_received = False
 
@@ -122,7 +134,9 @@ def test_callable_method_with_metadata(sample_2D_dataset):
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.mpl_image_compare
-def test_2D_deposit(sample_2D_dataset, method):
+def test_2D_deposit(
+    sample_2D_dataset: Dataset[D2, f64], method: DepositionMethodShort
+) -> None:
     ds = sample_2D_dataset
     particle_density = ds.deposit("mass", method=method)
 
@@ -157,7 +171,9 @@ def test_2D_deposit(sample_2D_dataset, method):
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
 @pytest.mark.mpl_image_compare
-def test_1D_deposit(method, grid_type):
+def test_1D_deposit(
+    method: DepositionMethodShort, grid_type: Literal["linear", "geometric"]
+) -> None:
     if grid_type == "linear":
         xedges = np.linspace(1, 2, 6)
     elif grid_type == "geometric":
@@ -199,7 +215,11 @@ def test_1D_deposit(method, grid_type):
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.parametrize("dtype", ["float32", "float64"])
 @pytest.mark.parametrize("grid_type", ["linear", "geometric"])
-def test_3D_deposit(method, grid_type, dtype):
+def test_3D_deposit(
+    method: DepositionMethodShort,
+    grid_type: Literal["linear", "geometric"],
+    dtype: DTypeLike,
+) -> None:
     domain_span = 2.0
     if grid_type == "linear":
         domain_left = -1
@@ -261,7 +281,7 @@ def test_3D_deposit(method, grid_type, dtype):
 
 
 @pytest.mark.mpl_image_compare
-def test_readme_example():
+def test_readme_example() -> None:
     nx = ny = 64
     nparticles = 600_000
 
@@ -307,7 +327,7 @@ def test_readme_example():
     return fig
 
 
-def test_performance_logging(capsys, sample_2D_dataset):
+def test_performance_logging(capsys, sample_2D_dataset: Dataset[D2, f64]) -> None:
     ds = sample_2D_dataset
     ds.deposit("mass", method="ngp", verbose=True)
     stdout, stderr = capsys.readouterr()
@@ -318,7 +338,7 @@ def test_performance_logging(capsys, sample_2D_dataset):
     assert re.match(r"Deposited .* particles in .* s", lines[1])
 
 
-def test_return_ghost_padded_array():
+def test_return_ghost_padded_array() -> None:
     npart = 16
     prng = np.random.RandomState(0)
     ds = gpgi.load(
@@ -360,8 +380,11 @@ def test_return_ghost_padded_array():
     ],
 )
 def test_deposit_invalid_boundaries(
-    boundaries, error_type, error_message, sample_2D_dataset
-):
+    boundaries: BoundarySpec,
+    error_type: type[Exception],
+    error_message: str,
+    sample_2D_dataset: Dataset[D2, f64],
+) -> None:
     ds = sample_2D_dataset
     with pytest.raises(error_type, match=re.escape(error_message)):
         ds.deposit("mass", method="ngp", boundaries=boundaries)
@@ -371,7 +394,9 @@ def test_deposit_invalid_boundaries(
     "keyL, keyR",
     [("open", "wall"), ("periodic", "periodic"), ("antisymmetric ", "open")],
 )
-def test_builtin_boundary_recipe(keyL, keyR, sample_2D_dataset):
+def test_builtin_boundary_recipe(
+    keyL: BuiltinBoundary, keyR: BuiltinBoundary, sample_2D_dataset: Dataset[D2, f64]
+) -> None:
     ds = sample_2D_dataset
     res1 = ds.deposit("mass", method="tsc", boundaries={"x": (keyL, keyR)})
 
@@ -381,7 +406,9 @@ def test_builtin_boundary_recipe(keyL, keyR, sample_2D_dataset):
     npt.assert_array_equal(res1[1:-1, 1:-1], res2[1:-1, 1:-1])
 
 
-def test_externally_managed_boundaries(subtests, sample_2D_dataset):
+def test_externally_managed_boundaries(
+    subtests, sample_2D_dataset: Dataset[D2, f64]
+) -> None:
     # regression test for input mutations
     ds = sample_2D_dataset
     b = {}
@@ -399,7 +426,7 @@ def test_externally_managed_boundaries(subtests, sample_2D_dataset):
         assert wfb == {}
 
 
-def test_register_invalid_boundary_recipe():
+def test_register_invalid_boundary_recipe() -> None:
     nx = ny = 64
     nparticles = 100
 
@@ -439,7 +466,7 @@ def test_register_invalid_boundary_recipe():
         ds.boundary_recipes.register("my", _my_recipe)
 
 
-def test_register_custom_boundary_recipe(sample_2D_dataset):
+def test_register_custom_boundary_recipe(sample_2D_dataset: Dataset[D2, f64]) -> None:
     def _my_recipe(
         same_side_active_layer,
         same_side_ghost_layer,
@@ -464,7 +491,7 @@ def test_register_custom_boundary_recipe(sample_2D_dataset):
 
 
 @pytest.fixture
-def unary_mass_dataset():
+def unary_mass_dataset() -> Dataset[D3, f64]:
     from itertools import product
 
     x = np.linspace(0.5, 9.5, 10)
@@ -492,7 +519,7 @@ def unary_mass_dataset():
 
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
-def test_unary_mass_dataset(method, unary_mass_dataset):
+def test_unary_mass_dataset(method: DepositionMethodShort, unary_mass_dataset) -> None:
     # check that total mass is conserved with open boundaries
     # when including ghost zones
     ds = unary_mass_dataset
@@ -517,7 +544,9 @@ def test_unary_mass_dataset(method, unary_mass_dataset):
     ],
 )
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
-def test_closed_boundaries(method, boundaries, unary_mass_dataset):
+def test_closed_boundaries(
+    method: DepositionMethodShort, boundaries, unary_mass_dataset
+) -> None:
     ds = unary_mass_dataset
     arr = ds.deposit("mass", method=method, boundaries=boundaries)
     expected = ds.particles.fields["mass"].sum()
@@ -528,11 +557,13 @@ def test_closed_boundaries(method, boundaries, unary_mass_dataset):
     gpgi._IS_PY_LIB,
     reason="weight_field is not implemented with gpgi._IS_PY_LIB = True",
 )
-def test_deposit_with_weight_field(sample_2D_dataset):
+def test_deposit_with_weight_field(sample_2D_dataset: Dataset[D2, f64]) -> None:
     sample_2D_dataset.deposit("vx", method="tsc", weight_field="mass")
 
 
-def test_deposit_with_weight_field_and_incomplete_boundaries_spec(sample_2D_dataset):
+def test_deposit_with_weight_field_and_incomplete_boundaries_spec(
+    sample_2D_dataset: Dataset[D2, f64],
+) -> None:
     with pytest.raises(
         TypeError,
         match="weight_field_boundaries keyword argument is required with weight_field and boundaries",
@@ -545,7 +576,9 @@ def test_deposit_with_weight_field_and_incomplete_boundaries_spec(sample_2D_data
         )
 
 
-def test_deposit_with_weight_field_and_complete_boundaries_spec(sample_2D_dataset):
+def test_deposit_with_weight_field_and_complete_boundaries_spec(
+    sample_2D_dataset: Dataset[D2, f64],
+) -> None:
     ds = sample_2D_dataset
     ds.deposit(
         "vx",
@@ -556,7 +589,9 @@ def test_deposit_with_weight_field_and_complete_boundaries_spec(sample_2D_datase
     )
 
 
-def test_warn_unused_weight_field_boundaries(sample_2D_dataset):
+def test_warn_unused_weight_field_boundaries(
+    sample_2D_dataset: Dataset[D2, f64],
+) -> None:
     with pytest.warns(
         UserWarning,
         match=(
@@ -570,7 +605,7 @@ def test_warn_unused_weight_field_boundaries(sample_2D_dataset):
         )
 
 
-def test_partial_boundary():
+def test_partial_boundary() -> None:
     def _base_recipe(
         same_side_active_layer,
         same_side_ghost_layer,
@@ -607,7 +642,9 @@ def test_partial_boundary():
 
 @pytest.mark.parametrize("method", ["ngp", "cic", "tsc"])
 @pytest.mark.parametrize("dtype", ["float32", "float64"])
-def test_particles_on_domain_corners(method, dtype):
+def test_particles_on_domain_corners(
+    method: DepositionMethodShort, dtype: DTypeLike
+) -> None:
     nx, ny, nz = 2, 3, 5
     xlim = ylim = zlim = (0, 1)
     nparticles = 6
@@ -635,7 +672,7 @@ def test_particles_on_domain_corners(method, dtype):
 
 
 @pytest.mark.parametrize("lock", ["per-instance", None, Lock()])
-def test_explicit_lock(lock, sample_2D_dataset):
+def test_explicit_lock(lock: LockArg, sample_2D_dataset: Dataset[D2, f64]) -> None:
     ds = sample_2D_dataset
     mass_dep_ref = ds.deposit("mass", method="nearest_grid_point")
     mass_dep_exp = ds.deposit("mass", method="nearest_grid_point", lock=lock)
@@ -643,7 +680,7 @@ def test_explicit_lock(lock, sample_2D_dataset):
 
 
 @pytest.mark.parametrize("lock", ["perinstance", 0, nullcontext()])
-def test_invalick_lock(lock, sample_2D_dataset):
+def test_invalick_lock(lock: LockArg, sample_2D_dataset: Dataset[D2, f64]) -> None:
     ds = sample_2D_dataset
     with pytest.raises(ValueError, match="Received lock="):
         ds.deposit("mass", method="nearest_grid_point", lock=lock)

@@ -36,7 +36,7 @@ from gpgi._spatial_data import (
     GeometryValidator,
     Validator,
 )
-from gpgi._typing import D1, D, F, FArray, FieldMap, Name
+from gpgi._typing import D1, D, F, FArray, FieldMap, LockArg, Name
 
 if sys.version_info >= (3, 13):
     LockType = Lock
@@ -140,7 +140,7 @@ class Grid(Generic[D, F]):
 
         fields (keyword-only, optional): gpgi.typing.FieldMap
         """
-        self.geometry = geometry
+        self.geometry: Geometry = geometry
         self.coordinates: FieldMap[D1, F] = cell_edges
 
         if fields is None:
@@ -271,7 +271,7 @@ class ParticleSet(Generic[D, F]):
 
         fields (keyword-only, optional): gpgi.typing.FieldMap
         """
-        self.geometry = geometry
+        self.geometry: Geometry = geometry
         self.coordinates: FieldMap[D1, F] = coordinates
 
         if fields is None:
@@ -349,7 +349,7 @@ class Dataset(Generic[D, F]):
 
             .. versionadded: 0.4.0
         """
-        self.geometry = geometry
+        self.geometry: Geometry = geometry
 
         if particles is None:
             particles = ParticleSet(
@@ -360,7 +360,7 @@ class Dataset(Generic[D, F]):
         self.grid: Grid[D, F] = grid
         self.particles: ParticleSet[D, F] = particles
 
-        self.boundary_recipes = BoundaryRegistry()
+        self.boundary_recipes: BoundaryRegistry = BoundaryRegistry()
         self.axes = self.grid.axes
         self.metadata = deepcopy(metadata) if metadata is not None else {}
 
@@ -582,7 +582,7 @@ class Dataset(Generic[D, F]):
         return_ghost_padded_array: bool = False,
         weight_field: Name | None = None,
         weight_field_boundaries: Mapping[Name, tuple[Name, Name]] | None = None,
-        lock: Literal["per-instance"] | None | LockType = "per-instance",
+        lock: LockArg = "per-instance",
     ) -> FArray[D, F]:
         r"""
         Perform particle deposition and return the result as a grid field.

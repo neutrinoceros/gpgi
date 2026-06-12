@@ -5,7 +5,7 @@ import numpy as np
 import gpgi
 
 
-def test_repr():
+def test_repr() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={"cell_edges": {"x": np.array([0.0, 1.0])}},

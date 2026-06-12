@@ -3,7 +3,7 @@ import pytest
 from gpgi._boundaries import BoundaryRegistry
 
 
-def test_boundary_register_overrides():
+def test_boundary_register_overrides() -> None:
     registry = BoundaryRegistry()
 
     def test_recipe1(

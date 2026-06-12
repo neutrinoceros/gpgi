@@ -1,18 +1,22 @@
 import re
+from collections.abc import Sequence
+from typing import Literal
 
 import numpy as np
 import pytest
+from numpy.typing import DTypeLike
 from pytest import RaisesExc, RaisesGroup
 
 import gpgi
+from gpgi._typing import D2, D3, GeometrySpec
 
 
-def test_load_null_dataset():
+def test_load_null_dataset() -> None:
     with pytest.raises(TypeError):
         gpgi.load(geometry="cartesian")
 
 
-def test_load_standalone_grid():
+def test_load_standalone_grid() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -30,7 +34,7 @@ def test_load_standalone_grid():
     assert ds.metadata == {}
 
 
-def test_metadata():
+def test_metadata() -> None:
     md = {"time": 0.1}
     ds = gpgi.load(
         geometry="cartesian",
@@ -56,14 +60,14 @@ def test_metadata():
     assert ds.metadata is not md
 
 
-def test_load_empty_grid():
+def test_load_empty_grid() -> None:
     with pytest.raises(
         ValueError, match="grid dictionary missing required key 'cell_edges'"
     ):
         gpgi.load(geometry="cartesian", grid={})
 
 
-def test_load_empty_particles():
+def test_load_empty_particles() -> None:
     with pytest.raises(
         ValueError, match="particles dictionary missing required key 'coordinates'"
     ):
@@ -74,7 +78,7 @@ def test_load_empty_particles():
         )
 
 
-def test_load_empty_grid_and_empty_particles():
+def test_load_empty_grid_and_empty_particles() -> None:
     with RaisesGroup(
         RaisesExc(
             ValueError,
@@ -89,7 +93,7 @@ def test_load_empty_grid_and_empty_particles():
         gpgi.load(geometry="cartesian", grid={}, particles={})
 
 
-def test_unsorted_cell_edges():
+def test_unsorted_cell_edges() -> None:
     with pytest.raises(
         ValueError,
         match=re.escape(
@@ -109,7 +113,7 @@ def test_unsorted_cell_edges():
         ("max", float("inf")),
     ],
 )
-def test_infinite_box_edges(side, out_of_bounds_value):
+def test_infinite_box_edges(side, out_of_bounds_value) -> None:
     if side == "min":
         xlim = np.array([-np.inf, 1.0])
     elif side == "max":
@@ -125,7 +129,7 @@ def test_infinite_box_edges(side, out_of_bounds_value):
 
 
 @pytest.mark.parametrize("dtype", ["int16", "int32", "int64"])
-def test_integer_dtype(dtype):
+def test_integer_dtype(dtype: DTypeLike) -> None:
     with pytest.raises(
         ValueError,
         match=f"Invalid data type {dtype}",
@@ -138,7 +142,7 @@ def test_integer_dtype(dtype):
         )
 
 
-def test_missing_grid():
+def test_missing_grid() -> None:
     with pytest.raises(
         TypeError, match=r"load\(\) missing 1 required keyword-only argument: 'grid'"
     ):
@@ -304,8 +308,13 @@ def test_missing_grid():
     ],
 )
 def test_load_invalid_particles_coordinates(
-    geometry, cell_edges, coords, axis, side, limit
-):
+    geometry: GeometrySpec,
+    cell_edges,
+    coords,
+    axis,
+    side: Literal["min", "max"],
+    limit: float,
+) -> None:
     dt = coords[list(coords.keys())[0]].dtype.type
     if side == "min":
         c = dt(coords[axis].min())
@@ -325,7 +334,7 @@ def test_load_invalid_particles_coordinates(
         )
 
 
-def test_multiple_invalid_particle_coordinates():
+def test_multiple_invalid_particle_coordinates() -> None:
     cell_edges = {
         "radius": np.array([0.0, 100.0]),
         "colatitude": np.array([0.0, np.pi]),
@@ -362,7 +371,7 @@ def test_multiple_invalid_particle_coordinates():
         )
 
 
-def test_inconsistent_shape_particle_data():
+def test_inconsistent_shape_particle_data() -> None:
     with pytest.raises(
         ValueError,
         match=re.escape(r"Fields 'y' and 'x' have mismatching shapes (3,) and (2,)"),
@@ -392,7 +401,11 @@ def test_inconsistent_shape_particle_data():
         ("shape", np.ones((2, 1)), (1, 2)),
     ],
 )
-def test_inconsistent_grid_data(data, invalid_attr, expected):
+def test_inconsistent_grid_data(
+    data: np.ndarray[D2 | D3, np.dtype],
+    invalid_attr: str,
+    expected: int | tuple[int, int],
+) -> None:
     actual = getattr(data, invalid_attr)
     with pytest.raises(
         ValueError,
@@ -414,7 +427,7 @@ def test_inconsistent_grid_data(data, invalid_attr, expected):
         )
 
 
-def test_validate_empty_fields():
+def test_validate_empty_fields() -> None:
     ds = gpgi.load(
         geometry="cartesian",
         grid={
@@ -428,7 +441,7 @@ def test_validate_empty_fields():
     assert ds.grid.fields == {}
 
 
-def position(i):
+def position(i) -> Literal["first", "second", "third"]:
     return ["first", "second", "third"][i]
 
 
@@ -442,7 +455,7 @@ def position(i):
         ("spherical", ("x",), 0),
     ],
 )
-def test_single_invalid_axis(geometry, axes, pos):
+def test_single_invalid_axis(geometry: GeometrySpec, axes, pos) -> None:
     with pytest.raises(
         ValueError,
         match=rf"Invalid {position(pos)} axis name '\w+', with geometry {geometry!r}",
@@ -454,31 +467,31 @@ def test_single_invalid_axis(geometry, axes, pos):
 
 
 @pytest.mark.parametrize(
-    "geometry, axes, positions",
+    "axes, positions",
     [
-        ("spherical", ("x", "y"), [0, 1]),
-        ("spherical", ("x", "y", "z"), [0, 1, 2]),
-        ("spherical", ("radius", "azimuth", "z"), [1, 2]),
+        (("x", "y"), [0, 1]),
+        (("x", "y", "z"), [0, 1, 2]),
+        (("radius", "azimuth", "z"), [1, 2]),
     ],
 )
-def test_multiple_invalid_axes(geometry, axes, positions):
+def test_multiple_invalid_axes(axes: tuple[str, str, str], positions: Sequence[int]):
     with RaisesGroup(
         *[
             RaisesExc(
                 ValueError,
-                match=rf"Invalid {position(pos)} axis name '\w+', with geometry {geometry!r}",
+                match=rf"Invalid {position(pos)} axis name '\w+', with geometry 'spherical'",
             )
             for pos in positions
         ],
         match="input grid data is invalid",
     ):
         gpgi.load(
-            geometry=geometry,
+            geometry="spherical",
             grid={"cell_edges": {_: np.array([0.0, 1.0]) for _ in axes}},
         )
 
 
-def test_invalid_geometry():
+def test_invalid_geometry() -> None:
     with pytest.raises(
         ValueError,
         match=re.escape(
@@ -489,7 +502,7 @@ def test_invalid_geometry():
         gpgi.load(geometry="unknown", grid={"cell_edges": {"ax": np.array([0.0, 1.0])}})
 
 
-def test_out_of_bound_particles_left():
+def test_out_of_bound_particles_left() -> None:
     with pytest.raises(
         ValueError, match="Got particle at radius=1.0 < domain_left=10.0"
     ):
@@ -500,7 +513,7 @@ def test_out_of_bound_particles_left():
         )
 
 
-def test_out_of_bound_particles_right():
+def test_out_of_bound_particles_right() -> None:
     with pytest.raises(
         ValueError, match="Got particle at radius=1000.0 > domain_right=100.0"
     ):
@@ -511,7 +524,7 @@ def test_out_of_bound_particles_right():
         )
 
 
-def test_identical_dtype_requirement():
+def test_identical_dtype_requirement() -> None:
     nx = 64
     nparticles = 600
 
@@ -534,7 +547,7 @@ def test_identical_dtype_requirement():
         )
 
 
-def test_float32_limit_validation():
+def test_float32_limit_validation() -> None:
     gpgi.load(
         geometry="polar",
         grid={
@@ -546,7 +559,7 @@ def test_float32_limit_validation():
     )
 
 
-def test_float32_limit_invalidation():
+def test_float32_limit_invalidation() -> None:
     # domain boundaries are validated before dtype consistency,
     # we want to make sure that this fails *despite* being
     # knowingly tolerant with the dtype of each individual
