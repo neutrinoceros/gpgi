@@ -274,8 +274,8 @@ jobs:
       fail-fast: false
       matrix:
         python-version:
-        - '3.14'
-        - 3.14t
+        - '3.15'
+        - 3.15t
 
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -298,7 +298,7 @@ jobs:
         echo "PYTHON_GIL=0" >> $GITHUB_ENV
     - name: Build
       run: |
-        uv lock --upgrade --no-build
+        RUST_LOG=uv=debug uv lock --upgrade --no-build
         uv sync --only-dev
 
     - name: Unit Tests
