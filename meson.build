@@ -36,8 +36,6 @@ else
   )
 endif
 
-# meson doesn't have an equivalent to setuptools.packages.find
-# at the time of writing, so, listing every module explicitly here
 py.install_sources(
     'src/gpgi/__init__.py',
     'src/gpgi/_boundaries.py',
