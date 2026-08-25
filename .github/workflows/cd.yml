@@ -59,7 +59,7 @@ jobs:
       with:
         persist-credentials: false
     - name: Build wheels for CPython
-      uses: pypa/cibuildwheel@ee02a1537ce3071a004a6b08c41e72f0fdc42d9a # v3.4.0
+      uses: pypa/cibuildwheel@1828c10ab37f080699c7b81cea34097c684a7074 # v4.2.0
       env:
         CIBW_ARCHS: ${{ matrix.archs }}
         CIBW_BUILD: ${{ matrix.select }}
