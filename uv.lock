@@ -3,8 +3,8 @@ revision = 3
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.15' and sys_platform != 'ios'",
-    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform != 'ios'",
     "python_full_version >= '3.15' and sys_platform == 'ios'",
+    "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform != 'ios'",
     "python_full_version >= '3.12' and python_full_version < '3.15' and sys_platform == 'ios'",
     "python_full_version < '3.12' and sys_platform != 'ios'",
     "python_full_version < '3.12' and sys_platform == 'ios'",
@@ -746,16 +746,16 @@ wheels = [
 
 [[package]]
 name = "meson-python"
-version = "0.19.0"
+version = "0.21.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "meson" },
     { name = "packaging" },
     { name = "pyproject-metadata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/32/98/7fe5d1bf741c03c6eea04b6245737dbd79657d4f9200e82fcbb4cc12637b/meson_python-0.19.0.tar.gz", hash = "sha256:9959d198aa69b57fcfd354a34518c6f795b781a73ed0656f4d01660160cc2553", size = 101504, upload-time = "2026-01-15T13:52:44.368Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/f2/ab554fe4f020ec5f0ab4e4af04318e6ab99660f8d8d14e3d064db2b786a6/meson_python-0.21.1.tar.gz", hash = "sha256:78b3345dcbc0fed7b939e7e37a9faab35bddaae07bf62e7542c8ad479c395af5", size = 113878, upload-time = "2026-09-11T14:00:59.641Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/16/7f/d1b0c65b267a1463d752b324f11d3470e30889daefc4b9ec83029bfa30b5/meson_python-0.19.0-py3-none-any.whl", hash = "sha256:67b5906c37404396d23c195e12c8825506074460d4a2e7083266b845d14f0298", size = 28946, upload-time = "2026-01-15T13:52:43.107Z" },
+    { url = "https://files.pythonhosted.org/packages/9e/4f/03aeed5a32e7e8158d8c617fe65b622410db974fe02e3bd78da9689a44fd/meson_python-0.21.1-py3-none-any.whl", hash = "sha256:270bc9b78957c47e0aa1758ad616dba3f943d8f9cbdb944d318c3c1c7a49e4bd", size = 29579, upload-time = "2026-09-11T14:00:58.133Z" },
 ]
 
 [[package]]
