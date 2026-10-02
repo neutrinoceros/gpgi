@@ -110,6 +110,13 @@ constraint-dependencies = [
     "meson>=1.5",
 ]
 
+[tool.coverage.paths]
+source = [
+    "/home/runner/work/gpgi", # Ubuntu
+    "/Users/runner/work/gpgi", # macOS
+    "d:\\a\\gpgi", # Windows
+]
+
 [tool.coverage.run]
 source = [
     "src/gpgi",
