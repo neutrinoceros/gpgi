@@ -167,7 +167,7 @@ ds = gpgi.load(
     geometry="cartesian",
     grid=...,
     particles=...,
-    metadata={"simulation_time": 12.5, "author": "Clément Robert"}
+    metadata={"simulation_time": 12.5, "author": "Clément Robert"},
 )
 ```
 
@@ -198,7 +198,7 @@ ds.deposit(
     boundaries={
         "x": ("periodic", "periodic"),
         "y": ("periodic", "periodic"),
-    }
+    },
 )
 ```
 Unspecified axes will use the default `'open'` boundary.
@@ -233,7 +233,7 @@ def ones(
     side,
     metadata,
 ):
-   return 1.0
+    return 1.0
 ```
 where all first eight arguments are `numpy.ndarray` objects with the same shape (which includes ghost padding !),
 to which the return value must be broadcastable, `side` can only be either
@@ -254,7 +254,7 @@ ds.deposit(
     boundaries={
         "x": ("ones", "wall"),
         "y": ("periodic", "periodic"),
-    }
+    },
 )
 ```
 
